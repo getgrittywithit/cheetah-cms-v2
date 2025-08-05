@@ -1,147 +1,145 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Brand } from '@/lib/brand-types'
+import { supabase } from '@/lib/supabase'
 
-// Server-side brand configurations with environment variables
-const getBrands = (): Brand[] => [
-  {
-    id: '1',
-    name: 'Grit Collective',
-    slug: 'grit-collective',
-    description: 'Premium streetwear and lifestyle brand',
-    website: 'https://gritcollective.com',
-    industry: 'Fashion & Apparel',
-    targetAudience: 'Young adults 18-35 interested in streetwear and urban fashion',
-    socialAccounts: [
-      {
-        platform: 'facebook',
-        accountId: 'grit-collective-fb',
-        accessToken: process.env.FACEBOOK_PAGE_ACCESS_TOKEN || '',
-        pageId: process.env.FACEBOOK_PAGE_ID || '',
-        username: 'gritcollective',
-        isActive: true
-      },
-      {
-        platform: 'instagram',
-        accountId: 'grit-collective-ig',
-        accessToken: process.env.INSTAGRAM_ACCESS_TOKEN || '',
-        username: 'gritcollective',
-        isActive: true
-      }
-    ],
+// Helper to transform database brands to the Brand interface
+function transformBrand(dbBrand: any): Brand {
+  return {
+    id: dbBrand.id,
+    name: dbBrand.name,
+    slug: dbBrand.name.toLowerCase().replace(/\s+/g, '-'),
+    description: dbBrand.description || '',
+    website: dbBrand.tagline || '',
+    industry: dbBrand.industry || '',
+    targetAudience: dbBrand.target_audience || '',
+    socialAccounts: dbBrand.social_accounts?.map((acc: any) => ({
+      platform: acc.platform,
+      accountId: acc.account_id || '',
+      accessToken: acc.access_token || '',
+      pageId: acc.account_id || '',
+      username: acc.account_handle || '',
+      isActive: acc.is_active || false
+    })) || [],
     guidelines: {
       voice: {
-        tone: 'Bold, authentic, and empowering',
-        personality: ['Confident', 'Edgy', 'Inclusive', 'Motivational'],
-        doNots: ['Avoid overly corporate language', 'Don\'t use outdated slang', 'Never compromise on quality messaging']
+        tone: dbBrand.tone_of_voice || '',
+        personality: dbBrand.brand_personality || [],
+        doNots: []
       },
       visual: {
-        primaryColors: ['#000000', '#FFFFFF'],
-        secondaryColors: ['#FF6B35', '#F7931E'],
-        fontStyle: 'Bold, modern sans-serif'
+        primaryColors: [dbBrand.primary_color || '#000000', dbBrand.secondary_color || '#FFFFFF'].filter(Boolean),
+        secondaryColors: [dbBrand.accent_color].filter(Boolean),
+        fontStyle: `${dbBrand.primary_font || 'Sans-serif'}, ${dbBrand.secondary_font || 'serif'}`
       },
       content: {
-        hashtags: ['#GritCollective', '#StreetWear', '#UrbanFashion', '#BoldStyle', '#AuthenticVibes'],
-        keywords: ['streetwear', 'urban fashion', 'bold style', 'premium apparel'],
-        contentPillars: ['Product Showcases', 'Style Inspiration', 'Behind the Scenes', 'Community Features'],
-        postingSchedule: [
-          {
-            platform: 'instagram',
-            times: ['9:00 AM', '3:00 PM', '7:00 PM'],
-            frequency: 'daily'
-          },
-          {
-            platform: 'facebook',
-            times: ['10:00 AM', '6:00 PM'],
-            frequency: '5x per week'
-          }
-        ]
+        hashtags: [],
+        keywords: dbBrand.brand_values || [],
+        contentPillars: [],
+        postingSchedule: []
       },
-      aiPrompt: 'You are the social media voice for Grit Collective, a premium streetwear brand. Write content that is bold, authentic, and empowering. Focus on style inspiration, product features, and building community. Use urban language that resonates with young adults who value self-expression and quality fashion.'
+      aiPrompt: dbBrand.unique_value_proposition || ''
     },
     isActive: true,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
-  {
-    id: '2',
-    name: 'Daily Dish Dash',
-    slug: 'daily-dish-dash',
-    description: 'Quick, delicious recipes and food inspiration for busy people',
-    website: 'https://dailydishdash.com',
-    industry: 'Food & Cooking',
-    targetAudience: 'Busy professionals and home cooks looking for quick, tasty meal solutions',
-    socialAccounts: [
-      {
-        platform: 'facebook',
-        accountId: 'daily-dish-dash-fb',
-        accessToken: process.env.DAILY_DISH_FACEBOOK_PAGE_ACCESS_TOKEN || '',
-        pageId: process.env.DAILY_DISH_FACEBOOK_PAGE_ID || '',
-        username: 'dailydishdash',
-        isActive: true
-      },
-      {
-        platform: 'instagram',
-        accountId: 'daily-dish-dash-ig',
-        accessToken: process.env.DAILY_DISH_INSTAGRAM_ACCESS_TOKEN || '',
-        username: 'dailydishdash',
-        isActive: true
-      },
-      {
-        platform: 'tiktok',
-        accountId: 'daily-dish-dash-tiktok',
-        accessToken: process.env.DAILY_DISH_TIKTOK_ACCESS_TOKEN || '',
-        username: 'dailydishdash',
-        isActive: true
-      }
-    ],
-    guidelines: {
-      voice: {
-        tone: 'Friendly, helpful, and enthusiastic about food',
-        personality: ['Approachable', 'Encouraging', 'Practical', 'Food-passionate'],
-        doNots: ['Don\'t use complex culinary terms', 'Avoid time-consuming recipes', 'Don\'t shame food choices']
-      },
-      visual: {
-        primaryColors: ['#FF6B6B', '#4ECDC4'],
-        secondaryColors: ['#45B7D1', '#96CEB4', '#FFEAA7'],
-        fontStyle: 'Friendly, rounded fonts'
-      },
-      content: {
-        hashtags: ['#DailyDishDash', '#QuickRecipes', '#EasyMeals', '#FoodHacks', '#BusyCook', '#HomeCooking'],
-        keywords: ['quick recipes', 'easy meals', 'cooking tips', 'food hacks', 'meal prep'],
-        contentPillars: ['Quick Recipes', 'Cooking Tips', 'Meal Prep Ideas', 'Food Hacks', 'Kitchen Gadgets'],
-        postingSchedule: [
-          {
-            platform: 'instagram',
-            times: ['8:00 AM', '12:00 PM', '6:00 PM'],
-            frequency: 'daily'
-          },
-          {
-            platform: 'facebook',
-            times: ['9:00 AM', '5:00 PM'],
-            frequency: 'daily'
-          },
-          {
-            platform: 'tiktok',
-            times: ['11:00 AM', '4:00 PM', '8:00 PM'],
-            frequency: '2x per day'
-          }
-        ]
-      },
-      aiPrompt: 'You are the social media voice for Daily Dish Dash, a food brand focused on quick, delicious recipes for busy people. Write content that is friendly, encouraging, and practical. Share cooking tips, easy recipes, and food hacks that save time. Make cooking feel accessible and fun, not intimidating. Use warm, conversational language that makes followers feel like they\'re getting advice from a helpful friend in the kitchen.'
-    },
-    isActive: true,
-    createdAt: new Date(),
-    updatedAt: new Date()
+    createdAt: new Date(dbBrand.created_at),
+    updatedAt: new Date(dbBrand.updated_at)
   }
-]
+}
 
 export async function GET() {
   try {
-    const brands = getBrands()
+    // For now, use a hardcoded user ID (replace with proper auth later)
+    const userId = 'temp-user-id'
     
-    // Log to check if env vars are loaded
-    console.log('Daily Dish FB Token exists:', !!process.env.DAILY_DISH_FACEBOOK_PAGE_ACCESS_TOKEN)
-    console.log('Daily Dish FB Page ID:', process.env.DAILY_DISH_FACEBOOK_PAGE_ID)
+    // Fetch brands with their social accounts from Supabase
+    const { data: dbBrands, error } = await supabase
+      .from('brand_profiles')
+      .select(`
+        *,
+        social_accounts (*)
+      `)
+      .order('created_at', { ascending: false })
+    
+    if (error) {
+      throw error
+    }
+    
+    // If no brands exist, create default ones
+    if (!dbBrands || dbBrands.length === 0) {
+      // Create default brands in database
+      const defaultBrands = [
+        {
+          user_id: userId,
+          name: 'Daily Dish Dash',
+          description: 'Quick, delicious recipes and food inspiration for busy people',
+          industry: 'Food & Cooking',
+          target_audience: 'Busy professionals and home cooks looking for quick, tasty meal solutions',
+          tone_of_voice: 'Friendly, helpful, and enthusiastic about food',
+          brand_personality: ['Approachable', 'Encouraging', 'Practical', 'Food-passionate'],
+          primary_color: '#FF6B6B',
+          secondary_color: '#4ECDC4',
+          is_default: true
+        }
+      ]
+      
+      const { data: createdBrands, error: createError } = await supabase
+        .from('brand_profiles')
+        .insert(defaultBrands)
+        .select(`
+          *,
+          social_accounts (*)
+        `)
+      
+      if (createError) {
+        console.error('Failed to create default brands:', createError)
+      } else if (createdBrands) {
+        // Create social accounts for the new brand
+        const brandId = createdBrands[0].id
+        const socialAccounts = [
+          {
+            user_id: userId,
+            brand_profile_id: brandId,
+            platform: 'facebook',
+            account_handle: 'dailydishdash',
+            access_token: process.env.DAILY_DISH_FACEBOOK_PAGE_ACCESS_TOKEN || '',
+            account_id: process.env.DAILY_DISH_FACEBOOK_PAGE_ID || '',
+            is_active: !!process.env.DAILY_DISH_FACEBOOK_PAGE_ACCESS_TOKEN,
+            posting_enabled: !!process.env.DAILY_DISH_FACEBOOK_PAGE_ACCESS_TOKEN
+          },
+          {
+            user_id: userId,
+            brand_profile_id: brandId,
+            platform: 'instagram',
+            account_handle: 'dailydishdash',
+            access_token: process.env.DAILY_DISH_INSTAGRAM_ACCESS_TOKEN || '',
+            is_active: !!process.env.DAILY_DISH_INSTAGRAM_ACCESS_TOKEN,
+            posting_enabled: !!process.env.DAILY_DISH_INSTAGRAM_ACCESS_TOKEN
+          }
+        ]
+        
+        await supabase
+          .from('social_accounts')
+          .insert(socialAccounts)
+      }
+      
+      // Fetch again with social accounts
+      const { data: newBrands } = await supabase
+        .from('brand_profiles')
+        .select(`
+          *,
+          social_accounts (*)
+        `)
+        .order('created_at', { ascending: false })
+      
+      const brands = (newBrands || []).map(transformBrand)
+      
+      return NextResponse.json({
+        success: true,
+        brands
+      })
+    }
+    
+    // Transform database brands to match Brand interface
+    const brands = dbBrands.map(transformBrand)
     
     return NextResponse.json({
       success: true,

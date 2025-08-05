@@ -76,25 +76,99 @@ export class SocialMediaAPI {
     }
   }
 
-  // Instagram API Integration (Basic Display API)
+  // Instagram API Integration (Instagram Graph API for Business)
   static async postToInstagram(
-    _post: SocialPost,
+    post: SocialPost,
     account: SocialAccount,
-    _mediaUrls?: string[]
+    mediaUrls?: string[]
   ): Promise<PostResponse> {
     try {
-      if (!account.accessToken) {
-        throw new Error('Instagram access token not configured')
+      if (!account.accessToken || !account.accountId) {
+        throw new Error('Instagram access token or account ID not configured')
       }
 
-      // Instagram posting requires the Instagram Graph API (business accounts)
-      // For now, return a placeholder response
+      // Instagram requires media for all posts
+      if (!mediaUrls || mediaUrls.length === 0) {
+        throw new Error('Instagram posts require at least one image')
+      }
+
+      // Step 1: Create media container
+      const containerUrl = `https://graph.facebook.com/v18.0/${account.accountId}/media`
+      
+      const containerData: Record<string, unknown> = {
+        caption: post.content + '\n\n' + post.hashtags.join(' '),
+        access_token: account.accessToken
+      }
+
+      // Handle single image post
+      if (mediaUrls.length === 1) {
+        containerData.image_url = mediaUrls[0]
+      } else {
+        // For carousel posts, we need to create individual media containers first
+        // This is a simplified version - full implementation would handle carousel
+        containerData.image_url = mediaUrls[0]
+      }
+
+      const containerResponse = await fetch(containerUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(containerData)
+      })
+
+      const containerResult = await containerResponse.json()
+
+      if (!containerResponse.ok) {
+        throw new Error(containerResult.error?.message || 'Failed to create media container')
+      }
+
+      // Step 2: Check container status (optional but recommended)
+      // In production, you'd want to poll this until status is 'FINISHED'
+      
+      // Step 3: Publish the media container
+      const publishUrl = `https://graph.facebook.com/v18.0/${account.accountId}/media_publish`
+      
+      const publishData = {
+        creation_id: containerResult.id,
+        access_token: account.accessToken
+      }
+
+      // Handle scheduled posts
+      if (post.scheduledFor && new Date(post.scheduledFor) > new Date()) {
+        // Instagram doesn't support direct scheduling via API
+        // You'd need to implement your own scheduling system
+        return {
+          success: true,
+          postId: post.id,
+          platformPostId: containerResult.id,
+          scheduledFor: post.scheduledFor,
+          error: 'Instagram API does not support scheduling. Post will be published by cron job.'
+        }
+      }
+
+      const publishResponse = await fetch(publishUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(publishData)
+      })
+
+      const publishResult = await publishResponse.json()
+
+      if (!publishResponse.ok) {
+        throw new Error(publishResult.error?.message || 'Failed to publish post')
+      }
+
       return {
-        success: false,
-        error: 'Instagram API integration coming soon - requires Instagram Business account setup'
+        success: true,
+        postId: post.id,
+        platformPostId: publishResult.id
       }
 
     } catch (error) {
+      console.error('Instagram posting error:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
