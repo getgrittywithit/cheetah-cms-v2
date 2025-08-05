@@ -8,10 +8,20 @@ const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || 'cheetah-content-media'
 
 // Log configuration for debugging (remove in production)
 console.log('R2 Configuration:', {
-  accountId: R2_ACCOUNT_ID ? 'Set' : 'Missing',
-  accessKeyId: R2_ACCESS_KEY_ID ? 'Set' : 'Missing',
-  secretKey: R2_SECRET_ACCESS_KEY ? 'Set' : 'Missing',
-  bucket: R2_BUCKET_NAME
+  accountId: R2_ACCOUNT_ID ? `Set (${R2_ACCOUNT_ID.substring(0, 8)}...)` : 'Missing',
+  accessKeyId: R2_ACCESS_KEY_ID ? `Set (${R2_ACCESS_KEY_ID.substring(0, 8)}...)` : 'Missing',
+  secretKey: R2_SECRET_ACCESS_KEY ? `Set (${R2_SECRET_ACCESS_KEY.substring(0, 8)}...)` : 'Missing',
+  bucket: R2_BUCKET_NAME,
+  endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`
+})
+
+// Log all R2-related environment variables
+console.log('All R2 env vars:', {
+  R2_ACCOUNT_ID: process.env.R2_ACCOUNT_ID ? 'Set' : 'Missing',
+  R2_ACCESS_KEY_ID: process.env.R2_ACCESS_KEY_ID ? 'Set' : 'Missing', 
+  R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY ? 'Set' : 'Missing',
+  R2_BUCKET_NAME: process.env.R2_BUCKET_NAME ? 'Set' : 'Missing',
+  R2_PUBLIC_URL: process.env.R2_PUBLIC_URL ? 'Set' : 'Missing'
 })
 
 // Initialize R2 client
