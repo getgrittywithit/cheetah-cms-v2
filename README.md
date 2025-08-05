@@ -150,6 +150,7 @@ npm run lint
 - **Authentication issues**: Check NEXTAUTH_SECRET is set correctly
 - **Database connection**: Verify DATABASE_URL is correct
 - **Social posting fails**: Ensure API tokens have correct permissions
+- **File upload errors**: Verify R2 credentials are properly set in Vercel
 
 ## License
 
