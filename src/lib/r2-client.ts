@@ -4,7 +4,15 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID || ''
 const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID || ''
 const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY || ''
-const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || 'grit-collective-media'
+const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || 'cheetah-content-media'
+
+// Log configuration for debugging (remove in production)
+console.log('R2 Configuration:', {
+  accountId: R2_ACCOUNT_ID ? 'Set' : 'Missing',
+  accessKeyId: R2_ACCESS_KEY_ID ? 'Set' : 'Missing',
+  secretKey: R2_SECRET_ACCESS_KEY ? 'Set' : 'Missing',
+  bucket: R2_BUCKET_NAME
+})
 
 // Initialize R2 client
 export const r2Client = new S3Client({
@@ -41,6 +49,10 @@ export async function uploadToR2(
   key: string,
   contentType: string
 ): Promise<UploadedFile> {
+  if (!R2_ACCOUNT_ID || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY) {
+    throw new Error('R2 storage credentials are not configured. Please check environment variables.')
+  }
+
   const command = new PutObjectCommand({
     Bucket: R2_BUCKET_NAME,
     Key: key,
@@ -48,7 +60,12 @@ export async function uploadToR2(
     ContentType: contentType,
   })
 
-  await r2Client.send(command)
+  try {
+    await r2Client.send(command)
+  } catch (error) {
+    console.error('R2 upload error:', error)
+    throw new Error(`Failed to upload to R2: ${error instanceof Error ? error.message : 'Unknown error'}`)
+  }
 
   return {
     key,
@@ -70,24 +87,34 @@ export async function deleteFromR2(key: string): Promise<void> {
 
 // List files in R2
 export async function listFilesFromR2(prefix?: string): Promise<UploadedFile[]> {
+  if (!R2_ACCOUNT_ID || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY) {
+    console.error('R2 credentials missing - returning empty list')
+    return []
+  }
+
   const command = new ListObjectsV2Command({
     Bucket: R2_BUCKET_NAME,
     Prefix: prefix,
     MaxKeys: 1000,
   })
 
-  const response = await r2Client.send(command)
-  
-  if (!response.Contents) {
+  try {
+    const response = await r2Client.send(command)
+    
+    if (!response.Contents) {
+      return []
+    }
+
+    return response.Contents.map((obj) => ({
+      key: obj.Key || '',
+      size: obj.Size || 0,
+      type: 'application/octet-stream', // R2 doesn't store content type in list
+      lastModified: obj.LastModified || new Date(),
+    }))
+  } catch (error) {
+    console.error('R2 list error:', error)
     return []
   }
-
-  return response.Contents.map((obj) => ({
-    key: obj.Key || '',
-    size: obj.Size || 0,
-    type: 'application/octet-stream', // R2 doesn't store content type in list
-    lastModified: obj.LastModified || new Date(),
-  }))
 }
 
 // Get signed URL for temporary access
