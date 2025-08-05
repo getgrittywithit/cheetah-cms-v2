@@ -12,7 +12,8 @@ console.log('R2 Configuration:', {
   accessKeyId: R2_ACCESS_KEY_ID ? `Set (${R2_ACCESS_KEY_ID.substring(0, 8)}...)` : 'Missing',
   secretKey: R2_SECRET_ACCESS_KEY ? `Set (${R2_SECRET_ACCESS_KEY.substring(0, 8)}...)` : 'Missing',
   bucket: R2_BUCKET_NAME,
-  endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`
+  endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  timestamp: new Date().toISOString()
 })
 
 // Log all R2-related environment variables
