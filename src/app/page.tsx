@@ -20,7 +20,7 @@ export default function HomePage() {
   }, [router])
 
   useEffect(() => {
-    // Redirect to dashboard or login based on auth status
+    // Redirect to dashboard or login based on auth status - updated
     checkAuthAndRedirect()
   }, [checkAuthAndRedirect])
 
