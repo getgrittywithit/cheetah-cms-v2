@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { Brand } from '@/lib/brand-types'
 import { supabase } from '@/lib/supabase'
 
 // Helper to transform database brands to the Brand interface
-function transformBrand(dbBrand: any): Brand {
+function transformBrand(dbBrand: Record<string, unknown>): Brand {
   return {
     id: dbBrand.id,
     name: dbBrand.name,
@@ -12,7 +12,7 @@ function transformBrand(dbBrand: any): Brand {
     website: dbBrand.tagline || '',
     industry: dbBrand.industry || '',
     targetAudience: dbBrand.target_audience || '',
-    socialAccounts: dbBrand.social_accounts?.map((acc: any) => ({
+    socialAccounts: (dbBrand.social_accounts as Record<string, unknown>[] | null)?.map((acc) => ({
       platform: acc.platform,
       accountId: acc.account_id || '',
       accessToken: acc.access_token || '',

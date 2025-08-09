@@ -124,8 +124,8 @@ export type Database = {
           hashtags: string[] | null
           media_urls: string[] | null
           ai_assistant_used: string | null
-          engagement_prediction: any | null
-          actual_performance: any | null
+          engagement_prediction: Record<string, unknown> | null
+          actual_performance: Record<string, unknown> | null
           created_at: string
           updated_at: string
         }
@@ -142,8 +142,8 @@ export type Database = {
           hashtags?: string[] | null
           media_urls?: string[] | null
           ai_assistant_used?: string | null
-          engagement_prediction?: any | null
-          actual_performance?: any | null
+          engagement_prediction?: Record<string, unknown> | null
+          actual_performance?: Record<string, unknown> | null
           created_at?: string
           updated_at?: string
         }
@@ -160,8 +160,8 @@ export type Database = {
           hashtags?: string[] | null
           media_urls?: string[] | null
           ai_assistant_used?: string | null
-          engagement_prediction?: any | null
-          actual_performance?: any | null
+          engagement_prediction?: Record<string, unknown> | null
+          actual_performance?: Record<string, unknown> | null
           created_at?: string
           updated_at?: string
         }

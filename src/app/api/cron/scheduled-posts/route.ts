@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
         
         // Find the social account for this platform
         const socialAccount = brand.social_accounts.find(
-          (acc: any) => acc.platform === platform && acc.posting_enabled
+          (acc: Record<string, unknown>) => acc.platform === platform && acc.posting_enabled
         )
 
         if (!socialAccount) {
