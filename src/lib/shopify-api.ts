@@ -146,7 +146,7 @@ class ShopifyAPI {
     }
   }
 
-  // Transform Printful product to Shopify format
+  // Transform Printful product to Shopify format with complete AI data
   transformPrintfulToShopify(printfulProduct: any, customData: any = {}) {
     const baseTitle = customData.title || printfulProduct.name
     const baseDescription = customData.description || `High-quality ${printfulProduct.name} from Grit Collective`
@@ -154,22 +154,43 @@ class ShopifyAPI {
     return {
       title: baseTitle,
       body_html: baseDescription,
-      vendor: 'Grit Collective',
-      product_type: 'Canvas Print',
-      status: 'draft' as const,
-      tags: customData.tags || 'canvas, wall art, motivational, home decor',
-      variants: printfulProduct.variants.map((variant: any) => ({
-        title: variant.name,
-        price: variant.price.toString(),
-        sku: variant.sku,
-        inventory_quantity: 100,
-        weight: 1.5,
-        weight_unit: 'lb',
-        requires_shipping: true,
-        taxable: true,
-        inventory_management: 'shopify',
-        inventory_policy: 'deny' as const
-      })),
+      vendor: customData.vendor || 'Grit Collective',
+      product_type: customData.type || 'Canvas Print',
+      status: customData.status || 'draft',
+      tags: Array.isArray(customData.tags) ? customData.tags.join(', ') : customData.tags || 'canvas, wall art, motivational, home decor',
+      handle: customData.urlHandle || baseTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+      
+      // Variants with AI-enhanced data
+      variants: printfulProduct.variants && printfulProduct.variants.length > 0 
+        ? printfulProduct.variants.map((variant: any, index: number) => ({
+            title: variant.name,
+            price: customData.price ? customData.price.toString() : variant.price?.toString() || '25.00',
+            compare_at_price: customData.compareAtPrice?.toString() || null,
+            sku: customData.sku ? `${customData.sku}-${index + 1}` : variant.sku,
+            barcode: customData.barcode || '',
+            inventory_quantity: customData.trackQuantity ? 100 : null,
+            weight: customData.weight || 1.5,
+            weight_unit: customData.weightUnit || 'lb',
+            requires_shipping: customData.isPhysicalProduct !== false,
+            taxable: customData.chargesTax !== false,
+            inventory_management: customData.trackQuantity ? 'shopify' : null,
+            inventory_policy: customData.continueSellingWhenOutOfStock ? 'continue' : 'deny'
+          }))
+        : [{
+            title: 'Default',
+            price: customData.price?.toString() || '25.00',
+            compare_at_price: customData.compareAtPrice?.toString() || null,
+            sku: customData.sku || 'GRIT-DEFAULT',
+            barcode: customData.barcode || '',
+            inventory_quantity: customData.trackQuantity ? 100 : null,
+            weight: customData.weight || 1.5,
+            weight_unit: customData.weightUnit || 'lb',
+            requires_shipping: customData.isPhysicalProduct !== false,
+            taxable: customData.chargesTax !== false,
+            inventory_management: customData.trackQuantity ? 'shopify' : null,
+            inventory_policy: customData.continueSellingWhenOutOfStock ? 'continue' : 'deny'
+          }],
+      
       images: printfulProduct.thumbnail ? [
         {
           src: printfulProduct.thumbnail,
@@ -177,8 +198,55 @@ class ShopifyAPI {
           position: 1
         }
       ] : [],
+      
+      // SEO fields
       seo_title: customData.seoTitle || baseTitle,
-      seo_description: customData.seoDescription || baseDescription.substring(0, 160)
+      seo_description: customData.seoDescription || baseDescription.substring(0, 160),
+      
+      // Additional Shopify fields
+      published_scope: 'web',
+      published_at: customData.status === 'active' ? new Date().toISOString() : null
+    }
+  }
+
+  // Add product to collection
+  async addProductToCollection(productId: number, collectionName: string) {
+    try {
+      // First, find or create the collection
+      const collections = await this.makeRequest('/custom_collections.json')
+      let collection = collections.custom_collections?.find(
+        (c: any) => c.title.toLowerCase() === collectionName.toLowerCase()
+      )
+      
+      if (!collection) {
+        // Create the collection if it doesn't exist
+        const newCollection = await this.makeRequest('/custom_collections.json', {
+          method: 'POST',
+          body: JSON.stringify({
+            custom_collection: {
+              title: collectionName,
+              published: true
+            }
+          })
+        })
+        collection = newCollection.custom_collection
+      }
+      
+      // Add product to collection
+      await this.makeRequest('/collects.json', {
+        method: 'POST',
+        body: JSON.stringify({
+          collect: {
+            product_id: productId,
+            collection_id: collection.id
+          }
+        })
+      })
+      
+      return collection
+    } catch (error) {
+      console.error(`Failed to add product ${productId} to collection ${collectionName}:`, error)
+      throw error
     }
   }
 

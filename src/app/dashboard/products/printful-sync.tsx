@@ -94,18 +94,32 @@ export default function PrintfulSync() {
     
     setPublishing(showPublishForm.id)
     try {
+      // Send AI data if available, otherwise use form data
+      const requestData = aiGeneratedData ? {
+        printful_product_id: showPublishForm.id,
+        // Send all AI-generated fields
+        ...aiGeneratedData,
+        // Override with any manual form changes
+        title: publishForm.title || aiGeneratedData.title,
+        description: publishForm.description || aiGeneratedData.description,
+        tags: publishForm.tags ? publishForm.tags.split(', ') : aiGeneratedData.tags,
+        seoTitle: publishForm.seoTitle || aiGeneratedData.seoTitle,
+        seoDescription: publishForm.seoDescription || aiGeneratedData.seoDescription,
+        status: publishForm.status || aiGeneratedData.status
+      } : {
+        printful_product_id: showPublishForm.id,
+        custom_title: publishForm.title,
+        custom_description: publishForm.description,
+        custom_tags: publishForm.tags,
+        seo_title: publishForm.seoTitle,
+        seo_description: publishForm.seoDescription,
+        status: publishForm.status
+      }
+
       const response = await fetch('/api/shopify/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          printful_product_id: showPublishForm.id,
-          custom_title: publishForm.title,
-          custom_description: publishForm.description,
-          custom_tags: publishForm.tags,
-          seo_title: publishForm.seoTitle,
-          seo_description: publishForm.seoDescription,
-          status: publishForm.status
-        })
+        body: JSON.stringify(requestData)
       })
       
       const data = await response.json()
@@ -148,7 +162,13 @@ export default function PrintfulSync() {
     setShowAIGenerator(product)
   }
 
+  const [aiGeneratedData, setAIGeneratedData] = useState<GeneratedProductData | null>(null)
+
   const handleAIDataGenerated = (data: GeneratedProductData) => {
+    // Store the complete AI data
+    setAIGeneratedData(data)
+    
+    // Update the form for display
     setPublishForm({
       title: data.title,
       description: data.description,

@@ -6,12 +6,37 @@ export async function POST(request: Request) {
   try {
     const { 
       printful_product_id,
+      // AI Generated data (all fields)
+      title,
+      description,
+      category,
+      price,
+      compareAtPrice,
+      chargesTax,
+      costPerItem,
+      trackQuantity,
+      sku,
+      barcode,
+      continueSellingWhenOutOfStock,
+      isPhysicalProduct,
+      weight,
+      weightUnit,
+      type,
+      vendor,
+      collections,
+      tags,
+      themeTemplate,
+      status,
+      salesChannels,
+      seoTitle,
+      seoDescription,
+      urlHandle,
+      // Legacy fields for backward compatibility
       custom_title,
       custom_description,
       custom_tags,
       seo_title,
-      seo_description,
-      status = 'draft'
+      seo_description
     } = await request.json()
 
     if (!printful_product_id) {
@@ -27,25 +52,53 @@ export async function POST(request: Request) {
     const printfulProduct = await printfulAPI.getSyncProduct(printful_product_id)
     const transformedProduct = printfulAPI.transformProduct(printfulProduct)
 
-    // Transform to Shopify format with custom data
+    // Use AI data if available, fall back to legacy fields
+    const finalData = {
+      title: title || custom_title,
+      description: description || custom_description,
+      tags: tags || custom_tags,
+      seoTitle: seoTitle || seo_title,
+      seoDescription: seoDescription || seo_description,
+      status: status || 'draft',
+      // Additional AI fields
+      category,
+      price,
+      compareAtPrice,
+      chargesTax,
+      costPerItem,
+      trackQuantity,
+      sku,
+      barcode,
+      continueSellingWhenOutOfStock,
+      isPhysicalProduct,
+      weight,
+      weightUnit,
+      type,
+      vendor,
+      collections,
+      urlHandle
+    }
+
+    // Transform to Shopify format with complete data
     const shopifyProductData = shopifyAPI.transformPrintfulToShopify(
       transformedProduct,
-      {
-        title: custom_title,
-        description: custom_description,
-        tags: custom_tags,
-        seoTitle: seo_title,
-        seoDescription: seo_description,
-        status
-      }
+      finalData
     )
 
     // Create product in Shopify
     const createdProduct = await shopifyAPI.createProduct(shopifyProductData)
 
-    // TODO: Upload additional product images if provided
-    // TODO: Set up inventory tracking
-    // TODO: Add to collections if specified
+    // Add to collections if specified
+    if (finalData.collections && Array.isArray(finalData.collections)) {
+      try {
+        for (const collectionName of finalData.collections) {
+          await shopifyAPI.addProductToCollection(createdProduct.id, collectionName)
+        }
+      } catch (error) {
+        console.error('Failed to add to collections:', error)
+        // Continue anyway - product was created successfully
+      }
+    }
 
     return NextResponse.json({
       success: true,
