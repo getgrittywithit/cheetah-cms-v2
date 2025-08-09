@@ -114,10 +114,35 @@ IMPORTANT: Respond ONLY with a valid JSON object. No explanations, no markdown, 
 Available Collections: ${GRIT_COLLECTIONS.join(', ')}
 Product Categories: ${Object.entries(PRODUCT_CATEGORIES).map(([key, val]) => `${key}: ${val}`).join(', ')}
 
+HTML Description Template (customize the product-specific parts):
+<div class="product-description">
+<h2>[Product Title], [Key Quality]</h2>
+<p>This <strong>[Product Name]</strong> [product description with symbolism/meaning]. [Product significance or what it represents].</p>
+<h3>Details</h3>
+<ul>
+<li><strong>Design:</strong> [Design description]</li>
+<li><strong>Symbolism:</strong> [What the product represents]</li>
+<li><strong>Sizes:</strong> [List available sizes from variants]</li>
+<li><strong>Material:</strong> [Material specs based on product type]</li>
+<li><strong>Finish:</strong> [Finish quality description]</li>
+<li><strong>Mounting:</strong> [Mounting/usage instructions]</li>
+</ul>
+<p><em>Perfect for [target audience description].</em></p>
+<p><strong>Need a custom size?</strong> Email us at <a href="mailto:info@gritcollectiveco.com">info@gritcollectiveco.com</a> to request a special fit.</p>
+<h3>Grit Collective Promise</h3>
+<p>Every piece is made to order to reduce waste and maximize quality. Designed to bring color, meaning, and natural beauty into your everyday space.</p>
+<h3>Shipping &amp; Returns</h3>
+<ul>
+<li>Ships in 7–14 business days in secure, gift-ready packaging</li>
+<li>All sales final on made-to-order items</li>
+<li><strong>Damage during delivery?</strong> Contact us for a prompt replacement at <a href="mailto:info@gritcollectiveco.com">info@gritcollectiveco.com</a></li>
+</ul>
+</div>
+
 Return a JSON object with ALL these fields:
 {
   "title": "Product title for Shopify",
-  "description": "<p>HTML formatted description with paragraphs</p>",
+  "description": "Complete HTML using the template above",
   "category": "Choose from product categories above",
   "price": 25.99,
   "compareAtPrice": null,
@@ -149,7 +174,7 @@ ${request.targetAudience ? `Audience: ${request.targetAudience}` : ''}
 ${request.additionalDetails ? `Details: ${request.additionalDetails}` : ''}
 ${request.variants ? `Variants: ${request.variants.map(v => `${v.name} ($${v.price})`).join(', ')}` : ''}
 
-Generate ALL Shopify product fields. Use HTML for description. Choose collections from the available list. Set realistic pricing based on similar products. Respond with ONLY the JSON object.`
+Generate ALL Shopify product fields using the HTML template for description. Fill in the bracketed placeholders with product-specific information. Choose collections from the available list. Set realistic pricing based on similar products. Include all variant sizes in the description. Respond with ONLY the JSON object.`
 
     const messages = [
       { role: 'system', content: systemPrompt },
