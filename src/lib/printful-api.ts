@@ -75,7 +75,14 @@ class PrintfulAPI {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
-      throw new Error(`Printful API Error: ${response.status} - ${errorData.error || response.statusText}`)
+      console.error('Printful API Error Details:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorData,
+        url,
+        token: this.token ? 'Present' : 'Missing'
+      })
+      throw new Error(`Printful API Error: ${response.status} - ${JSON.stringify(errorData) || response.statusText}`)
     }
 
     const data = await response.json()

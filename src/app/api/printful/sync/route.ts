@@ -4,6 +4,8 @@ import { printfulAPI } from '@/lib/printful-api'
 export async function GET() {
   try {
     console.log('Syncing products from Printful...')
+    console.log('API Token present:', !!process.env.PRINTFUL_API_TOKEN)
+    console.log('Token starts with:', process.env.PRINTFUL_API_TOKEN?.substring(0, 10))
     
     // Get all sync products from Printful
     const printfulProducts = await printfulAPI.getSyncProducts()
