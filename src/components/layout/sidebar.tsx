@@ -7,17 +7,19 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  Zap,
   Megaphone,
   FolderOpen,
-  Zap as Lightning
+  Zap as Lightning,
+  Package,
+  Globe
 } from 'lucide-react'
 import { clsx } from 'clsx'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Marketing', href: '/dashboard/marketing', icon: Megaphone },
-  { name: 'Integrations', href: '/dashboard/integrations', icon: Zap },
+  { name: 'Products', href: '/dashboard/products', icon: Package },
+  { name: 'Platforms', href: '/dashboard/platforms', icon: Globe },
+  { name: 'Content', href: '/dashboard/content', icon: Megaphone },
   { name: 'Files', href: '/dashboard/files', icon: FolderOpen },
   { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },

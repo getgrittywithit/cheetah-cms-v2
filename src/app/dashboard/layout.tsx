@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import Sidebar from '@/components/layout/sidebar'
-import Header from '@/components/layout/header'
+import Sidebar from '@/components/layout/Sidebar'
+import Header from '@/components/layout/Header'
+import AIHelper from '@/components/layout/AIHelper'
 import { AdminUser } from '@/lib/auth'
 import { BrandProvider } from '@/contexts/brand-context'
 
@@ -17,8 +18,8 @@ const getPageTitle = (pathname: string) => {
     '/dashboard/orders': 'Orders',
     '/dashboard/products': 'Products',
     '/dashboard/customers': 'Customers',
-    '/dashboard/marketing': 'Marketing',
-    '/dashboard/integrations': 'Integrations',
+    '/dashboard/content': 'Content',
+    '/dashboard/platforms': 'Platforms',
     '/dashboard/files': 'Files',
     '/dashboard/analytics': 'Analytics',
     '/dashboard/settings': 'Settings',
@@ -77,6 +78,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
           </main>
         </div>
+        <AIHelper />
       </div>
     </BrandProvider>
   )
