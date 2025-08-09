@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Upload, Package, Edit2, Eye, Trash2, Frame } from 'lucide-react'
+import { Plus, Upload, Package, Edit2, Eye, Trash2, Palette } from 'lucide-react'
 import AIHelper from '@/components/layout/AIHelper'
-import WallArtCreator from './wall-art-creator'
+import CanvasCreator from './canvas-creator'
 
 export default function ProductsPage() {
   const [activeTab, setActiveTab] = useState('create')
@@ -32,16 +32,16 @@ export default function ProductsPage() {
             </div>
           </button>
           <button
-            onClick={() => setActiveTab('wall-art')}
+            onClick={() => setActiveTab('canvas')}
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'wall-art'
+              activeTab === 'canvas'
                 ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
             <div className="flex items-center space-x-2">
-              <Frame className="w-4 h-4" />
-              <span>2:3 Wall Art</span>
+              <Palette className="w-4 h-4" />
+              <span>Canvas Creator</span>
             </div>
           </button>
           <button
@@ -149,9 +149,9 @@ export default function ProductsPage() {
         </div>
       )}
 
-      {/* Wall Art Tab */}
-      {activeTab === 'wall-art' && (
-        <WallArtCreator />
+      {/* Canvas Creator Tab */}
+      {activeTab === 'canvas' && (
+        <CanvasCreator />
       )}
 
       {/* Library Tab */}
