@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { SocialPost, BlogPost } from '@/lib/marketing-types'
 import ContentCalendar from '@/components/marketing/content-calendar'
+import BlogCreator from './blog-creator'
 
 // Platform icons mapping
 const platformIcons = {
@@ -43,7 +44,7 @@ const platformColors = {
 
 export default function MarketingPage() {
   const { currentBrand } = useBrand()
-  const [activeTab, setActiveTab] = useState<'overview' | 'social' | 'blog' | 'calendar' | 'email'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'social' | 'blog' | 'shopify-blog' | 'calendar' | 'email'>('overview')
   const [socialPosts, setSocialPosts] = useState<SocialPost[]>([])
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
   const [showCreatePost, setShowCreatePost] = useState(false)
@@ -290,6 +291,16 @@ export default function MarketingPage() {
             }`}
           >
             Blog
+          </button>
+          <button
+            onClick={() => setActiveTab('shopify-blog')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'shopify-blog'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Shopify Blog
           </button>
           <button
             onClick={() => setActiveTab('calendar')}
@@ -613,6 +624,10 @@ export default function MarketingPage() {
             blogPosts={blogPosts}
           />
         </div>
+      )}
+
+      {activeTab === 'shopify-blog' && (
+        <BlogCreator />
       )}
 
       {activeTab === 'email' && (
