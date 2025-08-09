@@ -53,9 +53,11 @@ export interface PrintfulFile {
 class PrintfulAPI {
   private baseURL = PRINTFUL_BASE_URL
   private token: string
+  private storeId: string
 
   constructor() {
     this.token = process.env.PRINTFUL_API_TOKEN || ''
+    this.storeId = process.env.PRINTFUL_STORE_ID || '16574654' // Default to user's store ID
     if (!this.token) {
       throw new Error('PRINTFUL_API_TOKEN is required')
     }
@@ -67,14 +69,20 @@ class PrintfulAPI {
     const response = await fetch(url, {
       ...options,
       headers: {
-        'Authorization': `Basic ${Buffer.from(this.token + ':').toString('base64')}`,
+        'Authorization': `Bearer ${this.token}`,
         'Content-Type': 'application/json',
+        'X-PF-Store-Id': this.storeId,
         ...options.headers,
       },
     })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
+      let errorData
+      try {
+        errorData = await response.json()
+      } catch (e) {
+        errorData = { error: response.statusText }
+      }
       console.error('Printful API Error Details:', {
         status: response.status,
         statusText: response.statusText,
@@ -82,7 +90,7 @@ class PrintfulAPI {
         url,
         token: this.token ? 'Present' : 'Missing'
       })
-      throw new Error(`Printful API Error: ${response.status} - ${JSON.stringify(errorData) || response.statusText}`)
+      throw new Error(`Printful API Error: ${response.status} - ${errorData.error || errorData.message || JSON.stringify(errorData) || response.statusText}`)
     }
 
     const data = await response.json()
