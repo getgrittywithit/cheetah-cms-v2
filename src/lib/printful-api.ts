@@ -97,7 +97,13 @@ class PrintfulAPI {
         statusText: response.statusText,
         errorData,
         url,
-        token: this.token ? 'Present' : 'Missing'
+        token: this.token ? `Present (${this.token.substring(0, 10)}...)` : 'Missing',
+        storeId: this.storeId,
+        headers: {
+          'Authorization': `Bearer ${this.token}`,
+          'Content-Type': 'application/json',
+          'X-PF-Store-Id': this.storeId
+        }
       })
       throw new Error(`Printful API Error: ${response.status} - ${errorData.error || errorData.message || JSON.stringify(errorData) || response.statusText}`)
     }
@@ -154,28 +160,46 @@ class PrintfulAPI {
   }
 
   // Transform Printful product to our format
-  transformProduct(printfulProduct: PrintfulProduct) {
-    const basePrice = Math.min(
-      ...printfulProduct.variants.map(v => parseFloat(v.retail_price))
-    )
+  transformProduct(printfulProduct: any) {
+    // Handle different response formats from /sync/products vs /sync/products/{id}
+    const isSimpleFormat = !printfulProduct.variants || typeof printfulProduct.variants === 'number'
     
-    return {
-      id: printfulProduct.id,
-      external_id: printfulProduct.external_id,
-      name: printfulProduct.name,
-      thumbnail: printfulProduct.thumbnail_url,
-      base_price: basePrice,
-      variant_count: printfulProduct.variants.length,
-      synced: printfulProduct.sync_product.synced === 1,
-      variants: printfulProduct.variants.map(variant => ({
-        id: variant.id,
-        name: variant.name,
-        sku: variant.sku,
-        price: parseFloat(variant.retail_price),
-        product_name: variant.product.name,
-        image: variant.product.image,
-        synced: variant.synced === 1
-      }))
+    if (isSimpleFormat) {
+      // Simple format from /sync/products endpoint
+      return {
+        id: printfulProduct.id,
+        external_id: printfulProduct.external_id,
+        name: printfulProduct.name,
+        thumbnail: printfulProduct.thumbnail_url,
+        base_price: 0, // Will be updated when we get full details
+        variant_count: printfulProduct.variants || 0,
+        synced: printfulProduct.synced > 0,
+        variants: [] // Empty array for simple format
+      }
+    } else {
+      // Full format from /sync/products/{id} endpoint
+      const basePrice = printfulProduct.variants.length > 0 
+        ? Math.min(...printfulProduct.variants.map((v: any) => parseFloat(v.retail_price)))
+        : 0
+      
+      return {
+        id: printfulProduct.id,
+        external_id: printfulProduct.external_id,
+        name: printfulProduct.name,
+        thumbnail: printfulProduct.thumbnail_url,
+        base_price: basePrice,
+        variant_count: printfulProduct.variants.length,
+        synced: printfulProduct.sync_product?.synced === 1,
+        variants: printfulProduct.variants.map((variant: any) => ({
+          id: variant.id,
+          name: variant.name,
+          sku: variant.sku,
+          price: parseFloat(variant.retail_price),
+          product_name: variant.product.name,
+          image: variant.product.image,
+          synced: variant.synced === 1
+        }))
+      }
     }
   }
 }
