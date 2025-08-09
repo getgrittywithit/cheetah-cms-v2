@@ -37,6 +37,8 @@ export async function POST(request: Request) {
       throw new Error('No response generated')
     }
 
+    console.log('AI Response:', content.substring(0, 500) + '...')
+
     return NextResponse.json({
       success: true,
       content

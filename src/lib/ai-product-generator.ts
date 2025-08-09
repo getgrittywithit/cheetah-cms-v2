@@ -50,11 +50,13 @@ Brand Voice:
 
 Target Audience: People focused on fitness, personal development, entrepreneurs, and those pursuing challenging goals.
 
+IMPORTANT: Respond ONLY with a valid JSON object. No explanations, no markdown, just the JSON.
+
 Return a JSON object with these exact fields:
 {
   "title": "SEO-optimized product title",
   "description": "HTML formatted rich description (2-3 paragraphs)",
-  "category": "Shopify product category",
+  "category": "Apparel & Accessories",
   "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
   "seoTitle": "60 character SEO title",
   "seoDescription": "160 character meta description",
@@ -71,7 +73,7 @@ ${request.brandContext ? `Context: ${request.brandContext}` : ''}
 ${request.targetAudience ? `Audience: ${request.targetAudience}` : ''}
 ${request.additionalDetails ? `Details: ${request.additionalDetails}` : ''}
 
-Generate all Shopify product fields for this item.`
+Generate all Shopify product fields for this item. Respond with ONLY the JSON object, no other text.`
 
     const messages = [
       { role: 'system', content: systemPrompt },
@@ -81,14 +83,22 @@ Generate all Shopify product fields for this item.`
     const response = await this.makeOpenAIRequest(messages)
     
     try {
+      // Try to extract JSON from the response if it contains extra text
+      const jsonMatch = response.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0])
+      }
       return JSON.parse(response)
     } catch (error) {
-      throw new Error('Failed to parse AI response as JSON')
+      console.error('Failed to parse AI response:', response)
+      throw new Error(`Failed to parse AI response as JSON: ${response.substring(0, 200)}...`)
     }
   }
 
   async refineProductData(currentData: GeneratedProductData, userFeedback: string): Promise<GeneratedProductData> {
     const systemPrompt = `You are refining product content for Grit Collective based on user feedback. Maintain the brand voice while incorporating the requested changes.
+
+IMPORTANT: Respond ONLY with a valid JSON object. No explanations, no markdown, just the JSON.
 
 Return the updated JSON object with the same structure as before.`
 
@@ -97,7 +107,7 @@ ${JSON.stringify(currentData, null, 2)}
 
 User feedback: ${userFeedback}
 
-Update the product data based on this feedback.`
+Update the product data based on this feedback. Respond with ONLY the JSON object, no other text.`
 
     const messages = [
       { role: 'system', content: systemPrompt },
@@ -107,9 +117,15 @@ Update the product data based on this feedback.`
     const response = await this.makeOpenAIRequest(messages)
     
     try {
+      // Try to extract JSON from the response if it contains extra text
+      const jsonMatch = response.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0])
+      }
       return JSON.parse(response)
     } catch (error) {
-      throw new Error('Failed to parse AI response as JSON')
+      console.error('Failed to parse AI refinement response:', response)
+      throw new Error(`Failed to parse AI response as JSON: ${response.substring(0, 200)}...`)
     }
   }
 
