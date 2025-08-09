@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Upload, Package, Edit2, Eye, Trash2, Palette } from 'lucide-react'
+import { Plus, Upload, Package, Edit2, Eye, Trash2, Palette, RefreshCw } from 'lucide-react'
 import AIHelper from '@/components/layout/AIHelper'
 import CanvasCreator from './canvas-creator'
+import PrintfulSync from './printful-sync'
 
 export default function ProductsPage() {
   const [activeTab, setActiveTab] = useState('create')
@@ -42,6 +43,19 @@ export default function ProductsPage() {
             <div className="flex items-center space-x-2">
               <Palette className="w-4 h-4" />
               <span>Canvas Creator</span>
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab('printful')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'printful'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <RefreshCw className="w-4 h-4" />
+              <span>Printful Sync</span>
             </div>
           </button>
           <button
@@ -152,6 +166,11 @@ export default function ProductsPage() {
       {/* Canvas Creator Tab */}
       {activeTab === 'canvas' && (
         <CanvasCreator />
+      )}
+
+      {/* Printful Sync Tab */}
+      {activeTab === 'printful' && (
+        <PrintfulSync />
       )}
 
       {/* Library Tab */}

@@ -1,0 +1,247 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { RefreshCw, Package, ExternalLink, ShoppingCart, Eye } from 'lucide-react'
+
+interface PrintfulProduct {
+  id: number
+  external_id: string
+  name: string
+  thumbnail: string
+  base_price: number
+  variant_count: number
+  synced: boolean
+  variants: Array<{
+    id: number
+    name: string
+    sku: string
+    price: number
+    product_name: string
+    image: string
+    synced: boolean
+  }>
+}
+
+export default function PrintfulSync() {
+  const [products, setProducts] = useState<PrintfulProduct[]>([])
+  const [loading, setLoading] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState<PrintfulProduct | null>(null)
+  const [syncing, setSyncing] = useState<number | null>(null)
+
+  const syncProducts = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch('/api/printful/sync')
+      const data = await response.json()
+      
+      if (data.success) {
+        setProducts(data.products)
+        console.log(`Synced ${data.count} products from Printful`)
+      } else {
+        alert(`Sync failed: ${data.error}`)
+      }
+    } catch (error) {
+      console.error('Sync failed:', error)
+      alert('Failed to sync products from Printful')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const syncSingleProduct = async (productId: number) => {
+    setSyncing(productId)
+    try {
+      const response = await fetch('/api/printful/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_id: productId })
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        setSelectedProduct(data.product)
+        // Update the product in the list
+        setProducts(prev => prev.map(p => 
+          p.id === productId ? data.product : p
+        ))
+      } else {
+        alert(`Sync failed: ${data.error}`)
+      }
+    } catch (error) {
+      console.error('Single product sync failed:', error)
+      alert('Failed to sync product details')
+    } finally {
+      setSyncing(null)
+    }
+  }
+
+  useEffect(() => {
+    syncProducts()
+  }, [])
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-lg border">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Printful Products</h2>
+            <p className="text-gray-600">
+              Sync completed products from Printful to prepare for Shopify publishing
+            </p>
+          </div>
+          <button
+            onClick={syncProducts}
+            disabled={loading}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            {loading ? 'Syncing...' : 'Sync from Printful'}
+          </button>
+        </div>
+      </div>
+
+      {products.length === 0 && !loading ? (
+        <div className="text-center py-12 bg-white rounded-lg shadow-sm">
+          <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No Products Found</h3>
+          <p className="text-gray-600 mb-4">
+            Create some products in Printful first, then sync them here.
+          </p>
+          <a
+            href="https://www.printful.com/dashboard"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center text-blue-600 hover:text-blue-800"
+          >
+            <ExternalLink className="w-4 h-4 mr-1" />
+            Open Printful Dashboard
+          </a>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Product List */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Products ({products.length})</h3>
+            {products.map((product) => (
+              <div
+                key={product.id}
+                className="bg-white rounded-lg shadow-sm p-4 border hover:border-blue-300 cursor-pointer transition-colors"
+                onClick={() => setSelectedProduct(product)}
+              >
+                <div className="flex items-start space-x-4">
+                  <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0">
+                    {product.thumbnail ? (
+                      <img
+                        src={product.thumbnail}
+                        alt={product.name}
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                    ) : (
+                      <Package className="w-8 h-8 text-gray-400 m-4" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-gray-900 truncate">{product.name}</h4>
+                    <p className="text-sm text-gray-600">
+                      {product.variant_count} variant{product.variant_count !== 1 ? 's' : ''} • 
+                      From ${product.base_price.toFixed(2)}
+                    </p>
+                    <div className="flex items-center mt-2 space-x-2">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        product.synced 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {product.synced ? '✓ Synced' : '⏳ Pending'}
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          syncSingleProduct(product.id)
+                        }}
+                        disabled={syncing === product.id}
+                        className="text-blue-600 hover:text-blue-800 text-sm"
+                      >
+                        {syncing === product.id ? 'Syncing...' : 'Refresh'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Product Details */}
+          <div className="bg-white rounded-lg shadow-sm">
+            {selectedProduct ? (
+              <div className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <h3 className="text-lg font-semibold">{selectedProduct.name}</h3>
+                  <button
+                    onClick={() => setSelectedProduct(null)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Printful ID</label>
+                    <p className="text-gray-900">{selectedProduct.id}</p>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">External ID</label>
+                    <p className="text-gray-900">{selectedProduct.external_id || 'Not set'}</p>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Variants ({selectedProduct.variant_count})</label>
+                    <div className="mt-2 space-y-2">
+                      {selectedProduct.variants.map((variant) => (
+                        <div key={variant.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                          <div>
+                            <p className="font-medium text-sm">{variant.name}</p>
+                            <p className="text-xs text-gray-600">{variant.product_name}</p>
+                            <p className="text-xs text-gray-500">SKU: {variant.sku}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-medium text-green-600">${variant.price.toFixed(2)}</p>
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                              variant.synced 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {variant.synced ? '✓' : '⏳'}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <button className="w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                      <ShoppingCart className="w-4 h-4 mr-2" />
+                      Prepare for Shopify
+                    </button>
+                    <p className="text-xs text-gray-500 text-center mt-2">
+                      Add Shopify-specific details and publish
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="p-6 text-center text-gray-500">
+                <Eye className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <p>Select a product to view details</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
