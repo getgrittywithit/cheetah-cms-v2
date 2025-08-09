@@ -67,7 +67,7 @@ class PrintfulAPI {
     const response = await fetch(url, {
       ...options,
       headers: {
-        'Authorization': `Bearer ${this.token}`,
+        'Authorization': `Basic ${Buffer.from(this.token + ':').toString('base64')}`,
         'Content-Type': 'application/json',
         ...options.headers,
       },
