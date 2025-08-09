@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { RefreshCw, Package, ExternalLink, ShoppingCart, Eye } from 'lucide-react'
+import { RefreshCw, Package, ExternalLink, ShoppingCart, Eye, Wand2 } from 'lucide-react'
+import AIProductGenerator from '@/components/ai/ai-product-generator'
+import type { GeneratedProductData } from '@/lib/ai-product-generator'
 
 interface PrintfulProduct {
   id: number
@@ -29,6 +31,7 @@ export default function PrintfulSync() {
   const [syncing, setSyncing] = useState<number | null>(null)
   const [publishing, setPublishing] = useState<number | null>(null)
   const [showPublishForm, setShowPublishForm] = useState<PrintfulProduct | null>(null)
+  const [showAIGenerator, setShowAIGenerator] = useState<PrintfulProduct | null>(null)
   const [publishForm, setPublishForm] = useState({
     title: '',
     description: '',
@@ -139,6 +142,23 @@ export default function PrintfulSync() {
       seoDescription: `Shop ${product.name} canvas prints at Grit Collective. Premium quality, fast shipping, satisfaction guaranteed.`,
       status: 'draft'
     })
+  }
+
+  const openAIGenerator = (product: PrintfulProduct) => {
+    setShowAIGenerator(product)
+  }
+
+  const handleAIDataGenerated = (data: GeneratedProductData) => {
+    setPublishForm({
+      title: data.title,
+      description: data.description,
+      tags: data.tags.join(', '),
+      seoTitle: data.seoTitle,
+      seoDescription: data.seoDescription,
+      status: 'draft'
+    })
+    setShowAIGenerator(null)
+    setShowPublishForm(showAIGenerator) // Open the publish form with AI data
   }
 
   useEffect(() => {
@@ -287,16 +307,25 @@ export default function PrintfulSync() {
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t">
+                  <div className="pt-4 border-t space-y-3">
+                    <button 
+                      onClick={() => openAIGenerator(selectedProduct)}
+                      className="w-full flex items-center justify-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                    >
+                      <Wand2 className="w-4 h-4 mr-2" />
+                      Generate with AI
+                    </button>
+                    
                     <button 
                       onClick={() => prepareForShopify(selectedProduct)}
                       className="w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
                     >
                       <ShoppingCart className="w-4 h-4 mr-2" />
-                      Prepare for Shopify
+                      Manual Setup
                     </button>
-                    <p className="text-xs text-gray-500 text-center mt-2">
-                      Add Shopify-specific details and publish
+                    
+                    <p className="text-xs text-gray-500 text-center">
+                      Use AI to auto-generate all product details, or set up manually
                     </p>
                   </div>
                 </div>
@@ -427,6 +456,16 @@ export default function PrintfulSync() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* AI Product Generator Modal */}
+      {showAIGenerator && (
+        <AIProductGenerator
+          productName={showAIGenerator.name}
+          productImage={showAIGenerator.thumbnail}
+          onDataGenerated={handleAIDataGenerated}
+          onClose={() => setShowAIGenerator(null)}
+        />
       )}
     </div>
   )
