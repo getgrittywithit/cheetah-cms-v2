@@ -49,7 +49,7 @@ export default function ProductsPage() {
       {/* Create Tab */}
       {activeTab === 'create' && (
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold mb-4">Smart Product Creator</h2>
+          <h2 className="text-lg font-semibold mb-4">Smart Product Creator - Test Deploy</h2>
           
           {/* Image Upload */}
           <div className="mb-6">
