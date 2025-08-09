@@ -47,7 +47,7 @@ export default function Sidebar({ user }: SidebarProps) {
       <div className="flex items-center justify-center h-16 px-4 bg-gray-800">
         <div className="flex items-center space-x-2">
           <Lightning className="w-8 h-8 text-blue-400" />
-          <span className="text-xl font-bold text-white">Cheetah CMS</span>
+          <span className="text-xl font-bold text-white">Cheetah CMS v2</span>
         </div>
       </div>
 
