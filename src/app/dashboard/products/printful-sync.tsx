@@ -27,6 +27,16 @@ export default function PrintfulSync() {
   const [loading, setLoading] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<PrintfulProduct | null>(null)
   const [syncing, setSyncing] = useState<number | null>(null)
+  const [publishing, setPublishing] = useState<number | null>(null)
+  const [showPublishForm, setShowPublishForm] = useState<PrintfulProduct | null>(null)
+  const [publishForm, setPublishForm] = useState({
+    title: '',
+    description: '',
+    tags: '',
+    seoTitle: '',
+    seoDescription: '',
+    status: 'draft'
+  })
 
   const syncProducts = async () => {
     setLoading(true)
@@ -74,6 +84,61 @@ export default function PrintfulSync() {
     } finally {
       setSyncing(null)
     }
+  }
+
+  const publishToShopify = async () => {
+    if (!showPublishForm) return
+    
+    setPublishing(showPublishForm.id)
+    try {
+      const response = await fetch('/api/shopify/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          printful_product_id: showPublishForm.id,
+          custom_title: publishForm.title,
+          custom_description: publishForm.description,
+          custom_tags: publishForm.tags,
+          seo_title: publishForm.seoTitle,
+          seo_description: publishForm.seoDescription,
+          status: publishForm.status
+        })
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        alert(`Successfully published "${data.shopify_product.title}" to Shopify!`)
+        setShowPublishForm(null)
+        setPublishForm({
+          title: '',
+          description: '',
+          tags: '',
+          seoTitle: '',
+          seoDescription: '',
+          status: 'draft'
+        })
+      } else {
+        alert(`Publishing failed: ${data.error}`)
+      }
+    } catch (error) {
+      console.error('Publishing error:', error)
+      alert('Failed to publish to Shopify')
+    } finally {
+      setPublishing(null)
+    }
+  }
+
+  const prepareForShopify = (product: PrintfulProduct) => {
+    setShowPublishForm(product)
+    setPublishForm({
+      title: `${product.name} - Canvas Print`,
+      description: `Transform your space with this premium ${product.name.toLowerCase()} canvas print. High-quality materials and vibrant colors bring your walls to life.`,
+      tags: 'canvas art, wall decor, motivational, home decor, grit collective',
+      seoTitle: `${product.name} - Premium Canvas Wall Art | Grit Collective`,
+      seoDescription: `Shop ${product.name} canvas prints at Grit Collective. Premium quality, fast shipping, satisfaction guaranteed.`,
+      status: 'draft'
+    })
   }
 
   useEffect(() => {
@@ -223,7 +288,10 @@ export default function PrintfulSync() {
                   </div>
 
                   <div className="pt-4 border-t">
-                    <button className="w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                    <button 
+                      onClick={() => prepareForShopify(selectedProduct)}
+                      className="w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    >
                       <ShoppingCart className="w-4 h-4 mr-2" />
                       Prepare for Shopify
                     </button>
@@ -239,6 +307,124 @@ export default function PrintfulSync() {
                 <p>Select a product to view details</p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Shopify Publishing Modal */}
+      {showPublishForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full m-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold">Publish to Shopify</h2>
+                <button
+                  onClick={() => setShowPublishForm(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Product Title *
+                  </label>
+                  <input
+                    type="text"
+                    value={publishForm.title}
+                    onChange={(e) => setPublishForm(prev => ({ ...prev, title: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter product title for Shopify"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Product Description *
+                  </label>
+                  <textarea
+                    value={publishForm.description}
+                    onChange={(e) => setPublishForm(prev => ({ ...prev, description: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 h-32"
+                    placeholder="Enter detailed product description"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Tags
+                  </label>
+                  <input
+                    type="text"
+                    value={publishForm.tags}
+                    onChange={(e) => setPublishForm(prev => ({ ...prev, tags: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="canvas art, wall decor, motivational"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Separate tags with commas</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      SEO Title
+                    </label>
+                    <input
+                      type="text"
+                      value={publishForm.seoTitle}
+                      onChange={(e) => setPublishForm(prev => ({ ...prev, seoTitle: e.target.value }))}
+                      className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="SEO-optimized title"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Status
+                    </label>
+                    <select
+                      value={publishForm.status}
+                      onChange={(e) => setPublishForm(prev => ({ ...prev, status: e.target.value }))}
+                      className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="draft">Draft</option>
+                      <option value="active">Active</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    SEO Description
+                  </label>
+                  <textarea
+                    value={publishForm.seoDescription}
+                    onChange={(e) => setPublishForm(prev => ({ ...prev, seoDescription: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 h-24"
+                    placeholder="Meta description for search engines (160 characters max)"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between pt-4 border-t">
+                  <button
+                    onClick={() => setShowPublishForm(null)}
+                    className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={publishToShopify}
+                    disabled={publishing === showPublishForm.id || !publishForm.title || !publishForm.description}
+                    className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 flex items-center"
+                  >
+                    <ShoppingCart className="w-4 h-4 mr-2" />
+                    {publishing === showPublishForm.id ? 'Publishing...' : 'Publish to Shopify'}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
