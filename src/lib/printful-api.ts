@@ -56,14 +56,23 @@ class PrintfulAPI {
   private storeId: string
 
   constructor() {
-    this.token = process.env.PRINTFUL_API_TOKEN || ''
-    this.storeId = process.env.PRINTFUL_STORE_ID || '16574654' // Default to user's store ID
+    // Initialize with empty values, will be set in makeRequest
+    this.token = ''
+    this.storeId = ''
+  }
+  
+  private ensureConfig() {
     if (!this.token) {
-      throw new Error('PRINTFUL_API_TOKEN is required')
+      this.token = process.env.PRINTFUL_API_TOKEN || ''
+      this.storeId = process.env.PRINTFUL_STORE_ID || '16574654' // Default to user's store ID
+      if (!this.token) {
+        throw new Error('PRINTFUL_API_TOKEN is required')
+      }
     }
   }
 
   private async makeRequest(endpoint: string, options: RequestInit = {}) {
+    this.ensureConfig() // Ensure config is loaded
     const url = `${this.baseURL}${endpoint}`
     
     const response = await fetch(url, {
