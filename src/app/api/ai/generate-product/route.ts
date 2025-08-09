@@ -1,22 +1,30 @@
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-})
+let openai: OpenAI | null = null
+
+function getOpenAI() {
+  if (!openai && process.env.OPENAI_API_KEY) {
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY
+    })
+  }
+  return openai
+}
 
 export async function POST(request: Request) {
   try {
     const { messages } = await request.json()
 
-    if (!process.env.OPENAI_API_KEY) {
+    const openaiClient = getOpenAI()
+    if (!openaiClient) {
       return NextResponse.json(
         { success: false, error: 'OpenAI API key not configured' },
         { status: 500 }
       )
     }
 
-    const completion = await openai.chat.completions.create({
+    const completion = await openaiClient.chat.completions.create({
       model: 'gpt-4o',
       messages,
       temperature: 0.7,
