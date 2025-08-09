@@ -4,20 +4,79 @@ interface ProductGenerationRequest {
   brandContext?: string
   targetAudience?: string
   additionalDetails?: string
+  variants?: Array<{
+    name: string
+    sku: string
+    price: number
+  }>
 }
 
 interface GeneratedProductData {
+  // Basic Info
   title: string
   description: string
   category: string
-  tags: string[]
-  seoTitle: string
-  seoDescription: string
+  
+  // Pricing
+  price: number
+  compareAtPrice?: number
+  chargesTax: boolean
+  costPerItem?: number
+  
+  // Inventory
+  trackQuantity: boolean
+  sku: string
+  barcode?: string
+  continueSellingWhenOutOfStock: boolean
+  
+  // Shipping
+  isPhysicalProduct: boolean
+  weight: number
+  weightUnit: string
+  
+  // Organization
   type: string
   vendor: string
   collections: string[]
-  compareAtPrice?: number
-  weight?: number
+  tags: string[]
+  themeTemplate: string
+  
+  // Publishing
+  status: string
+  salesChannels: string[]
+  
+  // SEO
+  seoTitle: string
+  seoDescription: string
+  urlHandle: string
+}
+
+// Predefined collections for Grit Collective
+const GRIT_COLLECTIONS = [
+  'Canvas Art',
+  'Motivational Decor', 
+  'Workspace Essentials',
+  'Home Gym Decor',
+  'Office Inspiration',
+  'Fitness Motivation',
+  'Personal Growth',
+  'Wall Art',
+  'Desk Accessories',
+  'Apparel',
+  'Drinkware',
+  'Best Sellers',
+  'New Releases'
+]
+
+// Common categories for different product types
+const PRODUCT_CATEGORIES = {
+  'canvas': 'Home & Garden > Decor > Artwork > Posters, Prints, & Visual Artwork',
+  'shirt': 'Apparel & Accessories > Clothing > Shirts & Tops',
+  'mug': 'Home & Garden > Kitchen & Dining > Drinkware',
+  'mat': 'Home & Garden > Decor > Rugs & Mats',
+  'poster': 'Home & Garden > Decor > Artwork > Posters, Prints, & Visual Artwork',
+  'hoodie': 'Apparel & Accessories > Clothing > Outerwear',
+  'tank': 'Apparel & Accessories > Clothing > Shirts & Tops'
 }
 
 class AIProductGenerator {
@@ -52,19 +111,35 @@ Target Audience: People focused on fitness, personal development, entrepreneurs,
 
 IMPORTANT: Respond ONLY with a valid JSON object. No explanations, no markdown, just the JSON.
 
-Return a JSON object with these exact fields:
+Available Collections: ${GRIT_COLLECTIONS.join(', ')}
+Product Categories: ${Object.entries(PRODUCT_CATEGORIES).map(([key, val]) => `${key}: ${val}`).join(', ')}
+
+Return a JSON object with ALL these fields:
 {
-  "title": "SEO-optimized product title",
-  "description": "HTML formatted rich description (2-3 paragraphs)",
-  "category": "Apparel & Accessories",
-  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
-  "seoTitle": "60 character SEO title",
-  "seoDescription": "160 character meta description",
-  "type": "Product type for organization",
-  "vendor": "Grit Collective",
-  "collections": ["collection1", "collection2"],
+  "title": "Product title for Shopify",
+  "description": "<p>HTML formatted description with paragraphs</p>",
+  "category": "Choose from product categories above",
+  "price": 25.99,
   "compareAtPrice": null,
-  "weight": 0.5
+  "chargesTax": true,
+  "costPerItem": 12.50,
+  "trackQuantity": true,
+  "sku": "GRIT-PRODUCT-SKU",
+  "barcode": "",
+  "continueSellingWhenOutOfStock": false,
+  "isPhysicalProduct": true,
+  "weight": 0.5,
+  "weightUnit": "lb",
+  "type": "Product type",
+  "vendor": "Grit Collective",
+  "collections": ["Collection1", "Collection2"],
+  "tags": ["tag1", "tag2", "tag3"],
+  "themeTemplate": "Default product",
+  "status": "active",
+  "salesChannels": ["Online Store", "Point of Sale"],
+  "seoTitle": "SEO title (70 chars max)",
+  "seoDescription": "Meta description (160 chars max)",
+  "urlHandle": "product-url-handle"
 }`
 
     const userPrompt = `Product: ${request.productName}
@@ -72,8 +147,9 @@ ${request.productType ? `Type: ${request.productType}` : ''}
 ${request.brandContext ? `Context: ${request.brandContext}` : ''}
 ${request.targetAudience ? `Audience: ${request.targetAudience}` : ''}
 ${request.additionalDetails ? `Details: ${request.additionalDetails}` : ''}
+${request.variants ? `Variants: ${request.variants.map(v => `${v.name} ($${v.price})`).join(', ')}` : ''}
 
-Generate all Shopify product fields for this item. Respond with ONLY the JSON object, no other text.`
+Generate ALL Shopify product fields. Use HTML for description. Choose collections from the available list. Set realistic pricing based on similar products. Respond with ONLY the JSON object.`
 
     const messages = [
       { role: 'system', content: systemPrompt },

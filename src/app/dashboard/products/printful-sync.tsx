@@ -155,7 +155,7 @@ export default function PrintfulSync() {
       tags: data.tags.join(', '),
       seoTitle: data.seoTitle,
       seoDescription: data.seoDescription,
-      status: 'draft'
+      status: data.status === 'active' ? 'active' : 'draft'
     })
     setShowAIGenerator(null)
     setShowPublishForm(showAIGenerator) // Open the publish form with AI data
@@ -463,6 +463,7 @@ export default function PrintfulSync() {
         <AIProductGenerator
           productName={showAIGenerator.name}
           productImage={showAIGenerator.thumbnail}
+          variants={showAIGenerator.variants}
           onDataGenerated={handleAIDataGenerated}
           onClose={() => setShowAIGenerator(null)}
         />

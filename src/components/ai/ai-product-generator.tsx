@@ -13,6 +13,11 @@ interface ChatMessage {
 interface AIProductGeneratorProps {
   productName: string
   productImage?: string
+  variants?: Array<{
+    name: string
+    sku: string
+    price: number
+  }>
   onDataGenerated: (data: GeneratedProductData) => void
   onClose: () => void
 }
@@ -20,6 +25,7 @@ interface AIProductGeneratorProps {
 export default function AIProductGenerator({ 
   productName, 
   productImage, 
+  variants,
   onDataGenerated, 
   onClose 
 }: AIProductGeneratorProps) {
@@ -40,6 +46,7 @@ export default function AIProductGenerator({
     try {
       const request: ProductGenerationRequest = {
         productName,
+        variants,
         ...productContext
       }
 
@@ -209,78 +216,135 @@ export default function AIProductGenerator({
                 {/* Generated Content */}
                 <div className="flex-1 p-6 overflow-y-auto">
                   <div className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                    {/* Basic Info */}
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <h4 className="font-medium text-gray-900 mb-3">Basic Information</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Title</label>
+                          <div className="relative">
+                            <p className="text-sm bg-white p-2 rounded border">{generatedData.title}</p>
+                            <button onClick={() => copyToClipboard(generatedData.title)} className="absolute top-1 right-1 text-gray-400 hover:text-gray-600">
+                              <Copy className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Category</label>
+                          <p className="text-sm bg-white p-2 rounded border">{generatedData.category}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-4">
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Description (HTML)</label>
                         <div className="relative">
-                          <p className="text-sm bg-gray-50 p-3 rounded border">{generatedData.title}</p>
-                          <button
-                            onClick={() => copyToClipboard(generatedData.title)}
-                            className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
-                          >
-                            <Copy className="w-4 h-4" />
+                          <div className="text-sm bg-white p-3 rounded border h-24 overflow-y-auto">
+                            <div dangerouslySetInnerHTML={{ __html: generatedData.description }} />
+                          </div>
+                          <button onClick={() => copyToClipboard(generatedData.description)} className="absolute top-1 right-1 text-gray-400 hover:text-gray-600">
+                            <Copy className="w-3 h-3" />
                           </button>
                         </div>
                       </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                        <p className="text-sm bg-gray-50 p-3 rounded border">{generatedData.category}</p>
-                      </div>
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                      <div className="relative">
-                        <div className="text-sm bg-gray-50 p-3 rounded border h-32 overflow-y-auto">
-                          <div dangerouslySetInnerHTML={{ __html: generatedData.description }} />
+                    {/* Pricing */}
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h4 className="font-medium text-gray-900 mb-3">Pricing</h4>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Price</label>
+                          <p className="text-sm bg-white p-2 rounded border">${generatedData.price}</p>
                         </div>
-                        <button
-                          onClick={() => copyToClipboard(generatedData.description)}
-                          className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
-                        >
-                          <Copy className="w-4 h-4" />
-                        </button>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Cost per Item</label>
+                          <p className="text-sm bg-white p-2 rounded border">${generatedData.costPerItem || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Charges Tax</label>
+                          <p className="text-sm bg-white p-2 rounded border">{generatedData.chargesTax ? 'Yes' : 'No'}</p>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">SEO Title</label>
-                        <p className="text-sm bg-gray-50 p-3 rounded border">{generatedData.seoTitle}</p>
+                    {/* Inventory & Shipping */}
+                    <div className="bg-yellow-50 p-4 rounded-lg">
+                      <h4 className="font-medium text-gray-900 mb-3">Inventory & Shipping</h4>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">SKU</label>
+                          <p className="text-sm bg-white p-2 rounded border">{generatedData.sku}</p>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Weight</label>
+                          <p className="text-sm bg-white p-2 rounded border">{generatedData.weight} {generatedData.weightUnit}</p>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Track Quantity</label>
+                          <p className="text-sm bg-white p-2 rounded border">{generatedData.trackQuantity ? 'Yes' : 'No'}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Organization */}
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <h4 className="font-medium text-gray-900 mb-3">Organization</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Type & Vendor</label>
+                          <p className="text-sm bg-white p-2 rounded border">{generatedData.type} • {generatedData.vendor}</p>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                          <p className="text-sm bg-white p-2 rounded border capitalize">{generatedData.status}</p>
+                        </div>
                       </div>
                       
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Type & Vendor</label>
-                        <p className="text-sm bg-gray-50 p-3 rounded border">{generatedData.type} • {generatedData.vendor}</p>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">SEO Description</label>
-                      <p className="text-sm bg-gray-50 p-3 rounded border">{generatedData.seoDescription}</p>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
-                        <div className="flex flex-wrap gap-2">
-                          {generatedData.tags.map((tag, index) => (
-                            <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                              {tag}
-                            </span>
-                          ))}
+                      <div className="grid grid-cols-2 gap-4 mt-4">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Collections</label>
+                          <div className="flex flex-wrap gap-1">
+                            {generatedData.collections.map((collection, index) => (
+                              <span key={index} className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
+                                {collection}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Tags</label>
+                          <div className="flex flex-wrap gap-1">
+                            {generatedData.tags.map((tag, index) => (
+                              <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       </div>
+                    </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Collections</label>
-                        <div className="flex flex-wrap gap-2">
-                          {generatedData.collections.map((collection, index) => (
-                            <span key={index} className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
-                              {collection}
-                            </span>
-                          ))}
+                    {/* SEO */}
+                    <div className="bg-purple-50 p-4 rounded-lg">
+                      <h4 className="font-medium text-gray-900 mb-3">SEO & Publishing</h4>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">SEO Title (70 chars)</label>
+                          <p className="text-sm bg-white p-2 rounded border">{generatedData.seoTitle}</p>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">SEO Description (160 chars)</label>
+                          <p className="text-sm bg-white p-2 rounded border">{generatedData.seoDescription}</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">URL Handle</label>
+                            <p className="text-sm bg-white p-2 rounded border">{generatedData.urlHandle}</p>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Sales Channels</label>
+                            <p className="text-sm bg-white p-2 rounded border">{generatedData.salesChannels.join(', ')}</p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -314,7 +378,7 @@ export default function AIProductGenerator({
                         type="text"
                         value={chatInput}
                         onChange={(e) => setChatInput(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleChatMessage()}
+                        onKeyDown={(e) => e.key === 'Enter' && handleChatMessage()}
                         className="flex-1 px-3 py-2 border rounded-lg text-sm"
                         placeholder="Ask me to adjust the title, description, tags, etc..."
                         disabled={generating}
