@@ -55,13 +55,17 @@ class ShopifyAPI {
     this.storeUrl = SHOPIFY_STORE_URL
     this.accessToken = process.env.SHOPIFY_ACCESS_TOKEN || ''
     this.apiVersion = SHOPIFY_API_VERSION
+  }
 
+  private validateConfiguration() {
     if (!this.accessToken) {
       throw new Error('SHOPIFY_ACCESS_TOKEN is required')
     }
   }
 
   private async makeRequest(endpoint: string, options: RequestInit = {}) {
+    this.validateConfiguration()
+    
     const url = `${this.storeUrl}/admin/api/${this.apiVersion}${endpoint}`
     
     const response = await fetch(url, {
