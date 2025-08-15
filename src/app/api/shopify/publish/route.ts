@@ -4,6 +4,9 @@ import { printfulAPI } from '@/lib/printful-api'
 
 export async function POST(request: Request) {
   try {
+    const requestBody = await request.json()
+    console.log('Received request body:', requestBody)
+    
     const { 
       printful_product_id,
       // AI Generated data (all fields)
@@ -37,7 +40,7 @@ export async function POST(request: Request) {
       custom_tags,
       seo_title,
       seo_description
-    } = await request.json()
+    } = requestBody
 
     if (!printful_product_id) {
       return NextResponse.json(
@@ -47,6 +50,15 @@ export async function POST(request: Request) {
     }
 
     console.log(`Publishing Printful product ${printful_product_id} to Shopify...`)
+    
+    // Test Shopify connection first
+    try {
+      const shopInfo = await shopifyAPI.getShopInfo()
+      console.log('Shopify connection verified:', shopInfo.name)
+    } catch (error) {
+      console.error('Shopify connection failed:', error)
+      throw new Error(`Shopify connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
 
     // Get the full product details from Printful
     const printfulProduct = await printfulAPI.getSyncProduct(printful_product_id)
@@ -78,18 +90,22 @@ export async function POST(request: Request) {
       collections,
       urlHandle
     }
+    
+    console.log('Final data for transformation:', finalData)
 
     // Transform to Shopify format with complete data
     const shopifyProductData = shopifyAPI.transformPrintfulToShopify(
       transformedProduct,
       finalData
     )
+    
+    console.log('Shopify product data to send:', shopifyProductData)
 
     // Create product in Shopify
     const createdProduct = await shopifyAPI.createProduct(shopifyProductData)
 
     // Add to collections if specified
-    if (finalData.collections && Array.isArray(finalData.collections)) {
+    if (finalData.collections && Array.isArray(finalData.collections) && createdProduct.id) {
       try {
         for (const collectionName of finalData.collections) {
           await shopifyAPI.addProductToCollection(createdProduct.id, collectionName)
@@ -109,10 +125,18 @@ export async function POST(request: Request) {
 
   } catch (error) {
     console.error('Shopify publish error:', error)
+    
+    // Log the full error details for debugging
+    if (error instanceof Error) {
+      console.error('Error message:', error.message)
+      console.error('Error stack:', error.stack)
+    }
+    
     return NextResponse.json(
       { 
         success: false, 
-        error: error instanceof Error ? error.message : 'Failed to publish product to Shopify'
+        error: error instanceof Error ? error.message : 'Failed to publish product to Shopify',
+        details: error instanceof Error ? error.stack : String(error)
       },
       { status: 500 }
     )

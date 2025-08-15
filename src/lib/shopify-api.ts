@@ -148,6 +148,7 @@ class ShopifyAPI {
 
   // Transform Printful product to Shopify format with complete AI data
   transformPrintfulToShopify(printfulProduct: any, customData: any = {}) {
+    console.log('Transforming with customData:', customData)
     const baseTitle = customData.title || printfulProduct.name
     const baseDescription = customData.description || `High-quality ${printfulProduct.name} from Grit Collective`
     

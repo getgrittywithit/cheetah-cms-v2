@@ -94,6 +94,9 @@ export default function PrintfulSync() {
     
     setPublishing(showPublishForm.id)
     try {
+      console.log('AI Generated Data:', aiGeneratedData)
+      console.log('Publish Form:', publishForm)
+      
       // Send AI data if available, otherwise use form data
       const requestData = aiGeneratedData ? {
         printful_product_id: showPublishForm.id,
@@ -115,6 +118,8 @@ export default function PrintfulSync() {
         seo_description: publishForm.seoDescription,
         status: publishForm.status
       }
+      
+      console.log('Request Data being sent:', requestData)
 
       const response = await fetch('/api/shopify/publish', {
         method: 'POST',
@@ -165,6 +170,7 @@ export default function PrintfulSync() {
   const [aiGeneratedData, setAIGeneratedData] = useState<GeneratedProductData | null>(null)
 
   const handleAIDataGenerated = (data: GeneratedProductData) => {
+    console.log('AI Data Generated:', data)
     // Store the complete AI data
     setAIGeneratedData(data)
     
