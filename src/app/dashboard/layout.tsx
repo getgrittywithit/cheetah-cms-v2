@@ -2,8 +2,8 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import Sidebar from '@/components/layout/Sidebar'
-import Header from '@/components/layout/Header'
+import Sidebar from '@/components/layout/sidebar'
+import Header from '@/components/layout/header'
 import AIHelper from '@/components/layout/AIHelper'
 import { AdminUser } from '@/lib/auth'
 import { BrandProvider } from '@/contexts/brand-context'
