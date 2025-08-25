@@ -196,7 +196,7 @@ Examples:
 • Quick tip: add a pinch of salt to your coffee grounds for smoother brew
 • What's your favorite meal prep recipe for busy weekdays?"
               rows={4}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-gray-900 placeholder-gray-600"
             />
             <button
               onClick={generatePosts}
@@ -330,7 +330,7 @@ Examples:
                           <div>
                             <ImagePlus className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                             <p className="text-sm text-gray-700">Click to add an image</p>
-                            <p className="text-xs text-gray-500 mt-1">JPG, PNG, GIF up to 10MB</p>
+                            <p className="text-xs text-gray-600 mt-1">JPG, PNG, GIF up to 10MB</p>
                           </div>
                         )}
                       </label>
@@ -373,7 +373,7 @@ Examples:
                           <Send className="w-4 h-4" />
                           <span>Post Now</span>
                         </button>
-                        <span className="text-sm text-gray-500">or set a date above to schedule</span>
+                        <span className="text-sm text-gray-600">or set a date above to schedule</span>
                       </>
                     )}
                     
@@ -388,7 +388,7 @@ Examples:
                     )}
                   </div>
                   
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-gray-600">
                     Posting to: <span className="font-medium text-gray-700 capitalize">{post.platform}</span>
                   </div>
                 </div>

@@ -182,7 +182,7 @@ export default function VideoCaptionCreator({ brandName, brandGuidelines }: Vide
             onChange={(e) => setVideoDescription(e.target.value)}
             placeholder="Tell us about your video... What's the main message? What products are featured? What mood should it convey?"
             rows={3}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-gray-900 placeholder-gray-600"
           />
         </div>
 
