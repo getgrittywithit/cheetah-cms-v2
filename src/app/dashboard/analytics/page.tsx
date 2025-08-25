@@ -58,7 +58,7 @@ export default function AnalyticsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
-          <p className="text-gray-600">Track your business performance and growth</p>
+          <p className="text-gray-700">Track your business performance and growth</p>
         </div>
         
         <div className="flex items-center space-x-4">
@@ -79,7 +79,7 @@ export default function AnalyticsPage() {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Orders</p>
+              <p className="text-sm font-medium text-gray-700">Total Orders</p>
               <p className="text-2xl font-bold text-gray-900">{analytics?.totalOrders}</p>
             </div>
             <div className="p-3 bg-blue-100 rounded-full">
@@ -89,14 +89,14 @@ export default function AnalyticsPage() {
           <div className="mt-4 flex items-center">
             <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
             <span className="text-sm text-green-600">+{analytics?.orderGrowth}%</span>
-            <span className="text-sm text-gray-500 ml-2">vs last period</span>
+            <span className="text-sm text-gray-600 ml-2">vs last period</span>
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+              <p className="text-sm font-medium text-gray-700">Total Revenue</p>
               <p className="text-2xl font-bold text-gray-900">${analytics?.totalRevenue?.toLocaleString()}</p>
             </div>
             <div className="p-3 bg-green-100 rounded-full">
@@ -106,14 +106,14 @@ export default function AnalyticsPage() {
           <div className="mt-4 flex items-center">
             <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
             <span className="text-sm text-green-600">+{analytics?.revenueGrowth}%</span>
-            <span className="text-sm text-gray-500 ml-2">vs last period</span>
+            <span className="text-sm text-gray-600 ml-2">vs last period</span>
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Customers</p>
+              <p className="text-sm font-medium text-gray-700">Total Customers</p>
               <p className="text-2xl font-bold text-gray-900">{analytics?.totalCustomers}</p>
             </div>
             <div className="p-3 bg-purple-100 rounded-full">
@@ -123,14 +123,14 @@ export default function AnalyticsPage() {
           <div className="mt-4 flex items-center">
             <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
             <span className="text-sm text-green-600">+{analytics?.customerGrowth}%</span>
-            <span className="text-sm text-gray-500 ml-2">vs last period</span>
+            <span className="text-sm text-gray-600 ml-2">vs last period</span>
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Page Views</p>
+              <p className="text-sm font-medium text-gray-700">Page Views</p>
               <p className="text-2xl font-bold text-gray-900">{analytics?.totalViews?.toLocaleString()}</p>
             </div>
             <div className="p-3 bg-orange-100 rounded-full">
@@ -140,7 +140,7 @@ export default function AnalyticsPage() {
           <div className="mt-4 flex items-center">
             <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
             <span className="text-sm text-green-600">+{analytics?.viewsGrowth}%</span>
-            <span className="text-sm text-gray-500 ml-2">vs last period</span>
+            <span className="text-sm text-gray-600 ml-2">vs last period</span>
           </div>
         </div>
       </div>
@@ -152,9 +152,9 @@ export default function AnalyticsPage() {
             <BarChart3 className="w-5 h-5 mr-2 text-blue-600" />
             Revenue Trends
           </h3>
-          <div className="h-64 flex items-center justify-center text-gray-500">
+          <div className="h-64 flex items-center justify-center text-gray-700">
             <div className="text-center">
-              <Calendar className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+              <Calendar className="w-12 h-12 mx-auto mb-2 text-gray-600" />
               <p>Chart visualization coming soon</p>
               <p className="text-sm">Will show revenue trends over time</p>
             </div>
@@ -166,9 +166,9 @@ export default function AnalyticsPage() {
             <Users className="w-5 h-5 mr-2 text-purple-600" />
             Customer Growth
           </h3>
-          <div className="h-64 flex items-center justify-center text-gray-500">
+          <div className="h-64 flex items-center justify-center text-gray-700">
             <div className="text-center">
-              <Calendar className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+              <Calendar className="w-12 h-12 mx-auto mb-2 text-gray-600" />
               <p>Chart visualization coming soon</p>
               <p className="text-sm">Will show customer acquisition trends</p>
             </div>
@@ -184,8 +184,8 @@ export default function AnalyticsPage() {
             <h4 className="font-medium text-gray-900 mb-2">Top Performing Products</h4>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Product analysis</span>
-                <span className="text-gray-500">Coming soon</span>
+                <span className="text-gray-700">Product analysis</span>
+                <span className="text-gray-600">Coming soon</span>
               </div>
             </div>
           </div>
@@ -194,8 +194,8 @@ export default function AnalyticsPage() {
             <h4 className="font-medium text-gray-900 mb-2">Customer Segments</h4>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Segment analysis</span>
-                <span className="text-gray-500">Coming soon</span>
+                <span className="text-gray-700">Segment analysis</span>
+                <span className="text-gray-600">Coming soon</span>
               </div>
             </div>
           </div>
@@ -204,8 +204,8 @@ export default function AnalyticsPage() {
             <h4 className="font-medium text-gray-900 mb-2">Marketing Performance</h4>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Campaign metrics</span>
-                <span className="text-gray-500">Coming soon</span>
+                <span className="text-gray-700">Campaign metrics</span>
+                <span className="text-gray-600">Coming soon</span>
               </div>
             </div>
           </div>

@@ -45,7 +45,7 @@ export default function SettingsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-600">Manage your account and application preferences</p>
+        <p className="text-gray-700">Manage your account and application preferences</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -60,7 +60,7 @@ export default function SettingsPage() {
                   className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                     activeSection === section.id
                       ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-100'
+                      : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
                   <section.icon className="w-4 h-4 mr-3" />
@@ -115,7 +115,7 @@ export default function SettingsPage() {
                     type="text"
                     value="Super Admin"
                     disabled
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-100 text-gray-500"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-100 text-gray-700"
                   />
                 </div>
               </div>
@@ -146,9 +146,9 @@ export default function SettingsPage() {
                         className="absolute inset-y-0 right-0 pr-3 flex items-center"
                       >
                         {showPassword ? (
-                          <EyeOff className="w-4 h-4 text-gray-400" />
+                          <EyeOff className="w-4 h-4 text-gray-600" />
                         ) : (
-                          <Eye className="w-4 h-4 text-gray-400" />
+                          <Eye className="w-4 h-4 text-gray-600" />
                         )}
                       </button>
                     </div>
@@ -202,7 +202,7 @@ export default function SettingsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <label className="text-sm font-medium text-gray-900">Email Notifications</label>
-                      <p className="text-sm text-gray-500">Receive notifications about orders, products, and system updates</p>
+                      <p className="text-sm text-gray-700">Receive notifications about orders, products, and system updates</p>
                     </div>
                     <input
                       type="checkbox"
@@ -215,7 +215,7 @@ export default function SettingsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <label className="text-sm font-medium text-gray-900">Push Notifications</label>
-                      <p className="text-sm text-gray-500">Receive browser notifications for urgent updates</p>
+                      <p className="text-sm text-gray-700">Receive browser notifications for urgent updates</p>
                     </div>
                     <input
                       type="checkbox"
@@ -228,7 +228,7 @@ export default function SettingsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <label className="text-sm font-medium text-gray-900">Marketing Emails</label>
-                      <p className="text-sm text-gray-500">Receive updates about new features and tips</p>
+                      <p className="text-sm text-gray-700">Receive updates about new features and tips</p>
                     </div>
                     <input
                       type="checkbox"
@@ -256,7 +256,7 @@ export default function SettingsPage() {
                       </div>
                       <div>
                         <h3 className="font-medium">Medusa Backend</h3>
-                        <p className="text-sm text-gray-500">Connected to Railway deployment</p>
+                        <p className="text-sm text-gray-700">Connected to Railway deployment</p>
                       </div>
                     </div>
                     <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Connected</span>
@@ -269,7 +269,7 @@ export default function SettingsPage() {
                       </div>
                       <div>
                         <h3 className="font-medium">Social Media APIs</h3>
-                        <p className="text-sm text-gray-500">Facebook, Instagram integration</p>
+                        <p className="text-sm text-gray-700">Facebook, Instagram integration</p>
                       </div>
                     </div>
                     <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Connected</span>
@@ -278,11 +278,11 @@ export default function SettingsPage() {
                   <div className="border border-gray-200 rounded-lg p-4 flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                        <Database className="w-5 h-5 text-gray-600" />
+                        <Database className="w-5 h-5 text-gray-700" />
                       </div>
                       <div>
                         <h3 className="font-medium">VPS Tools API</h3>
-                        <p className="text-sm text-gray-500">Image processing and tools</p>
+                        <p className="text-sm text-gray-700">Image processing and tools</p>
                       </div>
                     </div>
                     <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">Coming Soon</span>

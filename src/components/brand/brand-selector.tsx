@@ -33,16 +33,16 @@ export default function BrandSelector() {
           )}
           <div className="text-left">
             <p className="text-sm font-medium text-gray-900">{currentBrand.name}</p>
-            <p className="text-xs text-gray-500">{currentBrand.industry}</p>
+            <p className="text-xs text-gray-700">{currentBrand.industry}</p>
           </div>
         </div>
-        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-gray-600 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
         <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
           <div className="p-2">
-            <div className="text-xs font-medium text-gray-500 px-3 py-2 uppercase tracking-wide">
+            <div className="text-xs font-medium text-gray-700 px-3 py-2 uppercase tracking-wide">
               Select Brand
             </div>
             {allBrands.map((brand) => (
@@ -73,7 +73,7 @@ export default function BrandSelector() {
                   )}
                   <div className="text-left">
                     <p className="text-sm font-medium text-gray-900">{brand.name}</p>
-                    <p className="text-xs text-gray-500">{brand.industry}</p>
+                    <p className="text-xs text-gray-700">{brand.industry}</p>
                   </div>
                 </div>
                 {currentBrand.id === brand.id && (
@@ -84,7 +84,7 @@ export default function BrandSelector() {
           </div>
           
           <div className="border-t border-gray-100 p-2">
-            <button className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md">
+            <button className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
               <Building2 className="w-4 h-4" />
               <span>Manage Brands</span>
             </button>

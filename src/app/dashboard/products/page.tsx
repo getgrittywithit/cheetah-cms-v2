@@ -13,7 +13,7 @@ export default function ProductsPage() {
     <div className="p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Products</h1>
-        <p className="text-gray-600">Create and manage your products across all platforms</p>
+        <p className="text-gray-700">Create and manage your products across all platforms</p>
       </div>
 
       {/* Tabs */}
@@ -24,7 +24,7 @@ export default function ProductsPage() {
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'create'
                 ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                : 'border-transparent text-gray-600 hover:text-gray-800'
             }`}
           >
             <div className="flex items-center space-x-2">
@@ -37,7 +37,7 @@ export default function ProductsPage() {
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'canvas'
                 ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                : 'border-transparent text-gray-600 hover:text-gray-800'
             }`}
           >
             <div className="flex items-center space-x-2">
@@ -50,7 +50,7 @@ export default function ProductsPage() {
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'printful'
                 ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                : 'border-transparent text-gray-600 hover:text-gray-800'
             }`}
           >
             <div className="flex items-center space-x-2">
@@ -63,7 +63,7 @@ export default function ProductsPage() {
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'library'
                 ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                : 'border-transparent text-gray-600 hover:text-gray-800'
             }`}
           >
             <div className="flex items-center space-x-2">
@@ -85,11 +85,11 @@ export default function ProductsPage() {
               Product Image
             </label>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer">
-              <Upload className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-sm text-gray-600">
+              <Upload className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+              <p className="text-sm text-gray-700">
                 Drop your image here or click to upload
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-600 mt-1">
                 AI will auto-detect aspect ratio and suggest product types
               </p>
             </div>
@@ -112,26 +112,26 @@ export default function ProductsPage() {
             <h3 className="font-medium text-gray-900 mb-3">AI-Generated Content</h3>
             <div className="space-y-4">
               <div>
-                <label className="text-sm text-gray-600">Title</label>
+                <label className="text-sm text-gray-700">Title</label>
                 <div className="mt-1 p-3 bg-white rounded border text-gray-700">
                   AI will generate an SEO-optimized title...
                 </div>
               </div>
               <div>
-                <label className="text-sm text-gray-600">Description</label>
+                <label className="text-sm text-gray-700">Description</label>
                 <div className="mt-1 p-3 bg-white rounded border text-gray-700 h-24">
                   AI will create compelling product description...
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm text-gray-600">Suggested Price</label>
+                  <label className="text-sm text-gray-700">Suggested Price</label>
                   <div className="mt-1 p-3 bg-white rounded border text-gray-700">
                     $--
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm text-gray-600">Tags</label>
+                  <label className="text-sm text-gray-700">Tags</label>
                   <div className="mt-1 p-3 bg-white rounded border text-gray-700">
                     Generated tags...
                   </div>
@@ -202,20 +202,20 @@ export default function ProductsPage() {
               </div>
               <div className="p-4">
                 <h3 className="font-medium text-gray-900 mb-1">Sample Product Title</h3>
-                <p className="text-sm text-gray-600 mb-3">$24.99</p>
+                <p className="text-sm text-gray-700 mb-3">$24.99</p>
                 <div className="flex items-center justify-between">
                   <div className="flex space-x-2">
                     <button className="p-1 hover:bg-gray-100 rounded">
-                      <Eye className="w-4 h-4 text-gray-600" />
+                      <Eye className="w-4 h-4 text-gray-700" />
                     </button>
                     <button className="p-1 hover:bg-gray-100 rounded">
-                      <Edit2 className="w-4 h-4 text-gray-600" />
+                      <Edit2 className="w-4 h-4 text-gray-700" />
                     </button>
                     <button className="p-1 hover:bg-gray-100 rounded">
-                      <Trash2 className="w-4 h-4 text-gray-600" />
+                      <Trash2 className="w-4 h-4 text-gray-700" />
                     </button>
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-gray-700">
                     23 sales
                   </div>
                 </div>

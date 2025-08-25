@@ -158,7 +158,7 @@ export default function FilesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Files</h1>
-          <p className="text-gray-600">Manage media library and VPS processing tools</p>
+          <p className="text-gray-700">Manage media library and VPS processing tools</p>
         </div>
         <div className="flex items-center space-x-3">
           <input
@@ -210,7 +210,7 @@ export default function FilesPage() {
               <FolderOpen className="w-6 h-6 text-blue-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Files</p>
+              <p className="text-sm font-medium text-gray-700">Total Files</p>
               <p className="text-2xl font-semibold text-gray-900">{files.length}</p>
             </div>
           </div>
@@ -222,7 +222,7 @@ export default function FilesPage() {
               <Image className="w-6 h-6 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Images</p>
+              <p className="text-sm font-medium text-gray-700">Images</p>
               <p className="text-2xl font-semibold text-gray-900">{imageCount}</p>
             </div>
           </div>
@@ -234,7 +234,7 @@ export default function FilesPage() {
               <Video className="w-6 h-6 text-purple-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Videos</p>
+              <p className="text-sm font-medium text-gray-700">Videos</p>
               <p className="text-2xl font-semibold text-gray-900">{videoCount}</p>
             </div>
           </div>
@@ -246,7 +246,7 @@ export default function FilesPage() {
               <Layers className="w-6 h-6 text-yellow-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Storage Used</p>
+              <p className="text-sm font-medium text-gray-700">Storage Used</p>
               <p className="text-2xl font-semibold text-gray-900">{formatFileSize(totalSize)}</p>
             </div>
           </div>
@@ -273,7 +273,7 @@ export default function FilesPage() {
                 <FolderOpen className="w-4 h-4 mr-2" />
                 <span className="text-sm">All Files</span>
               </div>
-              <span className="text-xs text-gray-500">{files.length}</span>
+              <span className="text-xs text-gray-700">{files.length}</span>
             </div>
             
             <div 
@@ -286,7 +286,7 @@ export default function FilesPage() {
                 <FolderOpen className="w-4 h-4 text-blue-500 mr-2" />
                 <span className="text-sm">Raw Uploads</span>
               </div>
-              <span className="text-xs text-gray-500">{folderCounts.raw || 0}</span>
+              <span className="text-xs text-gray-700">{folderCounts.raw || 0}</span>
             </div>
             
             <div 
@@ -299,7 +299,7 @@ export default function FilesPage() {
                 <FolderOpen className="w-4 h-4 text-green-500 mr-2" />
                 <span className="text-sm">Processed</span>
               </div>
-              <span className="text-xs text-gray-500">{folderCounts.processed || 0}</span>
+              <span className="text-xs text-gray-700">{folderCounts.processed || 0}</span>
             </div>
             
             <div 
@@ -312,7 +312,7 @@ export default function FilesPage() {
                 <FolderOpen className="w-4 h-4 text-purple-500 mr-2" />
                 <span className="text-sm">Social Media</span>
               </div>
-              <span className="text-xs text-gray-500">{folderCounts.social || 0}</span>
+              <span className="text-xs text-gray-700">{folderCounts.social || 0}</span>
             </div>
             
             <div 
@@ -325,7 +325,7 @@ export default function FilesPage() {
                 <FolderOpen className="w-4 h-4 text-orange-500 mr-2" />
                 <span className="text-sm">Products</span>
               </div>
-              <span className="text-xs text-gray-500">{folderCounts.products || 0}</span>
+              <span className="text-xs text-gray-700">{folderCounts.products || 0}</span>
             </div>
           </div>
         </div>
@@ -342,7 +342,7 @@ export default function FilesPage() {
                     className={`flex items-center px-3 py-1.5 rounded-lg text-sm ${
                       selectedType === 'all' 
                         ? 'bg-blue-100 text-blue-700' 
-                        : 'text-gray-600 hover:bg-gray-100'
+                        : 'text-gray-700 hover:bg-gray-100'
                     }`}
                   >
                     <Layers className="w-4 h-4 mr-1" />
@@ -353,7 +353,7 @@ export default function FilesPage() {
                     className={`flex items-center px-3 py-1.5 rounded-lg text-sm ${
                       selectedType === 'image' 
                         ? 'bg-green-100 text-green-700' 
-                        : 'text-gray-600 hover:bg-gray-100'
+                        : 'text-gray-700 hover:bg-gray-100'
                     }`}
                   >
                     <Image className="w-4 h-4 mr-1" />
@@ -364,7 +364,7 @@ export default function FilesPage() {
                     className={`flex items-center px-3 py-1.5 rounded-lg text-sm ${
                       selectedType === 'video' 
                         ? 'bg-purple-100 text-purple-700' 
-                        : 'text-gray-600 hover:bg-gray-100'
+                        : 'text-gray-700 hover:bg-gray-100'
                     }`}
                   >
                     <Video className="w-4 h-4 mr-1" />
@@ -381,12 +381,12 @@ export default function FilesPage() {
                   <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
                 </div>
               ) : filteredFiles.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-12 text-gray-700">
                   <FolderOpen className="w-16 h-16 mx-auto mb-4 text-gray-300" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
                     {files.length === 0 ? 'No files yet' : 'No files in this folder'}
                   </h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-700 mb-4">
                     {files.length === 0 ? 'Upload your first files to get started' : 'Try selecting a different folder or filter'}
                   </p>
                   {files.length === 0 && (
@@ -427,7 +427,7 @@ export default function FilesPage() {
                         <p className="text-sm font-medium text-gray-900 truncate">
                           {file.filename}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-700">
                           {formatFileSize(file.size)}
                         </p>
                       </div>
@@ -449,7 +449,7 @@ export default function FilesPage() {
                 <h2 className="text-xl font-semibold">{selectedFile.filename}</h2>
                 <button
                   onClick={() => setSelectedFile(null)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-600 hover:text-gray-800"
                 >
                   <X className="w-6 h-6" />
                 </button>
@@ -472,7 +472,7 @@ export default function FilesPage() {
                 ) : (
                   <div className="p-12 bg-gray-100 rounded-lg text-center">
                     {getFileIcon(selectedFile.type)}
-                    <p className="mt-4 text-gray-600">Preview not available</p>
+                    <p className="mt-4 text-gray-700">Preview not available</p>
                   </div>
                 )}
               </div>
@@ -480,19 +480,19 @@ export default function FilesPage() {
               {/* File Details */}
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div>
-                  <p className="text-sm text-gray-600">File Type</p>
+                  <p className="text-sm text-gray-700">File Type</p>
                   <p className="font-medium">{selectedFile.type}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">File Size</p>
+                  <p className="text-sm text-gray-700">File Size</p>
                   <p className="font-medium">{formatFileSize(selectedFile.size)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Folder</p>
+                  <p className="text-sm text-gray-700">Folder</p>
                   <p className="font-medium capitalize">{selectedFile.folder}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Uploaded</p>
+                  <p className="text-sm text-gray-700">Uploaded</p>
                   <p className="font-medium">
                     {new Date(selectedFile.lastModified).toLocaleDateString()}
                   </p>
@@ -543,7 +543,7 @@ export default function FilesPage() {
               <Image className="w-5 h-5 text-blue-600 mr-2" />
               <h3 className="font-medium">Image Optimizer</h3>
             </div>
-            <p className="text-sm text-gray-600 mb-3">Compress and optimize images for web</p>
+            <p className="text-sm text-gray-700 mb-3">Compress and optimize images for web</p>
             <button className="w-full bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700">
               Process Images
             </button>
@@ -554,7 +554,7 @@ export default function FilesPage() {
               <Layers className="w-5 h-5 text-green-600 mr-2" />
               <h3 className="font-medium">Background Remover</h3>
             </div>
-            <p className="text-sm text-gray-600 mb-3">Remove backgrounds automatically</p>
+            <p className="text-sm text-gray-700 mb-3">Remove backgrounds automatically</p>
             <button className="w-full bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700">
               Remove Backgrounds
             </button>
@@ -565,7 +565,7 @@ export default function FilesPage() {
               <Video className="w-5 h-5 text-purple-600 mr-2" />
               <h3 className="font-medium">Video Converter</h3>
             </div>
-            <p className="text-sm text-gray-600 mb-3">Convert videos for social media</p>
+            <p className="text-sm text-gray-700 mb-3">Convert videos for social media</p>
             <button className="w-full bg-purple-600 text-white px-3 py-2 rounded text-sm hover:bg-purple-700">
               Convert Videos
             </button>

@@ -85,7 +85,7 @@ export default function Sidebar({ user }: SidebarProps) {
             <p className="text-sm font-medium text-white truncate">
               {user.name}
             </p>
-            <p className="text-xs text-gray-400 truncate">
+            <p className="text-xs text-gray-600 truncate">
               {user.role}
             </p>
           </div>

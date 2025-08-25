@@ -124,15 +124,92 @@ Return ONLY the post content, no explanations.`
     const hashtagString = hashtagCompletion.choices[0]?.message?.content || ''
     const hashtags = hashtagString.split(' ').filter(tag => tag.startsWith('#')).slice(0, platformSpecs.hashtagCount)
 
+    // Generate AI image with DALL-E based on the content
+    let imageUrl = null
+    try {
+      const imagePrompt = generateImagePrompt(prompt, brand, content)
+      console.log('Generating AI image with prompt:', imagePrompt)
+      
+      const imageResponse = await openai.images.generate({
+        model: "dall-e-3",
+        prompt: imagePrompt,
+        n: 1,
+        size: "1024x1024",
+        quality: "standard",
+        style: "natural"
+      })
+      
+      imageUrl = imageResponse.data[0]?.url
+      console.log('Generated AI image URL:', imageUrl)
+    } catch (imageError) {
+      console.error('DALL-E image generation error:', imageError)
+      // Continue without image if generation fails
+    }
+
     const suggestions = platformSpecs.suggestions
 
-    return { content, hashtags, suggestions }
+    return { content, hashtags, suggestions, imageUrl }
 
   } catch (error) {
     console.error('OpenAI API error:', error)
     // Fallback to template on error
     return generateTemplatePostForPlatform(prompt, brand, platform, tone, style)
   }
+}
+
+function generateImagePrompt(originalPrompt: string, brand: string, postContent: string): string {
+  const brandContext = getBrandContext(brand)
+  
+  // Extract key visual elements from the original prompt and generated content
+  const isFood = /recipe|cook|ingredient|meal|dish|food|kitchen|dining/i.test(originalPrompt + ' ' + postContent)
+  const isMotivational = /motivat|inspir|grit|strength|challenge|goal|success/i.test(originalPrompt + ' ' + postContent)
+  const isHomeDecor = /candle|decor|home|room|space|design|aesthetic/i.test(originalPrompt + ' ' + postContent)
+  
+  let basePrompt = ""
+  
+  if (brand === 'Daily Dish Dash') {
+    if (isFood) {
+      basePrompt = "A beautifully styled food photograph showing "
+      
+      // Extract specific food items mentioned
+      if (/pasta|spaghetti|noodles/i.test(originalPrompt)) {
+        basePrompt += "perfectly cooked pasta with fresh herbs and ingredients"
+      } else if (/salad|vegetable/i.test(originalPrompt)) {
+        basePrompt += "a vibrant, fresh salad with colorful vegetables"
+      } else if (/breakfast/i.test(originalPrompt)) {
+        basePrompt += "an appetizing breakfast spread on a clean table"
+      } else if (/quick|fast|15.minute|30.minute/i.test(originalPrompt)) {
+        basePrompt += "a quick, delicious meal that looks professionally prepared"
+      } else {
+        basePrompt += "an appetizing homemade meal with fresh ingredients"
+      }
+      
+      basePrompt += ", shot from above on a clean white or wooden surface, natural lighting, warm and inviting atmosphere, professional food photography style"
+    } else {
+      basePrompt = "A warm, inviting kitchen scene with cooking utensils and fresh ingredients, clean and organized, natural lighting, cozy home cooking atmosphere"
+    }
+  } else if (brand === 'Grit Collective Co.') {
+    if (isMotivational) {
+      basePrompt = "An inspiring, minimalist scene featuring handmade decor items that evoke motivation and determination"
+    } else if (isHomeDecor) {
+      basePrompt = "A beautifully styled home interior showcasing handmade candles, wall art, or decorative items"
+    } else {
+      basePrompt = "An aesthetic flat lay or styled scene featuring handcrafted home decor items"
+    }
+    
+    basePrompt += ", warm lighting, earthy tones, modern minimalist aesthetic, Instagram-worthy styling, cozy and inspiring atmosphere"
+  } else {
+    // Generic brand
+    basePrompt = "A clean, professional lifestyle image related to the post content, good lighting, modern aesthetic"
+  }
+  
+  // Add style and quality modifiers
+  basePrompt += ", high quality, sharp focus, professional photography, social media ready"
+  
+  // Avoid text in images (common DALL-E issue)
+  basePrompt += ", no text overlay, no words visible"
+  
+  return basePrompt
 }
 
 function getBrandContext(brand: string) {

@@ -98,7 +98,7 @@ export default function DashboardPage() {
       {/* Welcome Section */}
       <div>
         <h2 className="text-3xl font-bold text-gray-900">Content Dashboard</h2>
-        <p className="text-gray-600">Manage your content, track performance, and grow your audience.</p>
+        <p className="text-gray-700">Manage your content, track performance, and grow your audience.</p>
       </div>
 
       {/* System Status */}
@@ -108,13 +108,13 @@ export default function DashboardPage() {
             <>
               <CheckCircle className="w-6 h-6 text-green-500" />
               <span className="text-green-700 font-medium">All Systems Online</span>
-              <span className="text-gray-500">• Content management is running smoothly</span>
+              <span className="text-gray-700">• Content management is running smoothly</span>
             </>
           ) : (
             <>
               <AlertCircle className="w-6 h-6 text-red-500" />
               <span className="text-red-700 font-medium">System Issues</span>
-              <span className="text-gray-500">• Check integrations status</span>
+              <span className="text-gray-700">• Check integrations status</span>
             </>
           )}
         </div>
@@ -129,7 +129,7 @@ export default function DashboardPage() {
                 <stat.icon className="w-6 h-6 text-white" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">{stat.name}</p>
+                <p className="text-sm font-medium text-gray-700">{stat.name}</p>
                 <p className="text-2xl font-semibold text-gray-900">{stat.value}</p>
               </div>
             </div>
@@ -144,17 +144,17 @@ export default function DashboardPage() {
           <button className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left">
             <FileText className="w-6 h-6 text-blue-500 mb-2" />
             <h4 className="font-medium text-gray-900">Create Content</h4>
-            <p className="text-sm text-gray-600">Write a new blog post or article</p>
+            <p className="text-sm text-gray-700">Write a new blog post or article</p>
           </button>
           <button className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left">
             <Share2 className="w-6 h-6 text-green-500 mb-2" />
             <h4 className="font-medium text-gray-900">Social Media</h4>
-            <p className="text-sm text-gray-600">Schedule social media posts</p>
+            <p className="text-sm text-gray-700">Schedule social media posts</p>
           </button>
           <button className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left">
             <TrendingUp className="w-6 h-6 text-purple-500 mb-2" />
             <h4 className="font-medium text-gray-900">Analytics</h4>
-            <p className="text-sm text-gray-600">View content performance</p>
+            <p className="text-sm text-gray-700">View content performance</p>
           </button>
         </div>
       </div>
@@ -167,21 +167,21 @@ export default function DashboardPage() {
             <Calendar className="w-5 h-5 text-blue-500" />
             <div>
               <p className="text-sm font-medium text-gray-900">Blog post published</p>
-              <p className="text-xs text-gray-600">2 hours ago</p>
+              <p className="text-xs text-gray-700">2 hours ago</p>
             </div>
           </div>
           <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
             <Share2 className="w-5 h-5 text-green-500" />
             <div>
               <p className="text-sm font-medium text-gray-900">Social media post scheduled</p>
-              <p className="text-xs text-gray-600">4 hours ago</p>
+              <p className="text-xs text-gray-700">4 hours ago</p>
             </div>
           </div>
           <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
             <TrendingUp className="w-5 h-5 text-purple-500" />
             <div>
               <p className="text-sm font-medium text-gray-900">Analytics report generated</p>
-              <p className="text-xs text-gray-600">Yesterday</p>
+              <p className="text-xs text-gray-700">Yesterday</p>
             </div>
           </div>
         </div>

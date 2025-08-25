@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { SocialPost } from '@/lib/marketing-types'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase'
 import { cookies } from 'next/headers'
 
 export async function GET(request: NextRequest) {
@@ -11,10 +11,10 @@ export async function GET(request: NextRequest) {
     const brandId = searchParams.get('brandId')
     
     // For now, use a hardcoded user ID (replace with proper auth later)
-    const userId = 'temp-user-id'
+    const userId = '00000000-0000-0000-0000-000000000000'
     
     // Build query
-    let query = supabase
+    let query = supabaseAdmin
       .from('content_calendar')
       .select('*')
       .order('scheduled_date', { ascending: false })
@@ -71,9 +71,9 @@ export async function POST(request: NextRequest) {
     const data = await request.json()
     
     // For now, use a hardcoded user ID (replace with proper auth later)
-    const userId = 'temp-user-id'
+    const userId = '00000000-0000-0000-0000-000000000000'
     
-    const { data: insertedData, error } = await supabase
+    const { data: insertedData, error } = await supabaseAdmin
       .from('content_calendar')
       .insert({
         user_id: userId,
@@ -140,7 +140,7 @@ export async function PUT(request: NextRequest) {
     
     updateData.updated_at = new Date().toISOString()
     
-    const { data: updatedData, error } = await supabase
+    const { data: updatedData, error } = await supabaseAdmin
       .from('content_calendar')
       .update(updateData)
       .eq('id', id)
@@ -188,7 +188,7 @@ export async function DELETE(request: NextRequest) {
   try {
     const { id } = await request.json()
     
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('content_calendar')
       .delete()
       .eq('id', id)

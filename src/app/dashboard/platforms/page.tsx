@@ -47,7 +47,7 @@ export default function PlatformsPage() {
     <div className="p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Platforms</h1>
-        <p className="text-gray-600">Manage your connections to e-commerce platforms</p>
+        <p className="text-gray-700">Manage your connections to e-commerce platforms</p>
       </div>
 
       {/* Platform Overview Grid */}
@@ -59,11 +59,11 @@ export default function PlatformsPage() {
                 <span className="text-3xl">{platform.logo}</span>
                 <div>
                   <h3 className="font-semibold text-lg">{platform.name}</h3>
-                  <p className="text-sm text-gray-600">{platform.description}</p>
+                  <p className="text-sm text-gray-700">{platform.description}</p>
                 </div>
               </div>
               <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                <Settings className="w-4 h-4 text-gray-600" />
+                <Settings className="w-4 h-4 text-gray-700" />
               </button>
             </div>
 
@@ -85,21 +85,21 @@ export default function PlatformsPage() {
             {/* Stats */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center text-gray-600">
+                <div className="flex items-center text-gray-700">
                   <DollarSign className="w-4 h-4 mr-2" />
                   <span className="text-sm">Sales</span>
                 </div>
                 <span className="font-semibold">{platform.stats.sales}</span>
               </div>
               <div className="flex items-center justify-between">
-                <div className="flex items-center text-gray-600">
+                <div className="flex items-center text-gray-700">
                   <Package className="w-4 h-4 mr-2" />
                   <span className="text-sm">Products</span>
                 </div>
                 <span className="font-semibold">{platform.stats.products}</span>
               </div>
               <div className="flex items-center justify-between">
-                <div className="flex items-center text-gray-600">
+                <div className="flex items-center text-gray-700">
                   <TrendingUp className="w-4 h-4 mr-2" />
                   <span className="text-sm">Orders</span>
                 </div>
@@ -129,19 +129,19 @@ export default function PlatformsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <button className="p-4 border rounded-lg hover:bg-gray-50 transition-colors text-left">
             <h3 className="font-medium mb-1">Bulk Sync</h3>
-            <p className="text-sm text-gray-600">Update all platforms at once</p>
+            <p className="text-sm text-gray-700">Update all platforms at once</p>
           </button>
           <button className="p-4 border rounded-lg hover:bg-gray-50 transition-colors text-left">
             <h3 className="font-medium mb-1">Price Update</h3>
-            <p className="text-sm text-gray-600">Adjust pricing across platforms</p>
+            <p className="text-sm text-gray-700">Adjust pricing across platforms</p>
           </button>
           <button className="p-4 border rounded-lg hover:bg-gray-50 transition-colors text-left">
             <h3 className="font-medium mb-1">Inventory Check</h3>
-            <p className="text-sm text-gray-600">Verify stock levels</p>
+            <p className="text-sm text-gray-700">Verify stock levels</p>
           </button>
           <button className="p-4 border rounded-lg hover:bg-gray-50 transition-colors text-left">
             <h3 className="font-medium mb-1">Platform Fees</h3>
-            <p className="text-sm text-gray-600">Compare commission rates</p>
+            <p className="text-sm text-gray-700">Compare commission rates</p>
           </button>
         </div>
       </div>
@@ -154,11 +154,11 @@ export default function PlatformsPage() {
             <h3 className="font-medium mb-2">Shopify Integration</h3>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="text-gray-600">Store URL:</span>
+                <span className="text-gray-700">Store URL:</span>
                 <span className="ml-2">gritcollective.myshopify.com</span>
               </div>
               <div>
-                <span className="text-gray-600">Last Sync:</span>
+                <span className="text-gray-700">Last Sync:</span>
                 <span className="ml-2">2 hours ago</span>
               </div>
             </div>
@@ -166,7 +166,7 @@ export default function PlatformsPage() {
           
           <div className="p-4 border rounded-lg">
             <h3 className="font-medium mb-2">Etsy Integration</h3>
-            <p className="text-sm text-gray-600 mb-3">Connect your Etsy shop to start syncing products</p>
+            <p className="text-sm text-gray-700 mb-3">Connect your Etsy shop to start syncing products</p>
             <button className="px-4 py-2 text-sm bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
               Connect Etsy Shop
             </button>
@@ -176,11 +176,11 @@ export default function PlatformsPage() {
             <h3 className="font-medium mb-2">Printful Integration</h3>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="text-gray-600">API Status:</span>
+                <span className="text-gray-700">API Status:</span>
                 <span className="ml-2 text-green-600">Active</span>
               </div>
               <div>
-                <span className="text-gray-600">Fulfillment:</span>
+                <span className="text-gray-700">Fulfillment:</span>
                 <span className="ml-2">Automatic</span>
               </div>
             </div>

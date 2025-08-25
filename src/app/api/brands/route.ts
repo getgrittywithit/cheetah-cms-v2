@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { Brand } from '@/lib/brand-types'
-import { supabase } from '@/lib/supabase'
+import { supabase, supabaseAdmin } from '@/lib/supabase'
 
 // Helper to transform database brands to the Brand interface
 function transformBrand(dbBrand: Record<string, unknown>): Brand {
@@ -47,11 +47,10 @@ function transformBrand(dbBrand: Record<string, unknown>): Brand {
 
 export async function GET() {
   try {
-    // For now, use a hardcoded user ID (replace with proper auth later)
-    const userId = 'temp-user-id'
+    // For now, we'll fetch all brands (replace with proper user filtering later)
     
     // Fetch brands with their social accounts from Supabase
-    const { data: dbBrands, error } = await supabase
+    const { data: dbBrands, error } = await supabaseAdmin
       .from('brand_profiles')
       .select(`
         *,
@@ -60,12 +59,14 @@ export async function GET() {
       .order('created_at', { ascending: false })
     
     if (error) {
+      console.error('Database error:', error)
       throw error
     }
     
     // If no brands exist, create default ones
     if (!dbBrands || dbBrands.length === 0) {
       // Create default brands in database
+      const userId = crypto.randomUUID()
       const defaultBrands = [
         {
           user_id: userId,
@@ -149,6 +150,83 @@ export async function GET() {
     console.error('Failed to get brands:', error)
     return NextResponse.json(
       { error: 'Failed to get brands' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const data = await request.json()
+    const userId = crypto.randomUUID() // Generate proper UUID
+    
+    // Insert brand profile
+    const { data: brand, error: brandError } = await supabase
+      .from('brand_profiles')
+      .insert({
+        user_id: userId,
+        name: data.name,
+        description: data.description,
+        industry: data.industry,
+        target_audience: data.targetAudience,
+        tone_of_voice: data.toneOfVoice,
+        brand_personality: data.brandPersonality,
+        primary_color: data.primaryColor,
+        secondary_color: data.secondaryColor,
+        tagline: data.tagline,
+        unique_value_proposition: data.uniqueValueProposition
+      })
+      .select()
+      .single()
+    
+    if (brandError) throw brandError
+    
+    // Insert social accounts if provided
+    if (data.socialAccounts && data.socialAccounts.length > 0) {
+      const socialAccounts = data.socialAccounts.map((account: any) => ({
+        user_id: userId,
+        brand_profile_id: brand.id,
+        platform: account.platform,
+        account_handle: account.username,
+        access_token: account.accessToken,
+        account_id: account.accountId,
+        is_active: account.isActive,
+        posting_enabled: account.postingEnabled !== false
+      }))
+      
+      const { error: socialError } = await supabase
+        .from('social_accounts')
+        .insert(socialAccounts)
+      
+      if (socialError) console.error('Error creating social accounts:', socialError)
+    }
+    
+    // Fetch the brand with social accounts
+    const { data: fullBrand, error: fetchError } = await supabase
+      .from('brand_profiles')
+      .select(`
+        *,
+        social_accounts (*)
+      `)
+      .eq('id', brand.id)
+      .single()
+    
+    if (fetchError) throw fetchError
+    
+    const transformedBrand = transformBrand(fullBrand)
+    
+    return NextResponse.json({
+      success: true,
+      brand: transformedBrand
+    })
+  } catch (error) {
+    console.error('Failed to create brand:', error)
+    return NextResponse.json(
+      { 
+        error: 'Failed to create brand',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        fullError: error
+      },
       { status: 500 }
     )
   }

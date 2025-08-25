@@ -77,6 +77,13 @@ export default function AIPostCreator({ brandName, onSchedulePost }: AIPostCreat
       const data = await response.json()
       if (data.success) {
         setGeneratedPosts(data.posts)
+        
+        // If posts have AI-generated images, add them to imageUrls
+        data.posts.forEach((post: GeneratedPost) => {
+          if (post.imageUrl) {
+            setImageUrls(prev => ({ ...prev, [post.platform]: post.imageUrl || '' }))
+          }
+        })
       }
     } catch (error) {
       console.error('Failed to generate posts:', error)
@@ -301,6 +308,12 @@ Examples:
                         alt="Post image" 
                         className="w-full max-w-md h-48 object-cover rounded-lg border border-gray-200"
                       />
+                      {post.imageUrl && (
+                        <div className="absolute top-2 left-2 bg-purple-600 text-white px-2 py-1 rounded text-xs font-medium flex items-center space-x-1">
+                          <Sparkles className="w-3 h-3" />
+                          <span>AI Generated</span>
+                        </div>
+                      )}
                       <button
                         onClick={() => removeImage(post.platform)}
                         className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
