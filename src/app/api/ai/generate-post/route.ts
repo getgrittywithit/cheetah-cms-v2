@@ -39,7 +39,8 @@ export async function POST(request: NextRequest) {
         platform,
         content: post.content,
         hashtags: post.hashtags,
-        suggestions: post.suggestions
+        suggestions: post.suggestions,
+        imageUrl: post.imageUrl
       }
     }))
 
@@ -61,9 +62,11 @@ export async function POST(request: NextRequest) {
 
 async function generateAIPostForPlatform(prompt: string, brand: string, platform: string, tone?: string, style?: string) {
   if (!process.env.OPENAI_API_KEY) {
-    // Fallback to template if no API key
+    console.log('No OpenAI API key found, falling back to template')
     return generateTemplatePostForPlatform(prompt, brand, platform, tone, style)
   }
+  
+  console.log('OpenAI API key found, using AI generation')
 
   try {
     const brandContext = getBrandContext(brand)
@@ -127,8 +130,9 @@ Return ONLY the post content, no explanations.`
     // Generate AI image with DALL-E based on the content
     let imageUrl = null
     try {
+      console.log('Starting DALL-E image generation...')
       const imagePrompt = generateImagePrompt(prompt, brand, content)
-      console.log('Generating AI image with prompt:', imagePrompt)
+      console.log('Generated image prompt:', imagePrompt)
       
       const imageResponse = await openai.images.generate({
         model: "dall-e-3",
@@ -140,9 +144,10 @@ Return ONLY the post content, no explanations.`
       })
       
       imageUrl = imageResponse.data[0]?.url
-      console.log('Generated AI image URL:', imageUrl)
+      console.log('DALL-E response received, image URL:', imageUrl ? 'Generated successfully' : 'No URL returned')
     } catch (imageError) {
       console.error('DALL-E image generation error:', imageError)
+      console.error('Error details:', JSON.stringify(imageError, null, 2))
       // Continue without image if generation fails
     }
 
