@@ -12,7 +12,9 @@ import {
   Copy,
   Edit,
   Check,
-  Loader2
+  Loader2,
+  ImagePlus,
+  X
 } from 'lucide-react'
 
 interface GeneratedPost {
@@ -20,6 +22,7 @@ interface GeneratedPost {
   content: string
   hashtags: string[]
   suggestions: string[]
+  imageUrl?: string
 }
 
 interface AIPostCreatorProps {
@@ -46,6 +49,9 @@ export default function AIPostCreator({ brandName, onSchedulePost }: AIPostCreat
   const [loading, setLoading] = useState(false)
   const [editingPost, setEditingPost] = useState<string | null>(null)
   const [scheduleDate, setScheduleDate] = useState('')
+  const [selectedImages, setSelectedImages] = useState<{[platform: string]: File | null}>({})
+  const [imageUrls, setImageUrls] = useState<{[platform: string]: string}>({})
+  const [uploadingImages, setUploadingImages] = useState<{[platform: string]: boolean}>({})
 
   const platforms = [
     { id: 'instagram', name: 'Instagram', icon: Instagram },
@@ -101,12 +107,39 @@ export default function AIPostCreator({ brandName, onSchedulePost }: AIPostCreat
     navigator.clipboard.writeText(text)
   }
 
+  const handleImageUpload = async (platform: string, file: File) => {
+    setUploadingImages(prev => ({ ...prev, [platform]: true }))
+    
+    try {
+      const formData = new FormData()
+      formData.append('image', file)
+      
+      // For now, create a local URL - in production you'd upload to your storage
+      const imageUrl = URL.createObjectURL(file)
+      setImageUrls(prev => ({ ...prev, [platform]: imageUrl }))
+      setSelectedImages(prev => ({ ...prev, [platform]: file }))
+    } catch (error) {
+      console.error('Failed to upload image:', error)
+    } finally {
+      setUploadingImages(prev => ({ ...prev, [platform]: false }))
+    }
+  }
+
+  const removeImage = (platform: string) => {
+    if (imageUrls[platform]) {
+      URL.revokeObjectURL(imageUrls[platform])
+    }
+    setImageUrls(prev => ({ ...prev, [platform]: '' }))
+    setSelectedImages(prev => ({ ...prev, [platform]: null }))
+  }
+
   const schedulePost = (post: GeneratedPost) => {
     onSchedulePost({
       platform: post.platform,
       content: post.content,
       hashtags: post.hashtags.join(' '),
-      scheduledFor: scheduleDate
+      scheduledFor: scheduleDate,
+      imageUrl: imageUrls[post.platform]
     })
   }
 
@@ -256,6 +289,53 @@ Examples:
                       </span>
                     ))}
                   </div>
+                </div>
+
+                {/* Image Upload */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Add Image</label>
+                  {imageUrls[post.platform] ? (
+                    <div className="relative">
+                      <img 
+                        src={imageUrls[post.platform]} 
+                        alt="Post image" 
+                        className="w-full max-w-md h-48 object-cover rounded-lg border border-gray-200"
+                      />
+                      <button
+                        onClick={() => removeImage(post.platform)}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) handleImageUpload(post.platform, file)
+                        }}
+                        className="hidden"
+                        id={`image-upload-${post.platform}`}
+                      />
+                      <label htmlFor={`image-upload-${post.platform}`} className="cursor-pointer">
+                        {uploadingImages[post.platform] ? (
+                          <div className="flex items-center justify-center space-x-2">
+                            <Loader2 className="w-6 h-6 text-purple-600 animate-spin" />
+                            <span className="text-sm text-gray-700">Uploading...</span>
+                          </div>
+                        ) : (
+                          <div>
+                            <ImagePlus className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                            <p className="text-sm text-gray-700">Click to add an image</p>
+                            <p className="text-xs text-gray-500 mt-1">JPG, PNG, GIF up to 10MB</p>
+                          </div>
+                        )}
+                      </label>
+                    </div>
+                  )}
                 </div>
 
                 {/* Suggestions */}
