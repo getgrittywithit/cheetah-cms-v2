@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import OpenAI from 'openai'
 
 interface GeneratePostRequest {
   prompt: string
@@ -7,6 +8,11 @@ interface GeneratePostRequest {
   tone?: string
   style?: string
 }
+
+// Initialize OpenAI
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+})
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,22 +29,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('Generating posts for platforms:', platforms)
+    console.log('Generating AI posts for platforms:', platforms)
     
-    // For now, we'll create a smart template-based generator
-    // Later this can be connected to OpenAI, Claude, or other AI services
-    const generatedPosts = platforms.map(platform => {
-      console.log('Generating for platform:', platform)
-      const post = generatePostForPlatform(prompt, brand, platform, tone, style)
+    // Generate posts using OpenAI for each platform
+    const generatedPosts = await Promise.all(platforms.map(async (platform) => {
+      console.log('Generating AI content for platform:', platform)
+      const post = await generateAIPostForPlatform(prompt, brand, platform, tone, style)
       return {
         platform,
         content: post.content,
         hashtags: post.hashtags,
         suggestions: post.suggestions
       }
-    })
+    }))
 
-    console.log('Generated posts:', generatedPosts.length)
+    console.log('Generated AI posts:', generatedPosts.length)
 
     return NextResponse.json({
       success: true,
@@ -54,7 +59,144 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function generatePostForPlatform(prompt: string, brand: string, platform: string, tone?: string, style?: string) {
+async function generateAIPostForPlatform(prompt: string, brand: string, platform: string, tone?: string, style?: string) {
+  if (!process.env.OPENAI_API_KEY) {
+    // Fallback to template if no API key
+    return generateTemplatePostForPlatform(prompt, brand, platform, tone, style)
+  }
+
+  try {
+    const brandContext = getBrandContext(brand)
+    const platformSpecs = getPlatformSpecs(platform)
+    
+    const systemPrompt = `You are an expert social media content creator for ${brand}. 
+
+Brand Voice: ${brandContext.voice}
+Brand Values: ${brandContext.values}
+Target Audience: ${brandContext.audience}
+
+Platform: ${platform}
+Platform Guidelines: ${platformSpecs.guidelines}
+Character Limit: ${platformSpecs.charLimit}
+Best Practices: ${platformSpecs.bestPractices}
+
+Create a ${platform} post with this structure:
+1. HOOK: Attention-grabbing opening line
+2. VALUE: Useful content, tip, or insight  
+3. CTA: Clear call-to-action for engagement
+
+Make it feel authentic and conversational while maintaining the brand voice.`
+
+    const userPrompt = `Create a ${platform} post about: ${prompt}
+
+Requirements:
+- Start with a compelling hook
+- Provide valuable content related to the topic
+- End with an engaging call-to-action
+- Use appropriate emojis for ${platform}
+- Match ${brand}'s tone of voice
+- Include engagement-driving elements
+
+Return ONLY the post content, no explanations.`
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ],
+      max_tokens: platformSpecs.maxTokens,
+      temperature: 0.7,
+    })
+
+    const content = completion.choices[0]?.message?.content || ''
+    
+    // Generate hashtags with AI
+    const hashtagPrompt = `Generate ${platformSpecs.hashtagCount} relevant hashtags for this ${platform} post about "${prompt}" for brand ${brand}. Return only hashtags separated by spaces, no explanations.`
+    
+    const hashtagCompletion = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: hashtagPrompt }],
+      max_tokens: 100,
+      temperature: 0.5,
+    })
+
+    const hashtagString = hashtagCompletion.choices[0]?.message?.content || ''
+    const hashtags = hashtagString.split(' ').filter(tag => tag.startsWith('#')).slice(0, platformSpecs.hashtagCount)
+
+    const suggestions = platformSpecs.suggestions
+
+    return { content, hashtags, suggestions }
+
+  } catch (error) {
+    console.error('OpenAI API error:', error)
+    // Fallback to template on error
+    return generateTemplatePostForPlatform(prompt, brand, platform, tone, style)
+  }
+}
+
+function getBrandContext(brand: string) {
+  const contexts = {
+    'Daily Dish Dash': {
+      voice: 'Friendly, helpful, and enthusiastic about food. Encouraging and approachable.',
+      values: 'Quick, accessible, delicious food that fits busy lifestyles',
+      audience: 'Busy professionals and home cooks looking for quick, tasty meal solutions'
+    },
+    'Grit Collective Co.': {
+      voice: 'Inspirational, authentic, encouraging with a slightly edgy vibe',
+      values: 'Handmade products that inspire and motivate, setting moods and sparking moments',
+      audience: 'Design-conscious consumers seeking motivation and aesthetic home decor'
+    }
+  }
+  return contexts[brand as keyof typeof contexts] || contexts['Daily Dish Dash']
+}
+
+function getPlatformSpecs(platform: string) {
+  const specs = {
+    instagram: {
+      charLimit: '2200 characters',
+      maxTokens: 300,
+      hashtagCount: 10,
+      guidelines: 'Visual-focused, emoji-rich, story-driven content',
+      bestPractices: 'Use line breaks, emojis, ask questions, encourage saves/shares',
+      suggestions: [
+        'Add a high-quality image or video',
+        'Use Instagram Stories for behind-the-scenes content',
+        'Consider Reels for higher engagement',
+        'Post during peak hours (11am-2pm, 5-7pm)'
+      ]
+    },
+    facebook: {
+      charLimit: '63,206 characters',
+      maxTokens: 400,
+      hashtagCount: 5,
+      guidelines: 'Longer-form, conversation-starting content',
+      bestPractices: 'Tell stories, ask questions, encourage comments',
+      suggestions: [
+        'Facebook favors longer, engaging content',
+        'Ask questions to boost engagement',
+        'Share personal stories and experiences',
+        'Consider Facebook Live for authentic connection'
+      ]
+    },
+    twitter: {
+      charLimit: '280 characters',
+      maxTokens: 100,
+      hashtagCount: 3,
+      guidelines: 'Concise, timely, conversation-focused',
+      bestPractices: 'Be concise, use threads for longer content, join trending conversations',
+      suggestions: [
+        'Keep it under 280 characters',
+        'Use Twitter threads for detailed tips',
+        'Engage with trending hashtags when relevant',
+        'Tweet during peak hours (9am-10am, 7-9pm)'
+      ]
+    }
+  }
+  return specs[platform as keyof typeof specs] || specs.instagram
+}
+
+function generateTemplatePostForPlatform(prompt: string, brand: string, platform: string, tone?: string, style?: string) {
   // Extract key themes from the prompt
   const isRecipe = /recipe|cook|ingredient|meal|dish|food/i.test(prompt)
   const isTip = /tip|trick|hack|how to|advice/i.test(prompt)
@@ -149,15 +291,15 @@ ${context.hashtags.slice(0, 10).join(' ')}`
   if (flags.isRecipe) {
     return `🍽️ ${prompt}
 
-Here's a quick and delicious recipe that'll save you time in the kitchen! Perfect for busy weeknights when you want something tasty without the hassle.
+This is such a game-changer for busy days! I love how simple ingredients can create something so delicious. Perfect when you want a homemade meal without spending hours in the kitchen.
 
-👩‍🍳 Prep time: 15 mins
-⏰ Cook time: 20 mins
-😋 Serves: 4
+✨ Quick to make, even quicker to disappear! 
+⏰ Ready in under 30 minutes
+🥘 Perfect for weeknight dinners
 
-What's your favorite quick meal when you're short on time? Let me know in the comments! ⬇️
+Have you tried something like this before? What's your go-to quick meal? Let me know below! ⬇️
 
-#quickrecipes #easymeals #foodie #cooking`
+#dailydishdash #quickmeals #easyrecipes #homecooking #foodie`
   } else if (flags.isTip) {
     return `💡 Kitchen Tip: ${prompt}
 
@@ -171,11 +313,13 @@ I'm curious to hear your thoughts on this! Drop your answers in the comments - I
 
 #foodcommunity #discussion #cooking`
   } else {
-    return `${prompt}
+    return `${prompt} 🍴
 
-What do you think? Share your thoughts in the comments! 
+I'm excited to share this with you! There's something special about simple, delicious food that brings people together.
 
-#dailydishdash #foodlife #cooking`
+What do you think? Would you give this a try? Drop a comment and let me know! 👇
+
+#dailydishdash #foodlife #cooking #foodlover`
   }
 }
 
