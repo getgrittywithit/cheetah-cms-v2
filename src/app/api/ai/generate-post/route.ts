@@ -17,12 +17,21 @@ const openai = new OpenAI({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    console.log('Received request body:', body)
+    console.log('🔵 AI Generate Post - Received request:', {
+      hasPrompt: !!body.prompt,
+      brand: body.brand,
+      platforms: body.platforms,
+      promptLength: body.prompt?.length
+    })
     
     const { prompt, brand, platforms, tone, style }: GeneratePostRequest = body
 
     if (!prompt || !brand || !platforms || platforms.length === 0) {
-      console.log('Missing required fields:', { prompt: !!prompt, brand: !!brand, platforms: platforms?.length })
+      console.log('🔴 Missing required fields:', { 
+        prompt: !!prompt, 
+        brand: !!brand, 
+        platforms: platforms?.length 
+      })
       return NextResponse.json(
         { error: 'Prompt, brand, and platforms are required' },
         { status: 400 }
@@ -33,14 +42,25 @@ export async function POST(request: NextRequest) {
     
     // Generate posts using OpenAI for each platform
     const generatedPosts = await Promise.all(platforms.map(async (platform) => {
-      console.log('Generating AI content for platform:', platform)
-      const post = await generateAIPostForPlatform(prompt, brand, platform, tone, style)
-      return {
-        platform,
-        content: post.content,
-        hashtags: post.hashtags,
-        suggestions: post.suggestions,
-        imageUrl: post.imageUrl
+      console.log('🔵 Generating AI content for platform:', platform)
+      try {
+        const post = await generateAIPostForPlatform(prompt, brand, platform, tone, style)
+        console.log('🔵 Generated post for', platform, {
+          hasContent: !!post.content,
+          contentLength: post.content?.length,
+          hashtagsCount: post.hashtags?.length,
+          hasImageUrl: !!post.imageUrl
+        })
+        return {
+          platform,
+          content: post.content,
+          hashtags: post.hashtags,
+          suggestions: post.suggestions,
+          imageUrl: post.imageUrl
+        }
+      } catch (error) {
+        console.error('🔴 Failed to generate for platform', platform, error)
+        throw error
       }
     }))
 
@@ -52,9 +72,13 @@ export async function POST(request: NextRequest) {
       originalPrompt: prompt
     })
   } catch (error) {
-    console.error('AI generation error:', error)
+    console.error('🔴 AI generation error:', error)
+    console.error('🔴 Error stack:', error instanceof Error ? error.stack : 'No stack')
     return NextResponse.json(
-      { error: `Failed to generate posts: ${error}` },
+      { 
+        error: `Failed to generate posts: ${error instanceof Error ? error.message : error}`,
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     )
   }
