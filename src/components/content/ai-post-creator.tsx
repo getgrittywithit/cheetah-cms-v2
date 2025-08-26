@@ -14,7 +14,8 @@ import {
   Check,
   Loader2,
   ImagePlus,
-  X
+  X,
+  BookmarkPlus
 } from 'lucide-react'
 import ScheduleConfirmationModal from './schedule-confirmation-modal'
 
@@ -60,7 +61,8 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
   const [postingSuccess, setPostingSuccess] = useState<{[platform: string]: boolean}>({})
   const [showScheduleModal, setShowScheduleModal] = useState(false)
   const [selectedPostForScheduling, setSelectedPostForScheduling] = useState<GeneratedPost | null>(null)
-  const [autoSavedDrafts, setAutoSavedDrafts] = useState<{[platform: string]: string}>({}) // Store draft IDs
+  const [savedDrafts, setSavedDrafts] = useState<{[platform: string]: string}>({}) // Store manually saved draft IDs
+  const [savingDraft, setSavingDraft] = useState(false)
   const [generatingImages, setGeneratingImages] = useState<{[platform: string]: boolean}>({})
 
   // Helper to get combined datetime
@@ -113,8 +115,8 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
         })
         setVisiblePosts(newVisibility)
 
-        // Auto-save drafts (captions only, no images yet)
-        autoSaveDrafts(data.posts)
+        // Clear any previous save states since we're not auto-saving
+        setSavedDrafts({})
       }
     } catch (error) {
       console.error('Failed to generate posts:', error)
@@ -123,19 +125,24 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
     }
   }
 
-  // Auto-save drafts with generated images
-  const autoSaveDrafts = async (posts: GeneratedPost[]) => {
+  // Manually save draft when user clicks "Save as Draft"
+  const saveDraft = async () => {
+    if (generatedPosts.length === 0) return
+    
+    setSavingDraft(true)
     try {
-      for (const post of posts) {
-        // Skip if already auto-saved
-        if (autoSavedDrafts[post.platform]) continue
-
+      const post = generatedPosts[0] // Universal post or first post
+      const isUniversal = post.platform === 'universal'
+      const targetPlatforms = isUniversal ? selectedPlatforms : [post.platform]
+      
+      // For universal posts, create drafts for each selected platform
+      for (const platform of targetPlatforms) {
         const draftData = {
-          brandId: brandSlug, // Use brandSlug as brandId for now
-          platform: post.platform,
+          brandId: brandSlug,
+          platform: platform,
           content: post.content,
           hashtags: Array.isArray(post.hashtags) ? post.hashtags : [],
-          media: post.imageUrl ? [post.imageUrl] : [], // Include generated image
+          media: imageUrls[isUniversal ? 'universal' : platform] ? [imageUrls[isUniversal ? 'universal' : platform]] : [],
           status: 'draft'
         }
 
@@ -147,49 +154,22 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
 
         const result = await response.json()
         if (result.success) {
-          // Track auto-saved draft ID
-          setAutoSavedDrafts(prev => ({ 
+          setSavedDrafts(prev => ({ 
             ...prev, 
-            [post.platform]: result.post.id 
+            [platform]: result.post.id 
           }))
-          console.log(`Auto-saved draft for ${post.platform}:`, result.post.id)
+          console.log(`Saved draft for ${platform}:`, result.post.id)
+        } else {
+          console.error(`Failed to save draft for ${platform}:`, result.error)
         }
       }
     } catch (error) {
-      console.error('Failed to auto-save drafts:', error)
+      console.error('Failed to save drafts:', error)
+    } finally {
+      setSavingDraft(false)
     }
   }
 
-  // Update existing auto-saved drafts when content changes
-  const updateAutoSavedDraft = async (platform: string, updatedContent: string) => {
-    const draftId = autoSavedDrafts[platform]
-    if (!draftId) return
-
-    try {
-      const post = generatedPosts.find(p => p.platform === platform)
-      if (!post) return
-
-      const updateData = {
-        id: draftId,
-        content: updatedContent,
-        hashtags: post.hashtags,
-        media: imageUrls[platform] ? [imageUrls[platform]] : (post.imageUrl ? [post.imageUrl] : [])
-      }
-
-      const response = await fetch('/api/marketing/posts', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updateData)
-      })
-
-      const result = await response.json()
-      if (result.success) {
-        console.log(`Updated auto-saved draft for ${platform}`)
-      }
-    } catch (error) {
-      console.error('Failed to update auto-saved draft:', error)
-    }
-  }
 
   // Generate AI image for a specific platform or universal post
   const generateImageForPlatform = async (platform: string) => {
@@ -236,13 +216,7 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
       if (data.success) {
         setImageUrls(prev => ({ ...prev, [platform]: data.imageUrl }))
         
-        // Update auto-saved draft with new image
-        if (autoSavedDrafts[platform]) {
-          const post = generatedPosts.find(p => p.platform === platform)
-          if (post) {
-            updateAutoSavedDraft(platform, post.content)
-          }
-        }
+        // Image generated successfully - no auto-save needed
       } else {
         console.error('Failed to generate image:', data.error)
       }
@@ -278,8 +252,7 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
         // Set as visible
         setVisiblePosts(prev => ({ ...prev, [platformId]: true }))
         
-        // Auto-save this additional post as draft (caption only)
-        autoSaveDrafts([newPost])
+        // Additional post generated successfully - no auto-save needed
       }
     } catch (error) {
       console.error('Failed to generate additional post:', error)
@@ -305,8 +278,7 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
       )
     )
     
-    // Update auto-saved draft with new content
-    updateAutoSavedDraft(platform, newContent)
+    // Content updated - no auto-save needed
   }
 
   const copyToClipboard = (text: string) => {
@@ -325,13 +297,7 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
       setImageUrls(prev => ({ ...prev, [platform]: imageUrl }))
       setSelectedImages(prev => ({ ...prev, [platform]: file }))
 
-      // Update auto-saved draft with new image
-      if (autoSavedDrafts[platform]) {
-        const post = generatedPosts.find(p => p.platform === platform)
-        if (post) {
-          updateAutoSavedDraft(platform, post.content)
-        }
-      }
+      // Image uploaded successfully - no auto-save needed
     } catch (error) {
       console.error('Failed to upload image:', error)
     } finally {
@@ -750,6 +716,27 @@ Examples:
                           <Calendar className="w-4 h-4" />
                           <span>Schedule Post</span>
                         </button>
+                        
+                        {/* Save as Draft Button */}
+                        {Object.keys(savedDrafts).length > 0 ? (
+                          <div className="flex items-center space-x-2 bg-green-100 text-green-700 px-4 py-2.5 rounded-lg border border-green-200">
+                            <Check className="w-4 h-4" />
+                            <span className="font-medium">Saved as Draft</span>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={saveDraft}
+                            disabled={savingDraft}
+                            className="flex items-center space-x-2 bg-purple-600 text-white px-6 py-2.5 rounded-lg hover:bg-purple-700 font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
+                          >
+                            {savingDraft ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <BookmarkPlus className="w-4 h-4" />
+                            )}
+                            <span>{savingDraft ? 'Saving...' : 'Save as Draft'}</span>
+                          </button>
+                        )}
                       </>
                     )}
                     
