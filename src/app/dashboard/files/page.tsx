@@ -36,11 +36,20 @@ export default function FilesPage() {
   const [selectedType, setSelectedType] = useState('all')
   const [uploadMessage, setUploadMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null)
+  const [buckets, setBuckets] = useState<string[]>([])
+  const [currentBucket, setCurrentBucket] = useState('dailydishdash')
+  const [showCreateFolder, setShowCreateFolder] = useState(false)
+  const [newFolderName, setNewFolderName] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     loadFiles()
+    loadBuckets()
   }, [])
+  
+  useEffect(() => {
+    loadFiles()
+  }, [currentBucket])
 
   const loadFiles = async () => {
     try {
@@ -54,6 +63,47 @@ export default function FilesPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const loadBuckets = async () => {
+    try {
+      const response = await fetch('/api/files/buckets')
+      const data = await response.json()
+      if (data.success) {
+        setBuckets(data.buckets)
+        if (data.currentBucket) {
+          setCurrentBucket(data.currentBucket)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load buckets:', error)
+    }
+  }
+
+  const handleCreateFolder = async () => {
+    if (!newFolderName.trim()) return
+    
+    try {
+      const response = await fetch('/api/files/create-folder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folderName: newFolderName })
+      })
+      
+      const data = await response.json()
+      if (data.success) {
+        setUploadMessage({ type: 'success', text: `Folder "${data.folder}" created successfully!` })
+        setNewFolderName('')
+        setShowCreateFolder(false)
+        await loadFiles()
+      } else {
+        throw new Error(data.error)
+      }
+    } catch (error) {
+      setUploadMessage({ type: 'error', text: error instanceof Error ? error.message : 'Failed to create folder' })
+    }
+    
+    setTimeout(() => setUploadMessage(null), 5000)
   }
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -158,7 +208,25 @@ export default function FilesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Files</h1>
-          <p className="text-gray-700">Manage media library and VPS processing tools</p>
+          <div className="flex items-center space-x-3">
+            <p className="text-gray-700">Manage media library and VPS processing tools</p>
+            
+            {/* Bucket Selector */}
+            {buckets.length > 1 && (
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-500">Bucket:</span>
+                <select
+                  value={currentBucket}
+                  onChange={(e) => setCurrentBucket(e.target.value)}
+                  className="text-sm border border-gray-300 rounded px-2 py-1"
+                >
+                  {buckets.map(bucket => (
+                    <option key={bucket} value={bucket}>{bucket}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
         </div>
         <div className="flex items-center space-x-3">
           <input
@@ -169,6 +237,13 @@ export default function FilesPage() {
             className="hidden"
             accept="image/*,video/*"
           />
+          <button 
+            onClick={() => setShowCreateFolder(true)}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            New Folder
+          </button>
           <button 
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
@@ -539,6 +614,66 @@ export default function FilesPage() {
                   Delete
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Folder Modal */}
+      {showCreateFolder && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Create New Folder</h2>
+              <button
+                onClick={() => {
+                  setShowCreateFolder(false)
+                  setNewFolderName('')
+                }}
+                className="text-gray-600 hover:text-gray-800"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Folder Name
+              </label>
+              <input
+                type="text"
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                placeholder="Enter folder name..."
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleCreateFolder()
+                  }
+                }}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Folder name will be cleaned (lowercase, no spaces)
+              </p>
+            </div>
+            
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => {
+                  setShowCreateFolder(false)
+                  setNewFolderName('')
+                }}
+                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateFolder}
+                disabled={!newFolderName.trim()}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Create Folder
+              </button>
             </div>
           </div>
         </div>

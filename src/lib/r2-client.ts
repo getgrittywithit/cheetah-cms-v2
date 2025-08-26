@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand, ListObjectsV2Command, GetObjectCommand } from '@aws-sdk/client-s3'
+import { S3Client, PutObjectCommand, DeleteObjectCommand, ListObjectsV2Command, GetObjectCommand, ListBucketsCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
 const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID || ''
@@ -171,12 +171,95 @@ export async function getSignedUrlFromR2(key: string, expiresIn = 3600): Promise
   return await getSignedUrl(r2Client, command, { expiresIn })
 }
 
+// List all buckets in R2 account
+export async function listBuckets(): Promise<string[]> {
+  if (!R2_ACCOUNT_ID || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY) {
+    console.error('R2 credentials missing - returning empty bucket list')
+    return []
+  }
+
+  const command = new ListBucketsCommand({})
+
+  try {
+    const response = await r2Client.send(command)
+    return response.Buckets?.map(bucket => bucket.Name || '') || []
+  } catch (error) {
+    console.error('R2 list buckets error:', error)
+    return []
+  }
+}
+
+// Upload file to specific bucket
+export async function uploadToR2WithBucket(
+  file: Buffer,
+  key: string,
+  contentType: string,
+  bucketName: string = R2_BUCKET_NAME
+): Promise<UploadedFile> {
+  if (!R2_ACCOUNT_ID || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY) {
+    throw new Error('R2 storage credentials are not configured. Please check environment variables.')
+  }
+
+  const command = new PutObjectCommand({
+    Bucket: bucketName,
+    Key: key,
+    Body: file,
+    ContentType: contentType,
+  })
+
+  try {
+    await r2Client.send(command)
+  } catch (error) {
+    console.error('R2 upload error:', error)
+    throw new Error(`Failed to upload to R2: ${error instanceof Error ? error.message : 'Unknown error'}`)
+  }
+
+  return {
+    key,
+    size: file.length,
+    type: contentType,
+    lastModified: new Date(),
+  }
+}
+
+// List files from specific bucket
+export async function listFilesFromR2WithBucket(bucketName: string, prefix?: string): Promise<UploadedFile[]> {
+  if (!R2_ACCOUNT_ID || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY) {
+    console.error('R2 credentials missing - returning empty list')
+    return []
+  }
+
+  const command = new ListObjectsV2Command({
+    Bucket: bucketName,
+    Prefix: prefix,
+    MaxKeys: 1000,
+  })
+
+  try {
+    const response = await r2Client.send(command)
+    
+    if (!response.Contents) {
+      return []
+    }
+
+    return response.Contents.map((obj) => ({
+      key: obj.Key || '',
+      size: obj.Size || 0,
+      type: guessContentType(obj.Key || ''),
+      lastModified: obj.LastModified || new Date(),
+    }))
+  } catch (error) {
+    console.error('R2 list error:', error)
+    return []
+  }
+}
+
 // Get public URL if bucket is public
-export function getPublicUrl(key: string): string {
+export function getPublicUrl(key: string, bucketName: string = R2_BUCKET_NAME): string {
   const publicUrl = process.env.R2_PUBLIC_URL
   if (publicUrl) {
     return `${publicUrl}/${key}`
   }
   // Use the same URL format as our R2ImageUploader
-  return `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${R2_BUCKET_NAME}/${key}`
+  return `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${bucketName}/${key}`
 }
