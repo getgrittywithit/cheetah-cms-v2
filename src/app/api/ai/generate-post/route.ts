@@ -72,7 +72,43 @@ async function generateAIPostForPlatform(prompt: string, brand: string, platform
     const brandContext = getBrandContext(brand)
     const platformSpecs = getPlatformSpecs(platform)
     
-    const systemPrompt = `You are an expert social media content creator for ${brand}. 
+    const systemPrompt = brand === 'Daily Dish Dash' 
+      ? `You are an expert recipe creator and food content writer for Daily Dish Dash - focusing on QUICK, EASY recipes for busy people.
+
+Brand Focus: Quick recipes (15-30 minutes max), accessible ingredients, simple techniques
+Target Audience: ${brandContext.audience}
+Platform: ${platform}
+
+Create a ${platform} post with this EXACT structure:
+
+🍽️ [DISH NAME] - Ready in [TIME]!
+
+[2-3 sentences about why this recipe is perfect for busy people]
+
+INGREDIENTS:
+• [ingredient 1]
+• [ingredient 2] 
+• [ingredient 3]
+• [etc - keep to 5-8 ingredients max]
+
+QUICK STEPS:
+1. [Step 1 - keep each step to 1 sentence]
+2. [Step 2]
+3. [Step 3]
+4. [Step 4 - usually 3-5 steps total]
+
+💡 PRO TIP: [One helpful cooking tip]
+
+What's your go-to quick dinner? Let me know! 👇
+
+IMPORTANT: 
+- Focus on recipes that take 30 minutes or less
+- Use common ingredients people have at home
+- Keep instructions super simple
+- Always include the ready time in the title
+- Make it sound achievable for beginners`
+      
+      : `You are an expert social media content creator for ${brand}. 
 
 Brand Voice: ${brandContext.voice}
 Brand Values: ${brandContext.values}
@@ -90,7 +126,21 @@ Create a ${platform} post with this structure:
 
 Make it feel authentic and conversational while maintaining the brand voice.`
 
-    const userPrompt = `Create a ${platform} post about: ${prompt}
+    const userPrompt = brand === 'Daily Dish Dash'
+      ? `Create a complete recipe post for: ${prompt}
+
+Requirements:
+- Follow the EXACT structure provided in the system prompt
+- Create a realistic recipe that takes 30 minutes or less
+- Use ingredients that are commonly available
+- Make instructions beginner-friendly
+- Include the cooking time in the dish name
+- Add appropriate food emojis
+- Make it sound achievable and exciting
+
+Return ONLY the recipe post content following the structure, no explanations.`
+
+      : `Create a ${platform} post about: ${prompt}
 
 Requirements:
 - Start with a compelling hook
@@ -178,25 +228,30 @@ function generateImagePrompt(originalPrompt: string, brand: string, postContent:
   let imagePrompt = ""
   
   if (brand === 'Daily Dish Dash') {
+    // Extract dish name from the original prompt for better image generation
+    const dishName = originalPrompt.replace(/recipe|make|cook|prepare/gi, '').trim()
+    
     if (foodMatches.length > 0) {
-      // Create specific food photography prompt
+      // Create specific recipe photography prompt
       const mainIngredients = foodMatches.slice(0, 3).join(', ')
-      const cookingStyle = cookingMethods.length > 0 ? cookingMethods[0] : 'beautifully prepared'
+      const cookingStyle = cookingMethods.length > 0 ? cookingMethods[0] : 'perfectly prepared'
       
-      imagePrompt = `Professional food photography of ${cookingStyle} ${mainIngredients}, beautifully plated and styled`
+      imagePrompt = `Professional recipe photography of ${cookingStyle} ${dishName} featuring ${mainIngredients}, beautifully plated and ready to serve`
       
-      // Add specific styling based on cooking method
-      if (/quick|easy|15.minute|30.minute/i.test(fullContext)) {
-        imagePrompt += ", simple presentation on a clean white plate, fresh herbs as garnish, overhead shot"
-      } else if (/healthy|fresh/i.test(fullContext)) {
-        imagePrompt += ", vibrant colors, fresh ingredients visible, natural wooden background, side lighting"
-      } else if (/comfort|cozy|homemade/i.test(fullContext)) {
-        imagePrompt += ", rustic presentation, warm lighting, wooden table, home kitchen atmosphere"
+      // Add specific styling for recipe content
+      if (/quick|easy|15.minute|30.minute|fast/i.test(fullContext)) {
+        imagePrompt += ", simple home-style presentation on a white or light wooden surface, natural daylight, approachable and appetizing"
+      } else if (/healthy|fresh|light/i.test(fullContext)) {
+        imagePrompt += ", fresh colorful ingredients visible, clean bright styling, healthy and vibrant presentation"  
+      } else if (/pasta|noodles|spaghetti/i.test(fullContext)) {
+        imagePrompt += ", perfectly twirled pasta in a shallow bowl, steam rising, fork beside the dish, rustic wooden background"
+      } else if (/salad|bowl|grain/i.test(fullContext)) {
+        imagePrompt += ", overhead shot in a beautiful bowl, all ingredients visible, colorful and fresh presentation"
       } else {
-        imagePrompt += ", restaurant-quality plating, clean white background, professional lighting"
+        imagePrompt += ", home-style presentation that looks achievable, warm inviting lighting, styled but not intimidating"
       }
       
-      imagePrompt += ", shallow depth of field, appetizing, Instagram food photography style, high resolution"
+      imagePrompt += ", food photography for social media, looks delicious and doable, realistic home cooking presentation"
     } else {
       // Generic cooking scene based on prompt content
       if (/kitchen|cooking|prep/i.test(fullContext)) {
