@@ -140,6 +140,50 @@ export default function ContentPage() {
     }
   }
 
+  const handlePublishNow = async (post: any) => {
+    if (!currentBrand) return
+    
+    try {
+      console.log('Publishing draft post to Facebook...', post)
+      
+      // Create the social post object for the API
+      const socialPost = {
+        id: post.id,
+        platform: post.platform,
+        content: post.content,
+        hashtags: post.hashtags,
+        scheduledFor: null // Immediate posting
+      }
+
+      // Get media URLs if available
+      const mediaUrls = post.media || []
+
+      const publishResponse = await fetch('/api/marketing/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          post: socialPost,
+          brand: currentBrand,
+          mediaUrls: mediaUrls
+        })
+      })
+
+      const publishData = await publishResponse.json()
+      console.log('Publish response:', publishData)
+      
+      if (publishData.success) {
+        alert('Post published to Facebook successfully! 🎉')
+        await loadPosts() // Refresh the posts list
+      } else {
+        alert(`Publishing failed: ${publishData.error}`)
+      }
+      
+    } catch (error) {
+      console.error('Failed to publish post:', error)
+      alert('Failed to publish post. Check console for details.')
+    }
+  }
+
   if (!currentBrand) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex items-center justify-center">
@@ -334,12 +378,37 @@ export default function ContentPage() {
 
         {activeView === 'calendar' && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold mb-6">Content Calendar</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold">Content Calendar</h2>
+              <button 
+                onClick={() => window.location.href = '/api/debug/brand-social'}
+                className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200"
+              >
+                🔧 Debug Brand Config
+              </button>
+            </div>
+            
+            {/* Status Filter Tabs */}
+            <div className="flex items-center space-x-1 mb-6 bg-gray-100 rounded-lg p-1 w-fit">
+              {['all', 'draft', 'scheduled', 'published'].map(status => (
+                <button
+                  key={status}
+                  className={`px-3 py-1.5 rounded text-sm font-medium capitalize ${
+                    'all' === status // We'll implement filtering later
+                      ? 'bg-white text-purple-600 shadow-sm'
+                      : 'text-gray-700 hover:text-gray-900'
+                  }`}
+                >
+                  {status} ({status === 'all' ? socialPosts.length : socialPosts.filter(p => p.status === status).length})
+                </button>
+              ))}
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {socialPosts.map(post => {
                 const Icon = platformIcons[post.platform as keyof typeof platformIcons]
                 return (
-                  <div key={post.id} className="p-4 border border-gray-200 rounded-lg">
+                  <div key={post.id} className="p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
                     <div className="flex items-center justify-between mb-2">
                       <div className={`p-1.5 rounded ${platformColors[post.platform as keyof typeof platformColors]}`}>
                         <Icon className="w-4 h-4" />
@@ -354,13 +423,56 @@ export default function ContentPage() {
                         {post.status}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-900 mb-2 line-clamp-3">{post.content}</p>
-                    <p className="text-xs text-gray-600">
+                    
+                    <p className="text-sm text-gray-900 mb-3 line-clamp-3">{post.content}</p>
+                    
+                    <div className="text-xs text-gray-600 mb-3">
                       {post.scheduledFor 
-                        ? new Date(post.scheduledFor).toLocaleDateString()
-                        : new Date(post.createdAt).toLocaleDateString()
+                        ? `Scheduled: ${new Date(post.scheduledFor).toLocaleString()}`
+                        : `Created: ${new Date(post.createdAt).toLocaleDateString()}`
                       }
-                    </p>
+                    </div>
+
+                    {/* Action Buttons */}
+                    {post.status === 'draft' && (
+                      <div className="flex items-center space-x-2">
+                        <button 
+                          onClick={async () => {
+                            if (post.platform === 'facebook' && confirm('Post this to Facebook now?')) {
+                              await handlePublishNow(post)
+                            } else {
+                              alert('Publishing currently only supported for Facebook')
+                            }
+                          }}
+                          className="flex-1 bg-green-600 text-white text-xs px-3 py-1.5 rounded hover:bg-green-700"
+                        >
+                          Post Now
+                        </button>
+                        <button className="text-gray-600 hover:text-gray-800 p-1">
+                          <Edit className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                    
+                    {post.status === 'scheduled' && (
+                      <div className="flex items-center space-x-2">
+                        <button className="flex-1 bg-yellow-600 text-white text-xs px-3 py-1.5 rounded hover:bg-yellow-700">
+                          Edit Schedule
+                        </button>
+                        <button className="text-gray-600 hover:text-gray-800 p-1">
+                          <Edit className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                    
+                    {post.status === 'published' && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-green-600 font-medium">✓ Live</span>
+                        <button className="text-gray-600 hover:text-gray-800 p-1">
+                          <BarChart3 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )
               })}
