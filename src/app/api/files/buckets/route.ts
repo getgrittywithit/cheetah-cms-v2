@@ -8,7 +8,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       buckets,
-      currentBucket: process.env.R2_BUCKET_NAME || 'dailydishdash'
+      currentBucket: process.env.R2_BUCKET_NAME || 'cheetah-content-media',
+      totalBuckets: buckets.length,
+      credentials: {
+        hasAccountId: !!process.env.R2_ACCOUNT_ID,
+        hasAccessKey: !!process.env.R2_ACCESS_KEY_ID,
+        hasSecretKey: !!process.env.R2_SECRET_ACCESS_KEY
+      }
     })
   } catch (error) {
     console.error('List buckets error:', error)
