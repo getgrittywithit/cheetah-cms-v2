@@ -13,14 +13,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate brand has the required social account
-    const account = brand.socialAccounts?.find((acc: { platform: string }) => acc.platform === post.platform)
-    if (!account) {
+    // Validate brand has the required social token
+    const platformToken = brand.socialTokens?.[post.platform]
+    if (!platformToken) {
+      console.log(`🔴 No ${post.platform} token found for brand:`, brand.name)
+      console.log('Available social tokens:', Object.keys(brand.socialTokens || {}))
       return NextResponse.json(
-        { error: `No ${post.platform} account configured for ${brand.name}` },
+        { error: `No ${post.platform} token configured for ${brand.name}. Please add the token to environment variables.` },
         { status: 400 }
       )
     }
+    
+    console.log(`🔵 Found ${post.platform} token for ${brand.name}, proceeding...`)
 
     // Check if this is a scheduled post for the future
     const now = new Date()
@@ -32,8 +36,8 @@ export async function POST(request: NextRequest) {
         const { data: insertedPost, error: insertError } = await supabaseAdmin
           .from('content_calendar')
           .insert({
-            user_id: brand.userId || 'admin', // Use brand's userId or fallback
-            brand_profile_id: brand.id,
+            user_id: brand.userId || '00000000-0000-0000-0000-000000000000', // Default user ID
+            brand_profile_id: brand.slug || brand.id || 'default', // Use brand slug as ID
             title: `${post.platform} Post`,
             content_type: 'social_post',
             platforms: [post.platform],
@@ -69,7 +73,24 @@ export async function POST(request: NextRequest) {
       }
     } else {
       // Publish immediately
-      const result = await SocialMediaAPI.publishPost(post, brand, mediaUrls)
+      // Convert brand config to expected Brand format
+      const adaptedBrand = {
+        name: brand.name,
+        socialAccounts: [{
+          platform: post.platform,
+          accessToken: brand.socialTokens?.[post.platform],
+          pageId: post.platform === 'facebook' ? brand.socialTokens?.facebookPageId : undefined,
+          isActive: true
+        }]
+      }
+      
+      console.log(`🔵 Publishing to ${post.platform} for brand:`, brand.name)
+      console.log(`🔵 Access token available:`, !!adaptedBrand.socialAccounts[0].accessToken)
+      console.log(`🔵 Page ID available:`, !!adaptedBrand.socialAccounts[0].pageId)
+      console.log(`🔵 Post content length:`, post.content?.length)
+      console.log(`🔵 Media URLs:`, mediaUrls?.length || 0)
+      
+      const result = await SocialMediaAPI.publishPost(post, adaptedBrand, mediaUrls)
       
       if (result.success) {
         console.log('🔵 Post published successfully, updating database status...')

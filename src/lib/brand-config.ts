@@ -79,6 +79,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
     },
     socialTokens: {
       facebook: process.env.DAILY_DISH_FACEBOOK_PAGE_ACCESS_TOKEN,
+      facebookPageId: process.env.DAILY_DISH_FACEBOOK_PAGE_ID,
       instagram: process.env.DAILY_DISH_INSTAGRAM_ACCESS_TOKEN,
       youtube: process.env.DAILY_DISH_YOUTUBE_ACCESS_TOKEN,
       youtubeChannelId: process.env.DAILY_DISH_YOUTUBE_CHANNEL_ID,
@@ -111,6 +112,7 @@ Target Audience: Busy professionals and home cooks looking for quick, tasty meal
     },
     socialTokens: {
       facebook: process.env.GRIT_COLLECTIVE_FACEBOOK_TOKEN,
+      facebookPageId: process.env.GRIT_COLLECTIVE_FACEBOOK_PAGE_ID,
       instagram: process.env.GRIT_COLLECTIVE_INSTAGRAM_TOKEN,
       youtube: process.env.GRIT_COLLECTIVE_YOUTUBE_ACCESS_TOKEN,
       youtubeChannelId: process.env.GRIT_COLLECTIVE_YOUTUBE_CHANNEL_ID,
