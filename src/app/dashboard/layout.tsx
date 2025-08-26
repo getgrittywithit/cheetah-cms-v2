@@ -11,6 +11,8 @@ interface DashboardLayoutProps {
   children: React.ReactNode
 }
 
+// Force rebuild
+
 const getPageTitle = (pathname: string) => {
   const titles: Record<string, string> = {
     '/dashboard': 'Dashboard',
