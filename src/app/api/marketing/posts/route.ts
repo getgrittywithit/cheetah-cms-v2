@@ -2,23 +2,51 @@ import { NextRequest, NextResponse } from 'next/server'
 import { SocialPost } from '@/lib/marketing-types'
 import { supabaseAdmin } from '@/lib/supabase'
 import { cookies } from 'next/headers'
+import { getBrandConfig } from '@/lib/brand-config'
+
+// Helper function to resolve brand ID from slug or UUID
+async function resolveBrandId(brandIdOrSlug: string): Promise<string | null> {
+  // If it looks like a UUID, use it as-is
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  if (uuidRegex.test(brandIdOrSlug)) {
+    return brandIdOrSlug
+  }
+  
+  // Otherwise, try to get brand config for the slug
+  const brandConfig = getBrandConfig(brandIdOrSlug)
+  if (brandConfig?.id) {
+    return brandConfig.id
+  }
+  
+  // Fallback: create a deterministic UUID from slug for existing data
+  // This is a temporary solution until proper brand profiles are set up
+  const namespace = '550e8400-e29b-41d4-a716-446655440000' // Fixed namespace UUID
+  return `${namespace.substring(0, 24)}${brandIdOrSlug.replace(/[^a-zA-Z0-9]/g, '').substring(0, 12).padEnd(12, '0')}`
+}
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const platform = searchParams.get('platform')
     const status = searchParams.get('status')
-    const brandId = searchParams.get('brandId')
+    const brandIdParam = searchParams.get('brandId')
     const startDate = searchParams.get('startDate')
     const endDate = searchParams.get('endDate')
     
     console.log('🔵 Marketing Posts API - Request params:', {
       platform,
       status,
-      brandId,
+      brandId: brandIdParam,
       startDate,
       endDate
     })
+    
+    // Resolve brand ID if provided
+    let brandId: string | null = null
+    if (brandIdParam) {
+      brandId = await resolveBrandId(brandIdParam)
+      console.log('🔵 Resolved brandId:', { input: brandIdParam, resolved: brandId })
+    }
     
     // For now, use a hardcoded user ID (replace with proper auth later)
     const userId = '00000000-0000-0000-0000-000000000000'
@@ -101,29 +129,59 @@ export async function POST(request: NextRequest) {
   try {
     const data = await request.json()
     
+    console.log('🔵 Creating social post with data:', {
+      brandId: data.brandId,
+      platform: data.platform,
+      hasContent: !!data.content,
+      scheduledFor: data.scheduledFor
+    })
+    
+    // Resolve brand ID
+    let resolvedBrandId = 'default'
+    if (data.brandId) {
+      const resolved = await resolveBrandId(data.brandId)
+      if (resolved) {
+        resolvedBrandId = resolved
+      }
+    }
+    
+    console.log('🔵 Using resolved brandId:', resolvedBrandId)
+    
     // For now, use a hardcoded user ID (replace with proper auth later)
     const userId = '00000000-0000-0000-0000-000000000000'
     
+    const insertPayload = {
+      user_id: userId,
+      brand_profile_id: resolvedBrandId,
+      title: data.content ? data.content.substring(0, 100) : 'Untitled Post',
+      content_type: 'post',
+      platforms: [data.platform],
+      scheduled_date: data.scheduledFor || new Date().toISOString(),
+      status: data.scheduledFor ? 'scheduled' : 'draft',
+      content_text: data.content || '',
+      hashtags: data.hashtags || [],
+      media_urls: data.media || []
+    }
+    
+    console.log('🔵 Inserting to content_calendar:', insertPayload)
+    
     const { data: insertedData, error } = await supabaseAdmin
       .from('content_calendar')
-      .insert({
-        user_id: userId,
-        brand_profile_id: data.brandId || 'default',
-        title: data.content.substring(0, 100), // First 100 chars as title
-        content_type: 'post',
-        platforms: [data.platform],
-        scheduled_date: data.scheduledFor || new Date().toISOString(),
-        status: data.scheduledFor ? 'scheduled' : 'draft',
-        content_text: data.content,
-        hashtags: data.hashtags || [],
-        media_urls: data.media || []
-      })
+      .insert(insertPayload)
       .select()
       .single()
     
     if (error) {
+      console.error('🔴 Supabase insert error:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      })
       throw error
     }
+    
+    console.log('🔵 Successfully inserted post:', insertedData?.id)
     
     // Transform to SocialPost format
     const newPost: SocialPost = {
