@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
+export async function GET(request: NextRequest) {
+  return await updateToken()
+}
+
 export async function POST(request: NextRequest) {
+  return await updateToken()
+}
+
+async function updateToken() {
   try {
     const workingToken = "EAAXBvf0ZCpwgBPcR5aIerddHQYWBmANVhp2uqQlOTZCQAaZBccZCr92Ri591jSbyj0dhVw8lDZAQ5wkllwYenDihRnvaXHW8zGdrIFtoDiZAut39AvRkZAgJMlAgjqa6rzoUlYhge6QrYXPre5tWpjmQDw43xBIRMq5RtvLu6HEYliW8cCnP0WhtiefkbxqeIEPYjRZC6PnOsoWQk60Ub9ZCSol0W"
 
