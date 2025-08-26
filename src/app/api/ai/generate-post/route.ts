@@ -163,58 +163,90 @@ Return ONLY the post content, no explanations.`
 }
 
 function generateImagePrompt(originalPrompt: string, brand: string, postContent: string): string {
-  const brandContext = getBrandContext(brand)
+  // Analyze the actual post content and original prompt for specific details
+  const fullContext = originalPrompt + ' ' + postContent
   
-  // Extract key visual elements from the original prompt and generated content
-  const isFood = /recipe|cook|ingredient|meal|dish|food|kitchen|dining/i.test(originalPrompt + ' ' + postContent)
-  const isMotivational = /motivat|inspir|grit|strength|challenge|goal|success/i.test(originalPrompt + ' ' + postContent)
-  const isHomeDecor = /candle|decor|home|room|space|design|aesthetic/i.test(originalPrompt + ' ' + postContent)
+  // Extract specific food/ingredients mentioned
+  const foodMatches = fullContext.match(/\b(pasta|spaghetti|noodles|salad|avocado|tomato|garlic|herbs|basil|chicken|salmon|quinoa|rice|bread|eggs|coffee|smoothie|soup|stir.fry|tacos|pizza|sandwich|wrap|bowl|curry|steak|vegetables|broccoli|spinach|kale|mushrooms|peppers|onions|carrots)\b/gi) || []
   
-  let basePrompt = ""
+  // Extract cooking methods and time indicators
+  const cookingMethods = fullContext.match(/\b(grilled|roasted|sautéed|baked|steamed|pan.seared|slow.cooked|air.fried|15.minute|30.minute|quick|easy|healthy|fresh|homemade|comfort.food)\b/gi) || []
+  
+  // Extract specific items for Grit Collective
+  const homeItems = fullContext.match(/\b(candle|candles|wall.art|print|mug|coffee.mug|decor|home|cozy|aesthetic|minimalist|handmade|rustic|modern|inspiration|motivation|workspace|desk|living.room|bedroom)\b/gi) || []
+  
+  let imagePrompt = ""
   
   if (brand === 'Daily Dish Dash') {
-    if (isFood) {
-      basePrompt = "A beautifully styled food photograph showing "
+    if (foodMatches.length > 0) {
+      // Create specific food photography prompt
+      const mainIngredients = foodMatches.slice(0, 3).join(', ')
+      const cookingStyle = cookingMethods.length > 0 ? cookingMethods[0] : 'beautifully prepared'
       
-      // Extract specific food items mentioned
-      if (/pasta|spaghetti|noodles/i.test(originalPrompt)) {
-        basePrompt += "perfectly cooked pasta with fresh herbs and ingredients"
-      } else if (/salad|vegetable/i.test(originalPrompt)) {
-        basePrompt += "a vibrant, fresh salad with colorful vegetables"
-      } else if (/breakfast/i.test(originalPrompt)) {
-        basePrompt += "an appetizing breakfast spread on a clean table"
-      } else if (/quick|fast|15.minute|30.minute/i.test(originalPrompt)) {
-        basePrompt += "a quick, delicious meal that looks professionally prepared"
+      imagePrompt = `Professional food photography of ${cookingStyle} ${mainIngredients}, beautifully plated and styled`
+      
+      // Add specific styling based on cooking method
+      if (/quick|easy|15.minute|30.minute/i.test(fullContext)) {
+        imagePrompt += ", simple presentation on a clean white plate, fresh herbs as garnish, overhead shot"
+      } else if (/healthy|fresh/i.test(fullContext)) {
+        imagePrompt += ", vibrant colors, fresh ingredients visible, natural wooden background, side lighting"
+      } else if (/comfort|cozy|homemade/i.test(fullContext)) {
+        imagePrompt += ", rustic presentation, warm lighting, wooden table, home kitchen atmosphere"
       } else {
-        basePrompt += "an appetizing homemade meal with fresh ingredients"
+        imagePrompt += ", restaurant-quality plating, clean white background, professional lighting"
       }
       
-      basePrompt += ", shot from above on a clean white or wooden surface, natural lighting, warm and inviting atmosphere, professional food photography style"
+      imagePrompt += ", shallow depth of field, appetizing, Instagram food photography style, high resolution"
     } else {
-      basePrompt = "A warm, inviting kitchen scene with cooking utensils and fresh ingredients, clean and organized, natural lighting, cozy home cooking atmosphere"
+      // Generic cooking scene based on prompt content
+      if (/kitchen|cooking|prep/i.test(fullContext)) {
+        imagePrompt = "Clean, organized kitchen countertop with fresh ingredients and cooking utensils, warm natural lighting, home cooking atmosphere"
+      } else if (/meal.prep|planning/i.test(fullContext)) {
+        imagePrompt = "Meal prep containers with colorful, healthy ingredients neatly organized, clean kitchen background, top-down view"
+      } else {
+        imagePrompt = "Beautifully set dining table with delicious homemade food, warm inviting atmosphere, soft natural lighting"
+      }
     }
   } else if (brand === 'Grit Collective Co.') {
-    if (isMotivational) {
-      basePrompt = "An inspiring, minimalist scene featuring handmade decor items that evoke motivation and determination"
-    } else if (isHomeDecor) {
-      basePrompt = "A beautifully styled home interior showcasing handmade candles, wall art, or decorative items"
+    if (homeItems.length > 0) {
+      const specificItems = homeItems.slice(0, 2).join(' and ')
+      imagePrompt = `Aesthetic flat lay featuring handmade ${specificItems}, minimalist styling`
+      
+      if (/motivation|inspiration|workspace/i.test(fullContext)) {
+        imagePrompt += ", clean desk setup, inspirational quote visible but subtle, warm lighting, productivity vibes"
+      } else if (/cozy|home|living/i.test(fullContext)) {
+        imagePrompt += ", cozy home interior, soft textures, warm earthy tones, Scandinavian aesthetic"
+      } else if (/candle|candlelight/i.test(fullContext)) {
+        imagePrompt += ", warm candlelight, hygge atmosphere, soft shadows, peaceful evening vibes"
+      } else {
+        imagePrompt += ", modern minimalist styling, neutral color palette, Instagram-worthy arrangement"
+      }
+      
+      imagePrompt += ", handcrafted artisan quality, natural materials, high-end product photography"
     } else {
-      basePrompt = "An aesthetic flat lay or styled scene featuring handcrafted home decor items"
+      // Generic inspirational scene
+      if (/morning|coffee|start/i.test(fullContext)) {
+        imagePrompt = "Inspiring morning scene with handmade coffee mug, journal, and candle, soft morning light, minimalist aesthetic"
+      } else if (/evening|relax|unwind/i.test(fullContext)) {
+        imagePrompt = "Cozy evening setup with lit candles, soft textures, warm lighting, peaceful home atmosphere"
+      } else if (/workspace|productivity|focus/i.test(fullContext)) {
+        imagePrompt = "Clean, inspiring workspace with handmade decor items, natural lighting, productivity and motivation vibes"
+      } else {
+        imagePrompt = "Beautifully styled home interior showcase featuring handcrafted decor items, modern minimalist aesthetic, warm natural lighting"
+      }
     }
-    
-    basePrompt += ", warm lighting, earthy tones, modern minimalist aesthetic, Instagram-worthy styling, cozy and inspiring atmosphere"
   } else {
-    // Generic brand
-    basePrompt = "A clean, professional lifestyle image related to the post content, good lighting, modern aesthetic"
+    // Generic lifestyle image based on content
+    imagePrompt = `Professional lifestyle photography related to: ${originalPrompt.substring(0, 100)}, clean aesthetic, good lighting, social media ready`
   }
   
-  // Add style and quality modifiers
-  basePrompt += ", high quality, sharp focus, professional photography, social media ready"
+  // Add technical photography specs for better quality
+  imagePrompt += ", shot with professional DSLR, perfect focus, vibrant but natural colors, high resolution, commercial photography quality"
   
-  // Avoid text in images (common DALL-E issue)
-  basePrompt += ", no text overlay, no words visible"
+  // Ensure no text appears in images
+  imagePrompt += ", no text, no words, no letters visible anywhere in the image"
   
-  return basePrompt
+  return imagePrompt
 }
 
 function getBrandContext(brand: string) {

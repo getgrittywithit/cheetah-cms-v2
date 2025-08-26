@@ -381,12 +381,12 @@ Examples:
                       <>
                         <button
                           onClick={() => schedulePost(post)}
-                          className="flex items-center space-x-2 bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 font-medium"
+                          className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 font-medium"
                         >
                           <Send className="w-4 h-4" />
-                          <span>Post Now</span>
+                          <span>Save as Draft</span>
                         </button>
-                        <span className="text-sm text-gray-600">or set a date above to schedule</span>
+                        <span className="text-sm text-gray-600">or set a date above to schedule for later</span>
                       </>
                     )}
                     
