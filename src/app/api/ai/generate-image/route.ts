@@ -23,8 +23,13 @@ export async function POST(request: NextRequest) {
     console.log('🔵 AI Generate Image - Received request:', {
       hasPrompt: !!body.prompt,
       brand: body.brand,
-      promptLength: body.prompt?.length
+      brandSlug: body.brandSlug,
+      promptLength: body.prompt?.length,
+      style: body.style,
+      quality: body.quality,
+      size: body.size
     })
+    console.log('🔵 Raw prompt received:', body.prompt)
     
     const { 
       prompt, 
@@ -52,8 +57,18 @@ export async function POST(request: NextRequest) {
     console.log('🔵 Generating image with DALL-E...')
     
     try {
-      const imagePrompt = generateImagePrompt(prompt, brand, brandConfig)
-      console.log('🔵 Generated image prompt:', imagePrompt)
+      // For Daily Dish Dash and other brands with specific prompts, use them directly
+      // Only enhance generic prompts
+      const shouldEnhancePrompt = !prompt.includes('hyper-realistic') && !prompt.includes('photography') && !prompt.includes('professional')
+      
+      let imagePrompt
+      if (shouldEnhancePrompt) {
+        imagePrompt = generateImagePrompt(prompt, brand, brandConfig)
+        console.log('🔵 Enhanced generic prompt:', imagePrompt)
+      } else {
+        imagePrompt = prompt // Use the detailed prompt as-is
+        console.log('🔵 Using detailed prompt as-is:', imagePrompt)
+      }
       
       const imageResponse = await openai.images.generate({
         model: "dall-e-3",
@@ -103,11 +118,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(response)
 
     } catch (imageError) {
-      console.error('🔴 Image generation error:', imageError)
+      console.error('🔴 DALL-E Image generation error:')
+      console.error('🔴 Error details:', imageError)
+      console.error('🔴 Prompt used:', imagePrompt || 'undefined')
+      console.error('🔴 Request params:', { style, size, quality, brand })
+      
+      // Log specific DALL-E error types
+      if (imageError instanceof Error) {
+        console.error('🔴 Error message:', imageError.message)
+        console.error('🔴 Error stack:', imageError.stack)
+      }
+      
       return NextResponse.json(
         { 
           error: 'Failed to generate image with DALL-E',
-          details: imageError instanceof Error ? imageError.message : 'Unknown error'
+          details: imageError instanceof Error ? imageError.message : 'Unknown error',
+          prompt: imagePrompt,
+          timestamp: new Date().toISOString()
         },
         { status: 500 }
       )

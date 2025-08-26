@@ -203,12 +203,16 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
       
       // For Daily Dish Dash, create detailed food photography prompts
       if (brandSlug === 'daily-dish-dash') {
-        imagePrompt = `Professional food photography of ${prompt}, hyper-realistic, magazine quality, appetizing, vibrant colors, perfect lighting, shallow depth of field, food styling, commercial photography, high resolution, mouth-watering presentation, restaurant quality plating`
+        imagePrompt = `Professional food photography of delicious ${prompt}, hyper-realistic, magazine quality, appetizing presentation, vibrant colors, perfect studio lighting, shallow depth of field, gourmet food styling, commercial kitchen photography, mouth-watering, restaurant quality plating on elegant dishware`
         
-        // Add context from the recipe if available
+        // Add cooking context from the recipe if available (but keep it concise for DALL-E)
         if (post?.content) {
-          const contentPreview = post.content.substring(0, 200)
-          imagePrompt += `, ${contentPreview.toLowerCase()}`
+          // Extract key cooking terms from the recipe
+          const contentPreview = post.content.substring(0, 150).toLowerCase()
+          const cookingTerms = contentPreview.match(/(grilled|baked|roasted|sautéed|fried|steamed|fresh|seasoned|crispy|tender|juicy)/g)
+          if (cookingTerms && cookingTerms.length > 0) {
+            imagePrompt += `, ${cookingTerms.slice(0, 3).join(', ')}`
+          }
         }
       } else {
         // For other brands, use original prompt with some context
@@ -222,7 +226,7 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
           prompt: imagePrompt,
           brand: brandName,
           brandSlug: brandSlug,
-          style: brandSlug === 'daily-dish-dash' ? 'photographic' : 'natural',
+          style: brandSlug === 'daily-dish-dash' ? 'vivid' : 'natural',
           size: '1024x1024',
           quality: 'hd'
         })
