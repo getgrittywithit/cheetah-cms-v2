@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { R2ImageUploader } from '@/lib/r2-upload'
 
 interface GeneratePostRequest {
   prompt: string
@@ -201,12 +202,12 @@ Return ONLY the post content, no explanations.`
     const hashtagString = hashtagCompletion.choices[0]?.message?.content || ''
     const hashtags = hashtagString.split(' ').filter(tag => tag.startsWith('#')).slice(0, platformSpecs.hashtagCount)
 
-    // Generate AI image with DALL-E based on the content
+    // Generate AI image with DALL-E and upload to R2
     let imageUrl = null
     try {
-      console.log('Starting DALL-E image generation...')
+      console.log('🔵 Starting DALL-E image generation...')
       const imagePrompt = generateImagePrompt(prompt, brand, content)
-      console.log('Generated image prompt:', imagePrompt)
+      console.log('🔵 Generated image prompt:', imagePrompt)
       
       const imageResponse = await openai.images.generate({
         model: "dall-e-3",
@@ -217,11 +218,27 @@ Return ONLY the post content, no explanations.`
         style: "natural"
       })
       
-      imageUrl = imageResponse.data[0]?.url
-      console.log('DALL-E response received, image URL:', imageUrl ? 'Generated successfully' : 'No URL returned')
+      const dalleUrl = imageResponse.data[0]?.url
+      console.log('🔵 DALL-E response received, image URL:', dalleUrl ? 'Generated successfully' : 'No URL returned')
+      
+      if (dalleUrl) {
+        console.log('🔵 Uploading DALL-E image to R2...')
+        const r2Uploader = new R2ImageUploader()
+        const fileName = `${platform}-${brand.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`
+        
+        const uploadResult = await r2Uploader.uploadImageFromUrl(dalleUrl, fileName)
+        
+        if (uploadResult.success && uploadResult.url) {
+          imageUrl = uploadResult.url
+          console.log('🔵 Image successfully uploaded to R2:', imageUrl)
+        } else {
+          console.error('🔴 R2 upload failed:', uploadResult.error)
+          imageUrl = dalleUrl // Fallback to DALL-E URL
+        }
+      }
     } catch (imageError) {
-      console.error('DALL-E image generation error:', imageError)
-      console.error('Error details:', JSON.stringify(imageError, null, 2))
+      console.error('🔴 DALL-E or R2 upload error:', imageError)
+      console.error('🔴 Error details:', JSON.stringify(imageError, null, 2))
       // Continue without image if generation fails
     }
 
