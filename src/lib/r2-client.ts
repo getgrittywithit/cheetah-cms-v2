@@ -4,7 +4,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID || ''
 const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID || ''
 const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY || ''
-const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || 'dailydishdash'
+const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || 'cheetah-content-media'
 
 // Log configuration for debugging (remove in production)
 console.log('R2 Configuration:', {

@@ -40,11 +40,12 @@ export class R2ImageUploader {
       const timestamp = Date.now()
       const key = `ai-generated/${timestamp}-${fileName}.png`
 
-      console.log('🔵 Uploading to R2 bucket: dailydishdash, key:', key)
+      console.log('🔵 Uploading to R2 bucket:', bucketName, 'key:', key)
 
-      // Upload to R2
+      // Upload to R2 - use the same bucket as the main R2 client
+      const bucketName = process.env.R2_BUCKET_NAME || 'cheetah-content-media'
       const uploadCommand = new PutObjectCommand({
-        Bucket: 'dailydishdash',
+        Bucket: bucketName,
         Key: key,
         Body: new Uint8Array(imageBuffer),
         ContentType: contentType,
@@ -57,7 +58,7 @@ export class R2ImageUploader {
       await this.s3Client.send(uploadCommand)
 
       // Construct the public URL
-      const publicUrl = `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/dailydishdash/${key}`
+      const publicUrl = `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${bucketName}/${key}`
       
       console.log('🔵 Image uploaded successfully to R2:', publicUrl)
 
@@ -80,9 +81,10 @@ export class R2ImageUploader {
     try {
       const timestamp = Date.now()
       const key = `uploads/${timestamp}-${fileName}`
+      const bucketName = process.env.R2_BUCKET_NAME || 'cheetah-content-media'
 
       const uploadCommand = new PutObjectCommand({
-        Bucket: 'dailydishdash',
+        Bucket: bucketName,
         Key: key,
         Body: new Uint8Array(buffer),
         ContentType: contentType,
@@ -93,7 +95,7 @@ export class R2ImageUploader {
 
       await this.s3Client.send(uploadCommand)
 
-      const publicUrl = `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/dailydishdash/${key}`
+      const publicUrl = `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${bucketName}/${key}`
 
       return {
         success: true,
