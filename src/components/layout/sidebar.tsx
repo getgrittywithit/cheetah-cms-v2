@@ -18,7 +18,25 @@ import { clsx } from 'clsx'
 // Extract brand from pathname if we're in a brand route
 function getBrandFromPath(pathname: string): string {
   const match = pathname.match(/^\/dashboard\/([^\/]+)/)
-  return match ? match[1] : 'daily-dish-dash' // Default to Daily Dish Dash
+  if (!match) return 'daily-dish-dash'
+  
+  const segment = match[1]
+  
+  // These are global pages, not brands
+  const globalPages = ['products', 'platforms', 'files', 'analytics', 'settings', 'content']
+  
+  if (globalPages.includes(segment)) {
+    return 'daily-dish-dash' // Default to Daily Dish Dash for global pages
+  }
+  
+  // Valid brand slugs (from brand-config.ts)
+  const validBrands = ['daily-dish-dash', 'grit-collective']
+  
+  if (validBrands.includes(segment)) {
+    return segment
+  }
+  
+  return 'daily-dish-dash' // Default fallback
 }
 
 // Generate navigation links based on current brand
