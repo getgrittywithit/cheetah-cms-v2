@@ -67,6 +67,7 @@ export async function GET(request: NextRequest) {
     }
     
     if (brandId) {
+      console.log('🔵 Using brandId for query:', brandId)
       query = query.eq('brand_profile_id', brandId)
     }
     

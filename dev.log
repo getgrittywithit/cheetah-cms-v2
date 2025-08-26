@@ -1,0 +1,22 @@
+
+> cheetah-content-manager@1.0.0 dev
+> next dev --turbopack
+
+   ▲ Next.js 15.4.5 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://172.31.11.254:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 739ms
+ ○ Compiling /api/marketing/posts ...
+ ✓ Compiled /api/marketing/posts in 615ms
+Failed to create social post: {
+  code: '22P02',
+  details: null,
+  hint: null,
+  message: 'invalid input syntax for type uuid: "test-brand"'
+}
+ POST /api/marketing/posts 500 in 966ms
+ POST /api/marketing/posts 200 in 287ms
+[?25h
