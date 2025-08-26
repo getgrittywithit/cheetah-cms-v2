@@ -134,7 +134,7 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
           brandId: brandSlug, // Use brandSlug as brandId for now
           platform: post.platform,
           content: post.content,
-          hashtags: post.hashtags,
+          hashtags: Array.isArray(post.hashtags) ? post.hashtags : [],
           media: post.imageUrl ? [post.imageUrl] : [], // Include generated image
           status: 'draft'
         }
@@ -441,10 +441,10 @@ Examples:
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <h3 className="text-lg font-semibold text-gray-900">Your Posts Are Ready! 🎉</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Your Universal Post is Ready! 🎉</h3>
               <div className="flex items-center space-x-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
                 <Check className="w-3 h-3" />
-                <span>Auto-saving drafts with images</span>
+                <span>Same content for all platforms</span>
               </div>
               
               {/* Platform Toggle Controls */}

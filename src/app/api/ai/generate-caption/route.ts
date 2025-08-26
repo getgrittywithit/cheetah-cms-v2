@@ -45,34 +45,40 @@ export async function POST(request: NextRequest) {
     const brandVoice = brandConfig?.aiSettings?.voice || 'Professional and engaging'
     const brandPersonality = brandConfig?.aiSettings?.personality?.join(', ') || 'Helpful, informative'
 
-    console.log('🔵 Generating AI captions for platforms:', platforms)
+    console.log('🔵 Generating AI caption for platforms:', platforms)
     
-    // Generate posts using OpenAI for each platform (content only, NO images)
-    const generatedPosts = await Promise.all(platforms.map(async (platform) => {
-      console.log('🔵 Generating AI caption for platform:', platform)
-      try {
-        const post = await generateAICaptionForPlatform(prompt, brand, platform, tone, style, brandVoice, brandPersonality)
-        console.log('🔵 Generated caption for', platform, {
-          hasContent: !!post.content,
-          contentLength: post.content?.length,
-          hashtagsCount: post.hashtags?.length
-        })
-        return {
-          platform,
-          content: post.content,
-          hashtags: post.hashtags,
-          suggestions: post.suggestions
-        }
-      } catch (error) {
-        console.error(`🔴 Error generating caption for ${platform}:`, error)
-        return {
-          platform,
-          content: `Error generating content for ${platform}`,
-          hashtags: [],
-          suggestions: []
-        }
-      }
-    }))
+    // Generate ONE universal caption that works across all platforms
+    let generatedPosts
+    try {
+      console.log('🔵 Generating universal AI caption for all platforms')
+      const universalPost = await generateAICaptionForPlatform(prompt, brand, 'universal', tone, style, brandVoice, brandPersonality)
+      console.log('🔵 Generated universal caption', {
+        hasContent: !!universalPost.content,
+        contentLength: universalPost.content?.length,
+        hashtagsCount: universalPost.hashtags?.length
+      })
+      
+      // Create the same post for each platform
+      generatedPosts = platforms.map(platform => ({
+        platform,
+        content: universalPost.content,
+        hashtags: universalPost.hashtags,
+        suggestions: universalPost.suggestions
+      }))
+      
+      console.log('🔵 Applied universal caption to', platforms.length, 'platforms')
+      
+    } catch (error) {
+      console.error('🔴 Error generating universal caption:', error)
+      
+      // Fallback: create simple posts for each platform
+      generatedPosts = platforms.map(platform => ({
+        platform,
+        content: `Error generating content. Please try again.`,
+        hashtags: [],
+        suggestions: []
+      }))
+    }
 
     const response = {
       success: true,
@@ -155,8 +161,19 @@ Requirements:
   }
 
   try {
-    return JSON.parse(responseText)
-  } catch {
+    // Clean the response - remove markdown code blocks if present
+    let cleanedResponse = responseText.trim()
+    if (cleanedResponse.startsWith('```json')) {
+      cleanedResponse = cleanedResponse.replace(/```json\s*/, '').replace(/\s*```$/, '')
+    } else if (cleanedResponse.startsWith('```')) {
+      cleanedResponse = cleanedResponse.replace(/```\s*/, '').replace(/\s*```$/, '')
+    }
+    
+    return JSON.parse(cleanedResponse)
+  } catch (error) {
+    console.error('Failed to parse AI response as JSON:', error)
+    console.log('Raw response:', responseText)
+    
     // Fallback if JSON parsing fails
     return {
       content: responseText,
@@ -168,6 +185,18 @@ Requirements:
 
 function getPlatformSpecificGuidelines(platform: string): string {
   const guidelines = {
+    universal: `
+UNIVERSAL SOCIAL MEDIA POST - Works across all platforms
+CHARACTER LIMIT: Keep under 280 characters for maximum compatibility
+BEST PRACTICES:
+- Write engaging, universal content that works on any platform
+- Use 3-5 relevant hashtags maximum
+- Include a clear call-to-action
+- Use emojis sparingly for visual appeal
+- Ask questions to encourage engagement
+- Keep content platform-neutral but engaging
+- Focus on value and authentic brand voice`,
+
     instagram: `
 CHARACTER LIMIT: 2,200 characters
 BEST PRACTICES:
