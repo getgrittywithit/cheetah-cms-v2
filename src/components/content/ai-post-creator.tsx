@@ -27,6 +27,7 @@ interface GeneratedPost {
 
 interface AIPostCreatorProps {
   brandName: string
+  brandSlug: string
   onSchedulePost: (post: any) => void
 }
 
@@ -42,7 +43,7 @@ const platformColors = {
   twitter: 'bg-sky-100 text-sky-600 border-sky-200'
 }
 
-export default function AIPostCreator({ brandName, onSchedulePost }: AIPostCreatorProps) {
+export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: AIPostCreatorProps) {
   const [prompt, setPrompt] = useState('')
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['instagram', 'facebook'])
   const [visiblePosts, setVisiblePosts] = useState<{[platform: string]: boolean}>({})
@@ -90,6 +91,7 @@ export default function AIPostCreator({ brandName, onSchedulePost }: AIPostCreat
         body: JSON.stringify({
           prompt,
           brand: brandName,
+          brandSlug: brandSlug,
           platforms: selectedPlatforms
         })
       })
