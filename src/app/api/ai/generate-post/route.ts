@@ -41,23 +41,62 @@ export async function POST(request: NextRequest) {
 
     console.log('Generating AI posts for platforms:', platforms)
     
-    // Generate posts using OpenAI for each platform
+    // Generate ONE shared image for all platforms to save API calls and costs
+    console.log('🔵 Generating shared image for all platforms...')
+    let sharedImageUrl = null
+    
+    try {
+      const imagePrompt = generateImagePrompt(prompt, brand, '')
+      console.log('🔵 Generated image prompt:', imagePrompt)
+      
+      const imageResponse = await openai.images.generate({
+        model: "dall-e-3",
+        prompt: imagePrompt,
+        n: 1,
+        size: "1024x1024",
+        quality: "standard",
+        style: "natural"
+      })
+      
+      const dalleUrl = imageResponse.data[0]?.url
+      console.log('🔵 DALL-E response received, image URL:', dalleUrl ? 'Generated successfully' : 'No URL returned')
+      
+      if (dalleUrl) {
+        console.log('🔵 Uploading shared image to R2...')
+        const r2Uploader = new R2ImageUploader()
+        const fileName = `recipe-${brand.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`
+        
+        const uploadResult = await r2Uploader.uploadImageFromUrl(dalleUrl, fileName)
+        
+        if (uploadResult.success && uploadResult.url) {
+          sharedImageUrl = uploadResult.url
+          console.log('🔵 Shared image successfully uploaded to R2:', sharedImageUrl)
+        } else {
+          console.error('🔴 R2 upload failed:', uploadResult.error)
+          sharedImageUrl = dalleUrl // Fallback to DALL-E URL
+        }
+      }
+    } catch (imageError) {
+      console.error('🔴 Shared image generation error:', imageError)
+    }
+    
+    // Generate posts using OpenAI for each platform (content only, no images)
     const generatedPosts = await Promise.all(platforms.map(async (platform) => {
       console.log('🔵 Generating AI content for platform:', platform)
       try {
-        const post = await generateAIPostForPlatform(prompt, brand, platform, tone, style)
+        const post = await generateAIPostForPlatform(prompt, brand, platform, tone, style, sharedImageUrl)
         console.log('🔵 Generated post for', platform, {
           hasContent: !!post.content,
           contentLength: post.content?.length,
           hashtagsCount: post.hashtags?.length,
-          hasImageUrl: !!post.imageUrl
+          hasSharedImage: !!sharedImageUrl
         })
         return {
           platform,
           content: post.content,
           hashtags: post.hashtags,
           suggestions: post.suggestions,
-          imageUrl: post.imageUrl
+          imageUrl: sharedImageUrl // Use shared image for all platforms
         }
       } catch (error) {
         console.error('🔴 Failed to generate for platform', platform, error)
@@ -85,7 +124,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function generateAIPostForPlatform(prompt: string, brand: string, platform: string, tone?: string, style?: string) {
+async function generateAIPostForPlatform(prompt: string, brand: string, platform: string, tone?: string, style?: string, sharedImageUrl?: string | null) {
   if (!process.env.OPENAI_API_KEY) {
     console.log('No OpenAI API key found, falling back to template')
     return generateTemplatePostForPlatform(prompt, brand, platform, tone, style)
@@ -202,46 +241,8 @@ Return ONLY the post content, no explanations.`
     const hashtagString = hashtagCompletion.choices[0]?.message?.content || ''
     const hashtags = hashtagString.split(' ').filter(tag => tag.startsWith('#')).slice(0, platformSpecs.hashtagCount)
 
-    // Generate AI image with DALL-E and upload to R2
-    let imageUrl = null
-    try {
-      console.log('🔵 Starting DALL-E image generation...')
-      const imagePrompt = generateImagePrompt(prompt, brand, content)
-      console.log('🔵 Generated image prompt:', imagePrompt)
-      
-      const imageResponse = await openai.images.generate({
-        model: "dall-e-3",
-        prompt: imagePrompt,
-        n: 1,
-        size: "1024x1024",
-        quality: "standard",
-        style: "natural"
-      })
-      
-      const dalleUrl = imageResponse.data[0]?.url
-      console.log('🔵 DALL-E response received, image URL:', dalleUrl ? 'Generated successfully' : 'No URL returned')
-      
-      if (dalleUrl) {
-        console.log('🔵 Uploading DALL-E image to R2...')
-        const r2Uploader = new R2ImageUploader()
-        const fileName = `${platform}-${brand.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`
-        
-        const uploadResult = await r2Uploader.uploadImageFromUrl(dalleUrl, fileName)
-        
-        if (uploadResult.success && uploadResult.url) {
-          imageUrl = uploadResult.url
-          console.log('🔵 Image successfully uploaded to R2:', imageUrl)
-        } else {
-          console.error('🔴 R2 upload failed:', uploadResult.error)
-          imageUrl = dalleUrl // Fallback to DALL-E URL
-        }
-      }
-    } catch (imageError) {
-      console.error('🔴 DALL-E or R2 upload error:', imageError)
-      console.error('🔴 Error details:', JSON.stringify(imageError, null, 2))
-      // Continue without image if generation fails
-    }
-
+    // Use shared image (no individual generation needed)
+    const imageUrl = sharedImageUrl
     const suggestions = platformSpecs.suggestions
 
     return { content, hashtags, suggestions, imageUrl }
