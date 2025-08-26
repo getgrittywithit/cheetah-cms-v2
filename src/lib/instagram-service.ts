@@ -43,9 +43,28 @@ export class InstagramService {
       // Step 1: Upload image to R2 (if we have an image)
       let publicImageUrl = imageUrl
       
-      if (imageUrl && imageUrl.includes('oaidalleapiprodscus.blob.core.windows.net')) {
-        console.log('🔵 Step 1: Uploading DALL-E image to brand-specific R2...')
+      // Check if image needs to be uploaded to R2
+      if (imageUrl && (
+        imageUrl.includes('oaidalleapiprodscus.blob.core.windows.net') || 
+        imageUrl.startsWith('blob:') ||
+        imageUrl.includes('localhost') ||
+        !imageUrl.startsWith('https://')
+      )) {
+        console.log('🔵 Step 1: Uploading image to brand-specific R2...')
+        console.log('🔵 Image URL type detected:', {
+          isDallE: imageUrl.includes('oaidalleapiprodscus.blob.core.windows.net'),
+          isBlob: imageUrl.startsWith('blob:'),
+          isLocal: imageUrl.includes('localhost'),
+          url: imageUrl.substring(0, 100) + '...'
+        })
+        
         const uploader = new R2ImageUploader(brandSlug)
+        
+        // Handle blob URLs differently
+        if (imageUrl.startsWith('blob:')) {
+          throw new Error('Blob URLs cannot be uploaded directly. Please use the image upload feature to upload images to R2 first.')
+        }
+        
         const uploadResult = await uploader.uploadImageFromUrl(imageUrl, `instagram-${brandSlug}-${Date.now()}`)
         
         if (!uploadResult.success) {
@@ -54,6 +73,8 @@ export class InstagramService {
         
         publicImageUrl = uploadResult.url
         console.log('🟢 Image uploaded to brand R2:', publicImageUrl)
+      } else if (imageUrl) {
+        console.log('🔵 Using existing public URL:', publicImageUrl)
       }
 
       // Instagram requires an image for posts

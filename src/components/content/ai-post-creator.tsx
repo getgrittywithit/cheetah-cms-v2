@@ -290,25 +290,38 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
     
     try {
       const formData = new FormData()
-      formData.append('image', file)
+      formData.append('file', file)
+      formData.append('folder', 'social-media')
       
-      // For now, create a local URL - in production you'd upload to your storage
-      const imageUrl = URL.createObjectURL(file)
-      setImageUrls(prev => ({ ...prev, [platform]: imageUrl }))
+      // Upload to brand-specific R2 bucket
+      const response = await fetch(`/api/brand-files/${brandSlug}/upload`, {
+        method: 'POST',
+        body: formData
+      })
+      
+      const result = await response.json()
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to upload image')
+      }
+      
+      // Use the public URL from R2
+      const publicUrl = result.file.url
+      setImageUrls(prev => ({ ...prev, [platform]: publicUrl }))
       setSelectedImages(prev => ({ ...prev, [platform]: file }))
 
+      console.log('🟢 Image uploaded to R2:', publicUrl)
       // Image uploaded successfully - no auto-save needed
     } catch (error) {
       console.error('Failed to upload image:', error)
+      alert('Failed to upload image. Please try again.')
     } finally {
       setUploadingImages(prev => ({ ...prev, [platform]: false }))
     }
   }
 
   const removeImage = (platform: string) => {
-    if (imageUrls[platform]) {
-      URL.revokeObjectURL(imageUrls[platform])
-    }
+    // No need to revoke object URL since we're using R2 URLs now
     setImageUrls(prev => ({ ...prev, [platform]: '' }))
     setSelectedImages(prev => ({ ...prev, [platform]: null }))
   }
