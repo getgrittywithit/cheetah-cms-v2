@@ -91,8 +91,23 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('🔴 Instagram real test error:', error)
+    
+    // More detailed error information
+    const errorDetails = {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined,
+      cause: error instanceof Error ? error.cause : undefined
+    }
+    
     return NextResponse.json({
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: errorDetails.message,
+      errorDetails: errorDetails,
+      debugInfo: {
+        hasAccessToken: !!accessToken,
+        hasAccountId: !!accountId,
+        brandConfig: !!brandConfig
+      }
     }, { status: 500 })
   }
 }
