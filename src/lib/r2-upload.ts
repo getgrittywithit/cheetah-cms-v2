@@ -1,4 +1,5 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
+import { getBrandR2Config, getBrandPublicUrl, createBrandR2Client } from './brand-r2-config'
 
 interface R2UploadResult {
   success: boolean
@@ -9,16 +10,18 @@ interface R2UploadResult {
 
 export class R2ImageUploader {
   private s3Client: S3Client
+  private brandSlug: string
+  private r2Config: any
 
-  constructor() {
-    this.s3Client = new S3Client({
-      region: 'auto',
-      endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-      credentials: {
-        accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
-      },
-    })
+  constructor(brandSlug: string = 'daily-dish-dash') {
+    this.brandSlug = brandSlug
+    this.r2Config = getBrandR2Config(brandSlug)
+    
+    const client = createBrandR2Client(brandSlug)
+    if (!client) {
+      throw new Error(`Failed to create R2 client for brand: ${brandSlug}`)
+    }
+    this.s3Client = client
   }
 
   async uploadImageFromUrl(imageUrl: string, fileName: string): Promise<R2UploadResult> {
@@ -39,11 +42,14 @@ export class R2ImageUploader {
       // Generate a unique key for R2
       const timestamp = Date.now()
       const key = `ai-generated/${timestamp}-${fileName}.png`
+      const bucketName = this.r2Config.bucketName
 
-      console.log('🔵 Uploading to R2 bucket:', bucketName, 'key:', key)
+      console.log('🔵 Uploading to brand-specific R2 bucket:', {
+        brand: this.brandSlug,
+        bucket: bucketName,
+        key: key
+      })
 
-      // Upload to R2 - use the same bucket as the main R2 client
-      const bucketName = process.env.R2_BUCKET_NAME || 'cheetah-content-media'
       const uploadCommand = new PutObjectCommand({
         Bucket: bucketName,
         Key: key,
@@ -52,14 +58,14 @@ export class R2ImageUploader {
         Metadata: {
           'generated-by': 'dall-e-3',
           'upload-timestamp': timestamp.toString(),
+          'brand': this.brandSlug
         },
       })
 
       await this.s3Client.send(uploadCommand)
 
-      // Construct the public URL using the custom domain
-      const baseUrl = process.env.R2_PUBLIC_URL || `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`
-      const publicUrl = `${baseUrl}/${key}`
+      // Use brand-specific public URL
+      const publicUrl = getBrandPublicUrl(this.brandSlug, key)
       
       console.log('🔵 Image uploaded successfully to R2:', publicUrl)
 
@@ -82,7 +88,7 @@ export class R2ImageUploader {
     try {
       const timestamp = Date.now()
       const key = `uploads/${timestamp}-${fileName}`
-      const bucketName = process.env.R2_BUCKET_NAME || 'cheetah-content-media'
+      const bucketName = this.r2Config.bucketName
 
       const uploadCommand = new PutObjectCommand({
         Bucket: bucketName,
@@ -91,13 +97,13 @@ export class R2ImageUploader {
         ContentType: contentType,
         Metadata: {
           'upload-timestamp': timestamp.toString(),
+          'brand': this.brandSlug
         },
       })
 
       await this.s3Client.send(uploadCommand)
 
-      const baseUrl = process.env.R2_PUBLIC_URL || `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`
-      const publicUrl = `${baseUrl}/${key}`
+      const publicUrl = getBrandPublicUrl(this.brandSlug, key)
 
       return {
         success: true,

@@ -44,8 +44,8 @@ export class InstagramService {
       let publicImageUrl = imageUrl
       
       if (imageUrl && imageUrl.includes('oaidalleapiprodscus.blob.core.windows.net')) {
-        console.log('🔵 Step 1: Uploading DALL-E image to R2...')
-        const uploader = new R2ImageUploader()
+        console.log('🔵 Step 1: Uploading DALL-E image to brand-specific R2...')
+        const uploader = new R2ImageUploader(brandSlug)
         const uploadResult = await uploader.uploadImageFromUrl(imageUrl, `instagram-${brandSlug}-${Date.now()}`)
         
         if (!uploadResult.success) {
@@ -53,7 +53,7 @@ export class InstagramService {
         }
         
         publicImageUrl = uploadResult.url
-        console.log('🟢 Image uploaded to R2:', publicImageUrl)
+        console.log('🟢 Image uploaded to brand R2:', publicImageUrl)
       }
 
       // Instagram requires an image for posts
