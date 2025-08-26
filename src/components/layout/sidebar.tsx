@@ -15,15 +15,26 @@ import {
 } from 'lucide-react'
 import { clsx } from 'clsx'
 
-const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Products', href: '/dashboard/products', icon: Package },
-  { name: 'Platforms', href: '/dashboard/platforms', icon: Globe },
-  { name: 'Content', href: '/dashboard/content', icon: Megaphone },
-  { name: 'Files', href: '/dashboard/files', icon: FolderOpen },
-  { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
-]
+// Extract brand from pathname if we're in a brand route
+function getBrandFromPath(pathname: string): string {
+  const match = pathname.match(/^\/dashboard\/([^\/]+)/)
+  return match ? match[1] : 'daily-dish-dash' // Default to Daily Dish Dash
+}
+
+// Generate navigation links based on current brand
+function getNavigation(brand: string) {
+  const brandPath = `/dashboard/${brand}`
+  
+  return [
+    { name: 'Dashboard', href: brandPath, icon: LayoutDashboard },
+    { name: 'Products', href: '/dashboard/products', icon: Package }, // Keep global for now
+    { name: 'Platforms', href: '/dashboard/platforms', icon: Globe }, // Keep global for now
+    { name: 'Content', href: `${brandPath}/content`, icon: Megaphone },
+    { name: 'Files', href: `${brandPath}/files`, icon: FolderOpen },
+    { name: 'Analytics', href: `${brandPath}/analytics`, icon: BarChart3 },
+    { name: 'Settings', href: `${brandPath}/settings`, icon: Settings },
+  ]
+}
 
 interface SidebarProps {
   user: {
@@ -35,6 +46,8 @@ interface SidebarProps {
 
 export default function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname()
+  const currentBrand = getBrandFromPath(pathname)
+  const navigation = getNavigation(currentBrand)
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' })
@@ -51,10 +64,25 @@ export default function Sidebar({ user }: SidebarProps) {
         </div>
       </div>
 
+      {/* Brand Indicator */}
+      {currentBrand && (
+        <div className="px-4 py-2 bg-gray-800 border-b border-gray-700">
+          <div className="text-xs text-gray-400 uppercase tracking-wide">Current Brand</div>
+          <div className="text-sm text-white font-medium capitalize">
+            {currentBrand.replace('-', ' ')}
+          </div>
+        </div>
+      )}
+
       {/* Navigation */}
       <nav className="flex-1 px-4 py-4 space-y-2">
         {navigation.map((item) => {
-          const isActive = pathname === item.href
+          const isActive = pathname === item.href || 
+                          (item.name === 'Content' && pathname.startsWith(`/dashboard/${currentBrand}/content`)) ||
+                          (item.name === 'Files' && pathname.startsWith(`/dashboard/${currentBrand}/files`)) ||
+                          (item.name === 'Analytics' && pathname.startsWith(`/dashboard/${currentBrand}/analytics`)) ||
+                          (item.name === 'Settings' && pathname.startsWith(`/dashboard/${currentBrand}/settings`))
+          
           return (
             <Link
               key={item.name}
