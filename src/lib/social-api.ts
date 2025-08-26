@@ -33,26 +33,27 @@ export class SocialMediaAPI {
         throw new Error('Facebook access token or page ID not configured')
       }
 
-      const url = `https://graph.facebook.com/v18.0/${account.pageId}/feed`
+      // Use /photos endpoint for posts with images, /feed for text-only
+      const hasImages = mediaUrls && mediaUrls.length > 0
+      const url = hasImages 
+        ? `https://graph.facebook.com/v19.0/${account.pageId}/photos`
+        : `https://graph.facebook.com/v19.0/${account.pageId}/feed`
+      
       console.log('🔵 Facebook API URL:', url)
+      console.log('🔵 Has images:', hasImages)
       
       const postData: Record<string, unknown> = {
         message: post.content + '\n\n' + post.hashtags.join(' '),
         access_token: account.accessToken
       }
 
-      // Add media if provided
-      if (mediaUrls && mediaUrls.length > 0) {
-        if (mediaUrls.length === 1) {
-          // Single image
-          postData.link = mediaUrls[0]
-          console.log('🔵 Adding image link:', mediaUrls[0])
-        } else {
-          // Multiple images - would need to upload to Facebook first
-          // For now, just use the first image
-          postData.link = mediaUrls[0]
-          console.log('🔵 Adding first image from multiple:', mediaUrls[0])
-        }
+      // For posts with images, use the photos endpoint
+      if (hasImages) {
+        // Use the image URL directly - Facebook will fetch it
+        postData.url = mediaUrls[0]
+        console.log('🔵 Adding image URL for photos endpoint:', mediaUrls[0])
+      } else {
+        console.log('🔵 Text-only post to feed endpoint')
       }
 
       // Handle scheduled posts
