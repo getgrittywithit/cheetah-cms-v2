@@ -4,7 +4,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID || ''
 const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID || ''
 const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY || ''
-const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || 'cheetah-content-media'
+const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || 'dailydishdash'
 
 // Log configuration for debugging (remove in production)
 console.log('R2 Configuration:', {
@@ -97,6 +97,38 @@ export async function deleteFromR2(key: string): Promise<void> {
   await r2Client.send(command)
 }
 
+// Helper function to guess content type from file extension
+function guessContentType(filename: string): string {
+  const ext = filename.split('.').pop()?.toLowerCase()
+  switch (ext) {
+    case 'jpg':
+    case 'jpeg':
+      return 'image/jpeg'
+    case 'png':
+      return 'image/png'
+    case 'webp':
+      return 'image/webp'
+    case 'gif':
+      return 'image/gif'
+    case 'svg':
+      return 'image/svg+xml'
+    case 'mp4':
+      return 'video/mp4'
+    case 'webm':
+      return 'video/webm'
+    case 'mov':
+      return 'video/quicktime'
+    case 'pdf':
+      return 'application/pdf'
+    case 'txt':
+      return 'text/plain'
+    case 'json':
+      return 'application/json'
+    default:
+      return 'application/octet-stream'
+  }
+}
+
 // List files in R2
 export async function listFilesFromR2(prefix?: string): Promise<UploadedFile[]> {
   if (!R2_ACCOUNT_ID || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY) {
@@ -120,7 +152,7 @@ export async function listFilesFromR2(prefix?: string): Promise<UploadedFile[]> 
     return response.Contents.map((obj) => ({
       key: obj.Key || '',
       size: obj.Size || 0,
-      type: 'application/octet-stream', // R2 doesn't store content type in list
+      type: guessContentType(obj.Key || ''),
       lastModified: obj.LastModified || new Date(),
     }))
   } catch (error) {
@@ -145,6 +177,6 @@ export function getPublicUrl(key: string): string {
   if (publicUrl) {
     return `${publicUrl}/${key}`
   }
-  // Fallback to R2 subdomain URL if public access is enabled
-  return `https://${R2_BUCKET_NAME}.${R2_ACCOUNT_ID}.r2.dev/${key}`
+  // Use the same URL format as our R2ImageUploader
+  return `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${R2_BUCKET_NAME}/${key}`
 }

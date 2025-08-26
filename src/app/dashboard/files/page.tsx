@@ -327,6 +327,19 @@ export default function FilesPage() {
               </div>
               <span className="text-xs text-gray-700">{folderCounts.products || 0}</span>
             </div>
+            
+            <div 
+              onClick={() => setSelectedFolder('ai-generated')}
+              className={`flex items-center justify-between p-2 rounded cursor-pointer ${
+                selectedFolder === 'ai-generated' ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50'
+              }`}
+            >
+              <div className="flex items-center">
+                <FolderOpen className="w-4 h-4 text-indigo-500 mr-2" />
+                <span className="text-sm">AI Generated</span>
+              </div>
+              <span className="text-xs text-gray-700">{folderCounts['ai-generated'] || 0}</span>
+            </div>
           </div>
         </div>
 
