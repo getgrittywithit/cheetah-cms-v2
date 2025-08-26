@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { Plus, Upload, Package, Edit2, Eye, Trash2, Palette, RefreshCw } from 'lucide-react'
-import AIHelper from '@/components/layout/AIHelper'
 import CanvasCreator from './canvas-creator'
 import PrintfulSync from './printful-sync'
 
@@ -226,7 +225,6 @@ export default function ProductsPage() {
       )}
 
       {/* AI Helper */}
-      <AIHelper context="products" />
     </div>
   )
 }

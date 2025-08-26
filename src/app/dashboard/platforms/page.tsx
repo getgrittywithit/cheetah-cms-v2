@@ -1,7 +1,6 @@
 'use client'
 
 import { CheckCircle, AlertCircle, Settings, TrendingUp, Package, DollarSign } from 'lucide-react'
-import AIHelper from '@/components/layout/AIHelper'
 
 export default function PlatformsPage() {
   const platforms = [
@@ -189,7 +188,6 @@ export default function PlatformsPage() {
       </div>
 
       {/* AI Helper */}
-      <AIHelper context="platforms" />
     </div>
   )
 }
