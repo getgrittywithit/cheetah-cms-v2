@@ -27,15 +27,46 @@ export async function POST(request: NextRequest) {
     const scheduledFor = post.scheduledFor ? new Date(post.scheduledFor) : null
     
     if (scheduledFor && scheduledFor > now) {
-      // For scheduled posts, we'll store them and handle via a cron job later
-      // For now, just return success with scheduled status
-      return NextResponse.json({
-        success: true,
-        message: 'Post scheduled successfully',
-        postId: post.id,
-        scheduledFor: scheduledFor,
-        status: 'scheduled'
-      })
+      // Store scheduled post in the content_calendar table
+      try {
+        const { data: insertedPost, error: insertError } = await supabaseAdmin
+          .from('content_calendar')
+          .insert({
+            user_id: brand.userId || 'admin', // Use brand's userId or fallback
+            brand_profile_id: brand.id,
+            title: `${post.platform} Post`,
+            content_type: 'social_post',
+            platforms: [post.platform],
+            scheduled_date: scheduledFor.toISOString(),
+            status: 'scheduled',
+            content_text: post.content,
+            hashtags: post.hashtags ? post.hashtags.split(' ').filter(Boolean) : [],
+            media_urls: mediaUrls || []
+          })
+          .select()
+          .single()
+
+        if (insertError) {
+          console.error('🔴 Failed to save scheduled post:', insertError)
+          throw insertError
+        }
+
+        console.log('🔵 Scheduled post saved to database:', insertedPost.id)
+        
+        return NextResponse.json({
+          success: true,
+          message: 'Post scheduled successfully',
+          postId: insertedPost.id,
+          scheduledFor: scheduledFor,
+          status: 'scheduled'
+        })
+      } catch (error) {
+        console.error('🔴 Error saving scheduled post:', error)
+        return NextResponse.json(
+          { error: 'Failed to schedule post' },
+          { status: 500 }
+        )
+      }
     } else {
       // Publish immediately
       const result = await SocialMediaAPI.publishPost(post, brand, mediaUrls)

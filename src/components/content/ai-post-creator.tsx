@@ -16,6 +16,7 @@ import {
   ImagePlus,
   X
 } from 'lucide-react'
+import ScheduleConfirmationModal from './schedule-confirmation-modal'
 
 interface GeneratedPost {
   platform: string
@@ -57,6 +58,8 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
   const [uploadingImages, setUploadingImages] = useState<{[platform: string]: boolean}>({})
   const [postingStates, setPostingStates] = useState<{[platform: string]: boolean}>({})
   const [postingSuccess, setPostingSuccess] = useState<{[platform: string]: boolean}>({})
+  const [showScheduleModal, setShowScheduleModal] = useState(false)
+  const [selectedPostForScheduling, setSelectedPostForScheduling] = useState<GeneratedPost | null>(null)
 
   // Helper to get combined datetime
   const getCombinedDateTime = () => {
@@ -203,21 +206,26 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
     setSelectedImages(prev => ({ ...prev, [platform]: null }))
   }
 
-  const schedulePost = async (post: GeneratedPost, isImmediate: boolean = false) => {
-    const platform = post.platform
+  const handleOpenScheduleModal = (post: GeneratedPost) => {
+    setSelectedPostForScheduling(post)
+    setShowScheduleModal(true)
+  }
+
+  const handleScheduleConfirm = async (scheduleData: { scheduledFor: string | null, isImmediate: boolean }) => {
+    if (!selectedPostForScheduling) return
+    
+    const platform = selectedPostForScheduling.platform
     setPostingStates(prev => ({ ...prev, [platform]: true }))
     setPostingSuccess(prev => ({ ...prev, [platform]: false }))
     
     try {
-      const scheduledFor = isImmediate ? null : getCombinedDateTime()
-      
       await onSchedulePost({
-        platform: post.platform,
-        content: post.content,
-        hashtags: post.hashtags.join(' '),
-        scheduledFor,
-        imageUrl: imageUrls[post.platform],
-        isImmediate
+        platform: selectedPostForScheduling.platform,
+        content: selectedPostForScheduling.content,
+        hashtags: selectedPostForScheduling.hashtags.join(' '),
+        scheduledFor: scheduleData.scheduledFor,
+        imageUrl: imageUrls[selectedPostForScheduling.platform],
+        isImmediate: scheduleData.isImmediate
       })
       
       setPostingSuccess(prev => ({ ...prev, [platform]: true }))
@@ -231,6 +239,7 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
       console.error('Failed to schedule post:', error)
     } finally {
       setPostingStates(prev => ({ ...prev, [platform]: false }))
+      setSelectedPostForScheduling(null)
     }
   }
 
@@ -521,7 +530,7 @@ Examples:
                     ) : (
                       <>
                         <button
-                          onClick={() => schedulePost(post, true)}
+                          onClick={() => handleOpenScheduleModal(post)}
                           className="flex items-center space-x-2 bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 font-medium"
                         >
                           <Send className="w-4 h-4" />
@@ -529,17 +538,12 @@ Examples:
                         </button>
                         
                         <button
-                          onClick={() => schedulePost(post, false)}
+                          onClick={() => handleOpenScheduleModal(post)}
                           className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 font-medium"
-                          disabled={!scheduleDate}
                         >
                           <Calendar className="w-4 h-4" />
-                          <span>{scheduleDate ? 'Schedule Post' : 'Save as Draft'}</span>
+                          <span>Schedule Post</span>
                         </button>
-                        
-                        {!scheduleDate && (
-                          <span className="text-sm text-gray-600">Set date/time above to schedule</span>
-                        )}
                       </>
                     )}
                     
@@ -566,6 +570,22 @@ Examples:
             )
           })}
         </div>
+      )}
+
+      {/* Schedule Confirmation Modal */}
+      {showScheduleModal && selectedPostForScheduling && (
+        <ScheduleConfirmationModal
+          isOpen={showScheduleModal}
+          onClose={() => {
+            setShowScheduleModal(false)
+            setSelectedPostForScheduling(null)
+          }}
+          onConfirm={handleScheduleConfirm}
+          platform={selectedPostForScheduling.platform}
+          content={selectedPostForScheduling.content}
+          initialDate={scheduleDate}
+          initialTime={scheduleTime}
+        />
       )}
     </div>
   )

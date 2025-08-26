@@ -80,63 +80,44 @@ export default function BrandContentPage({ params }: BrandContentPageProps) {
         ? post.hashtags 
         : post.hashtags.split(' ').filter((tag: string) => tag.startsWith('#'))
       
-      // First, save to database with brand slug
-      const dbResponse = await fetch('/api/marketing/posts', {
+      // Create the social post object for the publish endpoint
+      const socialPost = {
+        platform: post.platform,
+        content: post.content,
+        hashtags: hashtags.join(' '),
+        scheduledFor: post.scheduledFor // This will be null for immediate posts
+      }
+
+      const mediaUrls = post.imageUrl ? [post.imageUrl] : []
+
+      // Use the publish endpoint which handles both immediate and scheduled posts
+      const publishResponse = await fetch('/api/marketing/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...post,
-          brandSlug: brand,
-          hashtags: hashtags
+          post: socialPost,
+          brand: {
+            ...brandConfig,
+            userId: 'admin' // Add userId for database operations
+          },
+          mediaUrls: mediaUrls
         })
       })
+
+      const publishData = await publishResponse.json()
       
-      const dbData = await dbResponse.json()
-      if (!dbData.success) {
-        throw new Error('Failed to save post to database')
-      }
-
-      // If this is an immediate post, also publish to social media
-      if (post.isImmediate && post.platform === 'facebook') {
-        console.log('Publishing immediately to Facebook...')
-        
-        const socialPost = {
-          id: dbData.post.id,
-          platform: post.platform,
-          content: post.content,
-          hashtags: hashtags,
-          scheduledFor: null
-        }
-
-        const mediaUrls = post.imageUrl ? [post.imageUrl] : []
-
-        const publishResponse = await fetch('/api/marketing/publish', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            post: socialPost,
-            brand: brandConfig, // Use brandConfig instead of currentBrand
-            mediaUrls: mediaUrls
-          })
-        })
-
-        const publishData = await publishResponse.json()
-        
-        if (publishData.success) {
-          console.log('Successfully published to Facebook!')
-          await loadPosts()
-          alert('Post published to Facebook successfully! 🎉')
+      if (publishData.success) {
+        if (post.isImmediate) {
+          console.log('Successfully published immediately!')
+          alert('Post published successfully! 🎉')
         } else {
-          console.error('Publishing failed:', publishData.error)
-          await loadPosts()
-          alert(`Post saved but publishing failed: ${publishData.error}`)
+          console.log('Successfully scheduled post!')
+          alert(`Post scheduled for ${new Date(post.scheduledFor).toLocaleString()}! ⏰`)
         }
-      } else {
         await loadPosts()
-        const message = post.scheduledFor 
-          ? 'Post scheduled successfully!' 
-          : 'Post saved as draft!'
-        alert(message)
+      } else {
+        console.error('Publishing/scheduling failed:', publishData.error)
+        alert(`Failed to ${post.isImmediate ? 'publish' : 'schedule'} post: ${publishData.error}`)
       }
       
     } catch (error) {
