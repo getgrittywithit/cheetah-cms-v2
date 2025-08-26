@@ -23,7 +23,7 @@ function getBrandFromPath(pathname: string): string {
   const segment = match[1]
   
   // These are global pages, not brands
-  const globalPages = ['products', 'platforms', 'files', 'analytics', 'settings', 'content']
+  const globalPages = ['products'] // Only Products stays global for now
   
   if (globalPages.includes(segment)) {
     return 'daily-dish-dash' // Default to Daily Dish Dash for global pages
@@ -45,12 +45,12 @@ function getNavigation(brand: string) {
   
   return [
     { name: 'Dashboard', href: brandPath, icon: LayoutDashboard },
-    { name: 'Products', href: '/dashboard/products', icon: Package }, // Keep global for now
-    { name: 'Platforms', href: '/dashboard/platforms', icon: Globe }, // Keep global for now
     { name: 'Content', href: `${brandPath}/content`, icon: Megaphone },
+    { name: 'Platforms', href: `${brandPath}/platforms`, icon: Globe },
     { name: 'Files', href: `${brandPath}/files`, icon: FolderOpen },
     { name: 'Analytics', href: `${brandPath}/analytics`, icon: BarChart3 },
     { name: 'Settings', href: `${brandPath}/settings`, icon: Settings },
+    { name: 'Products', href: '/dashboard/products', icon: Package }, // Keep global for now
   ]
 }
 
@@ -97,6 +97,7 @@ export default function Sidebar({ user }: SidebarProps) {
         {navigation.map((item) => {
           const isActive = pathname === item.href || 
                           (item.name === 'Content' && pathname.startsWith(`/dashboard/${currentBrand}/content`)) ||
+                          (item.name === 'Platforms' && pathname.startsWith(`/dashboard/${currentBrand}/platforms`)) ||
                           (item.name === 'Files' && pathname.startsWith(`/dashboard/${currentBrand}/files`)) ||
                           (item.name === 'Analytics' && pathname.startsWith(`/dashboard/${currentBrand}/analytics`)) ||
                           (item.name === 'Settings' && pathname.startsWith(`/dashboard/${currentBrand}/settings`))
