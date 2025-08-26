@@ -82,7 +82,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
     socialTokens: {
       facebook: process.env.DAILY_DISH_FACEBOOK_PAGE_ACCESS_TOKEN,
       facebookPageId: process.env.DAILY_DISH_FACEBOOK_PAGE_ID,
-      instagram: process.env.DAILY_DISH_INSTAGRAM_ACCESS_TOKEN,
+      instagram: process.env.DAILY_DISH_FACEBOOK_PAGE_ACCESS_TOKEN, // Same token as FB page
       instagramAccountId: process.env.DAILY_DISH_INSTAGRAM_ACCOUNT_ID,
       youtube: process.env.DAILY_DISH_YOUTUBE_ACCESS_TOKEN,
       youtubeChannelId: process.env.DAILY_DISH_YOUTUBE_CHANNEL_ID,
