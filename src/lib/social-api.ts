@@ -17,11 +17,24 @@ export class SocialMediaAPI {
     mediaUrls?: string[]
   ): Promise<PostResponse> {
     try {
+      console.log('🔵 Facebook posting attempt:', {
+        postId: post.id,
+        platform: post.platform,
+        hasAccessToken: !!account.accessToken,
+        tokenLength: account.accessToken?.length,
+        hasPageId: !!account.pageId,
+        pageId: account.pageId,
+        contentLength: post.content?.length,
+        hashtagsCount: post.hashtags?.length,
+        mediaUrlsCount: mediaUrls?.length
+      })
+
       if (!account.accessToken || !account.pageId) {
         throw new Error('Facebook access token or page ID not configured')
       }
 
       const url = `https://graph.facebook.com/v18.0/${account.pageId}/feed`
+      console.log('🔵 Facebook API URL:', url)
       
       const postData: Record<string, unknown> = {
         message: post.content + '\n\n' + post.hashtags.join(' '),
@@ -33,10 +46,12 @@ export class SocialMediaAPI {
         if (mediaUrls.length === 1) {
           // Single image
           postData.link = mediaUrls[0]
+          console.log('🔵 Adding image link:', mediaUrls[0])
         } else {
           // Multiple images - would need to upload to Facebook first
           // For now, just use the first image
           postData.link = mediaUrls[0]
+          console.log('🔵 Adding first image from multiple:', mediaUrls[0])
         }
       }
 
@@ -44,20 +59,44 @@ export class SocialMediaAPI {
       if (post.scheduledFor && new Date(post.scheduledFor) > new Date()) {
         postData.published = false
         postData.scheduled_publish_time = Math.floor(new Date(post.scheduledFor).getTime() / 1000)
+        console.log('🔵 Scheduling post for:', new Date(post.scheduledFor))
       }
+
+      console.log('🔵 Facebook API request data:', {
+        url,
+        messageLength: postData.message?.toString().length,
+        hasLink: !!postData.link,
+        isScheduled: !!postData.scheduled_publish_time
+      })
+
+      // Facebook Graph API expects form data, not JSON
+      const formData = new URLSearchParams()
+      Object.entries(postData).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          formData.append(key, String(value))
+        }
+      })
+
+      console.log('🔵 Form data being sent:', formData.toString())
 
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: JSON.stringify(postData)
+        body: formData.toString()
       })
 
       const data = await response.json()
+      console.log('🔵 Facebook API response:', {
+        status: response.status,
+        ok: response.ok,
+        data: data
+      })
 
       if (!response.ok) {
-        throw new Error(data.error?.message || 'Facebook API error')
+        console.error('🔴 Facebook API error:', data)
+        throw new Error(data.error?.message || `Facebook API error: ${response.status}`)
       }
 
       return {
