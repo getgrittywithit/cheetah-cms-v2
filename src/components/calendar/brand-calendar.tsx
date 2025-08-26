@@ -15,7 +15,9 @@ import {
   Twitter,
   Youtube,
   FileImage,
-  MoreHorizontal
+  MoreHorizontal,
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react'
 import { BrandConfig } from '@/lib/brand-config'
 import { getAllPlatforms } from '@/lib/platform-config'
@@ -67,21 +69,34 @@ export default function BrandCalendar({ brandConfig }: BrandCalendarProps) {
   const [loading, setLoading] = useState(true)
   const [selectedPost, setSelectedPost] = useState<ScheduledPost | null>(null)
   const [showPostModal, setShowPostModal] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const availablePlatforms = getAllPlatforms()
 
   useEffect(() => {
     loadScheduledPosts()
-  }, [currentDate, selectedPlatforms])
+  }, [currentDate, selectedPlatforms, viewMode])
 
   const loadScheduledPosts = async () => {
     setLoading(true)
+    setError(null)
     try {
       // Calculate date range based on view mode
       const startDate = viewMode === 'month' ? getMonthStart(currentDate) : getWeekStart(currentDate)
       const endDate = viewMode === 'month' ? getMonthEnd(currentDate) : getWeekEnd(currentDate)
       
       const response = await fetch(`/api/marketing/posts?brandId=${brandConfig.slug}&status=scheduled&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
+      
+      if (!response.ok) {
+        if (response.status === 500) {
+          throw new Error('Server error occurred while loading scheduled posts. Please try again later.')
+        } else if (response.status === 404) {
+          throw new Error('Calendar data not found. Please check your brand configuration.')
+        } else {
+          throw new Error(`Failed to load scheduled posts (${response.status}). Please try again.`)
+        }
+      }
+      
       const data = await response.json()
       
       if (data.success) {
@@ -97,12 +112,20 @@ export default function BrandCalendar({ brandConfig }: BrandCalendarProps) {
           createdAt: new Date(post.createdAt)
         }))
         setScheduledPosts(posts)
+      } else {
+        throw new Error(data.error || 'Unknown error occurred while loading scheduled posts')
       }
     } catch (error) {
       console.error('Failed to load scheduled posts:', error)
+      setError(error instanceof Error ? error.message : 'An unexpected error occurred while loading scheduled posts')
+      setScheduledPosts([]) // Clear any existing posts
     } finally {
       setLoading(false)
     }
+  }
+
+  const retryLoadPosts = () => {
+    loadScheduledPosts()
   }
 
   const getMonthStart = (date: Date) => {
@@ -133,6 +156,7 @@ export default function BrandCalendar({ brandConfig }: BrandCalendarProps) {
       newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7))
     }
     setCurrentDate(newDate)
+    setError(null) // Clear error when user navigates
   }
 
   const togglePlatformFilter = (platformId: string) => {
@@ -347,7 +371,10 @@ export default function BrandCalendar({ brandConfig }: BrandCalendarProps) {
           {/* View Toggle */}
           <div className="flex border border-gray-300 rounded-lg">
             <button
-              onClick={() => setViewMode('month')}
+              onClick={() => {
+                setViewMode('month')
+                setError(null) // Clear error when view mode changes
+              }}
               className={`px-4 py-2 text-sm font-medium rounded-l-lg ${
                 viewMode === 'month' 
                   ? 'bg-blue-600 text-white' 
@@ -357,7 +384,10 @@ export default function BrandCalendar({ brandConfig }: BrandCalendarProps) {
               Month
             </button>
             <button
-              onClick={() => setViewMode('week')}
+              onClick={() => {
+                setViewMode('week')
+                setError(null) // Clear error when view mode changes
+              }}
               className={`px-4 py-2 text-sm font-medium rounded-r-lg border-l ${
                 viewMode === 'week' 
                   ? 'bg-blue-600 text-white' 
@@ -377,7 +407,10 @@ export default function BrandCalendar({ brandConfig }: BrandCalendarProps) {
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
-              onClick={() => setCurrentDate(new Date())}
+              onClick={() => {
+                setCurrentDate(new Date())
+                setError(null) // Clear error when navigating to today
+              }}
               className="px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded-lg"
             >
               Today
@@ -434,7 +467,33 @@ export default function BrandCalendar({ brandConfig }: BrandCalendarProps) {
       {/* Calendar View */}
       {loading ? (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12">
-          <div className="text-center text-gray-600">Loading calendar...</div>
+          <div className="text-center text-gray-600 flex items-center justify-center space-x-2">
+            <RefreshCw className="w-5 h-5 animate-spin" />
+            <span>Loading calendar...</span>
+          </div>
+        </div>
+      ) : error ? (
+        <div className="bg-white rounded-lg shadow-sm border border-red-200 p-12">
+          <div className="text-center">
+            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Unable to Load Calendar</h3>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">{error}</p>
+            <div className="flex justify-center space-x-3">
+              <button
+                onClick={retryLoadPosts}
+                className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span>Try Again</span>
+              </button>
+              <button
+                onClick={() => window.location.reload()}
+                className="flex items-center space-x-2 bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                <span>Reload Page</span>
+              </button>
+            </div>
+          </div>
         </div>
       ) : (
         viewMode === 'month' ? renderMonthView() : renderWeekView()
