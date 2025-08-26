@@ -12,14 +12,28 @@ function transformBrand(dbBrand: Record<string, unknown>): Brand {
     website: dbBrand.tagline || '',
     industry: dbBrand.industry || '',
     targetAudience: dbBrand.target_audience || '',
-    socialAccounts: (dbBrand.social_accounts as Record<string, unknown>[] | null)?.map((acc) => ({
-      platform: acc.platform,
-      accountId: acc.account_id || '',
-      accessToken: acc.access_token || '',
-      pageId: acc.account_id || '',
-      username: acc.account_handle || '',
-      isActive: acc.is_active || false
-    })) || [],
+    socialAccounts: (dbBrand.social_accounts as Record<string, unknown>[] | null)?.map((acc) => {
+      // For Daily Dish Dash Facebook, use environment variable token instead of database
+      if (acc.platform === 'facebook' && dbBrand.name === 'Daily Dish Dash') {
+        return {
+          platform: acc.platform,
+          accountId: acc.account_id || '',
+          accessToken: process.env.DAILY_DISH_FACEBOOK_PAGE_ACCESS_TOKEN || acc.access_token || '',
+          pageId: acc.account_id || '',
+          username: acc.account_handle || '',
+          isActive: true // Always active if env token exists
+        }
+      }
+      // For other accounts, use database values
+      return {
+        platform: acc.platform,
+        accountId: acc.account_id || '',
+        accessToken: acc.access_token || '',
+        pageId: acc.account_id || '',
+        username: acc.account_handle || '',
+        isActive: acc.is_active || false
+      }
+    }) || [],
     guidelines: {
       voice: {
         tone: dbBrand.tone_of_voice || '',
