@@ -82,45 +82,81 @@ export default function BrandContentPage({ params }: BrandContentPageProps) {
       const hashtags = Array.isArray(post.hashtags) 
         ? post.hashtags 
         : post.hashtags.split(' ').filter((tag: string) => tag.startsWith('#'))
+
+      // Check if this is a multi-platform request
+      const isMultiPlatform = post.selectedPlatforms && post.selectedPlatforms.length > 1
       
-      // Create the social post object for the publish endpoint
-      const socialPost = {
-        platform: post.platform,
-        content: post.content,
-        hashtags: hashtags.join(' '),
-        scheduledFor: post.scheduledFor // This will be null for immediate posts
-      }
-
-      const mediaUrls = post.imageUrl ? [post.imageUrl] : []
-
-      // Use the publish endpoint which handles both immediate and scheduled posts
-      const publishResponse = await fetch('/api/marketing/publish', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          post: socialPost,
-          brand: {
-            ...brandConfig,
-            userId: 'admin' // Add userId for database operations
-          },
-          mediaUrls: mediaUrls
+      if (isMultiPlatform) {
+        // Use new multi-platform endpoint
+        const publishResponse = await fetch('/api/marketing/publish-multi', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            platforms: post.selectedPlatforms,
+            content: post.content,
+            hashtags: hashtags.join(' '),
+            scheduledFor: post.scheduledFor,
+            imageUrl: post.imageUrl,
+            isImmediate: post.isImmediate,
+            brandSlug: brand
+          })
         })
-      })
 
-      const publishData = await publishResponse.json()
-      
-      if (publishData.success) {
-        if (post.isImmediate) {
-          console.log('Successfully published immediately!')
-          alert('Post published successfully! 🎉')
+        const publishData = await publishResponse.json()
+        
+        if (publishData.success) {
+          const successCount = publishData.results.filter(r => r.success).length
+          const failureCount = publishData.results.filter(r => !r.success).length
+          
+          if (post.isImmediate) {
+            alert(`Posted to ${successCount} platform(s) successfully! ${failureCount > 0 ? `${failureCount} failed.` : ''} 🎉`)
+          } else {
+            alert(`Scheduled for ${successCount} platform(s) successfully! ${failureCount > 0 ? `${failureCount} failed.` : ''} ⏰`)
+          }
+          await loadPosts()
         } else {
-          console.log('Successfully scheduled post!')
-          alert(`Post scheduled for ${new Date(post.scheduledFor).toLocaleString()}! ⏰`)
+          console.error('Multi-platform publishing/scheduling failed:', publishData.error)
+          alert(`Failed to ${post.isImmediate ? 'publish' : 'schedule'} to multiple platforms: ${publishData.error}`)
         }
-        await loadPosts()
       } else {
-        console.error('Publishing/scheduling failed:', publishData.error)
-        alert(`Failed to ${post.isImmediate ? 'publish' : 'schedule'} post: ${publishData.error}`)
+        // Single platform - use existing endpoint
+        const socialPost = {
+          platform: post.platform,
+          content: post.content,
+          hashtags: hashtags.join(' '),
+          scheduledFor: post.scheduledFor
+        }
+
+        const mediaUrls = post.imageUrl ? [post.imageUrl] : []
+
+        const publishResponse = await fetch('/api/marketing/publish', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            post: socialPost,
+            brand: {
+              ...brandConfig,
+              userId: 'admin'
+            },
+            mediaUrls: mediaUrls
+          })
+        })
+
+        const publishData = await publishResponse.json()
+        
+        if (publishData.success) {
+          if (post.isImmediate) {
+            console.log('Successfully published immediately!')
+            alert('Post published successfully! 🎉')
+          } else {
+            console.log('Successfully scheduled post!')
+            alert(`Post scheduled for ${new Date(post.scheduledFor).toLocaleString()}! ⏰`)
+          }
+          await loadPosts()
+        } else {
+          console.error('Publishing/scheduling failed:', publishData.error)
+          alert(`Failed to ${post.isImmediate ? 'publish' : 'schedule'} post: ${publishData.error}`)
+        }
       }
       
     } catch (error) {

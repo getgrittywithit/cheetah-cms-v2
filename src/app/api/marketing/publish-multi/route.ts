@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
             name: brandConfig.name,
             socialAccounts: [{
               platform: platform,
-              accessToken: brandConfig.socialTokens?.[platform as keyof typeof brandConfig.socialTokens],
+              accessToken: platformToken,
               pageId: platform === 'facebook' ? brandConfig.socialTokens?.facebookPageId : undefined,
               isActive: true
             }]
