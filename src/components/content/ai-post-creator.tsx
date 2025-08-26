@@ -44,7 +44,8 @@ const platformColors = {
 
 export default function AIPostCreator({ brandName, onSchedulePost }: AIPostCreatorProps) {
   const [prompt, setPrompt] = useState('')
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['instagram'])
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['instagram', 'facebook'])
+  const [visiblePosts, setVisiblePosts] = useState<{[platform: string]: boolean}>({})
   const [generatedPosts, setGeneratedPosts] = useState<GeneratedPost[]>([])
   const [loading, setLoading] = useState(false)
   const [editingPost, setEditingPost] = useState<string | null>(null)
@@ -97,15 +98,56 @@ export default function AIPostCreator({ brandName, onSchedulePost }: AIPostCreat
       if (data.success) {
         setGeneratedPosts(data.posts)
         
-        // If posts have AI-generated images, add them to imageUrls
+        // Set all generated posts as visible by default
+        const newVisibility: {[platform: string]: boolean} = {}
         data.posts.forEach((post: GeneratedPost) => {
+          newVisibility[post.platform] = true
+          // If posts have AI-generated images, add them to imageUrls
           if (post.imageUrl) {
             setImageUrls(prev => ({ ...prev, [post.platform]: post.imageUrl || '' }))
           }
         })
+        setVisiblePosts(newVisibility)
       }
     } catch (error) {
       console.error('Failed to generate posts:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const generateForAdditionalPlatform = async (platformId: string) => {
+    if (!prompt.trim()) return
+
+    setLoading(true)
+    try {
+      const response = await fetch('/api/ai/generate-post', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt,
+          brand: brandName,
+          platforms: [platformId]
+        })
+      })
+
+      const data = await response.json()
+      if (data.success && data.posts.length > 0) {
+        const newPost = data.posts[0]
+        
+        // Add to existing posts
+        setGeneratedPosts(prev => [...prev, newPost])
+        
+        // Set as visible
+        setVisiblePosts(prev => ({ ...prev, [platformId]: true }))
+        
+        // Add image if available
+        if (newPost.imageUrl) {
+          setImageUrls(prev => ({ ...prev, [platformId]: newPost.imageUrl || '' }))
+        }
+      }
+    } catch (error) {
+      console.error('Failed to generate additional post:', error)
     } finally {
       setLoading(false)
     }
@@ -267,7 +309,49 @@ Examples:
       {generatedPosts.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Your Posts Are Ready! 🎉</h3>
+            <div className="flex items-center space-x-4">
+              <h3 className="text-lg font-semibold text-gray-900">Your Posts Are Ready! 🎉</h3>
+              
+              {/* Platform Toggle Controls */}
+              <div className="flex items-center space-x-2">
+                {generatedPosts.map(post => {
+                  const platform = platforms.find(p => p.id === post.platform)
+                  if (!platform) return null
+                  const Icon = platform.icon
+                  return (
+                    <button
+                      key={post.platform}
+                      onClick={() => setVisiblePosts(prev => ({ ...prev, [post.platform]: !prev[post.platform] }))}
+                      className={`flex items-center space-x-1 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                        visiblePosts[post.platform]
+                          ? platformColors[post.platform as keyof typeof platformColors]
+                          : 'bg-gray-100 text-gray-600 border-gray-200'
+                      }`}
+                    >
+                      <Icon className="w-3 h-3" />
+                      <span>{platform.name}</span>
+                    </button>
+                  )
+                })}
+                
+                {/* Add Missing Platforms */}
+                {platforms.filter(p => !generatedPosts.some(post => post.platform === p.id)).map(platform => {
+                  const Icon = platform.icon
+                  return (
+                    <button
+                      key={platform.id}
+                      onClick={() => generateForAdditionalPlatform(platform.id)}
+                      disabled={loading}
+                      className="flex items-center space-x-1 px-3 py-1.5 rounded-full text-xs font-medium border border-dashed border-gray-300 text-gray-600 hover:border-gray-400 hover:text-gray-800 disabled:opacity-50"
+                    >
+                      <Icon className="w-3 h-3" />
+                      <span>+ {platform.name}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+            
             <div className="flex items-center space-x-3 bg-purple-50 px-4 py-3 rounded-lg">
               <Clock className="w-4 h-4 text-purple-600" />
               <label className="text-sm font-medium text-purple-900">Schedule for:</label>
@@ -288,7 +372,7 @@ Examples:
             </div>
           </div>
 
-          {generatedPosts.map(post => {
+          {generatedPosts.filter(post => visiblePosts[post.platform]).map(post => {
             const Icon = platformIcons[post.platform as keyof typeof platformIcons]
             const isEditing = editingPost === post.platform
             

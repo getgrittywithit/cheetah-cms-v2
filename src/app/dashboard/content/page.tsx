@@ -72,7 +72,8 @@ export default function ContentPage() {
         ? post.hashtags 
         : post.hashtags.split(' ').filter((tag: string) => tag.startsWith('#'))
       
-      const response = await fetch('/api/marketing/posts', {
+      // First, save to database
+      const dbResponse = await fetch('/api/marketing/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -82,13 +83,60 @@ export default function ContentPage() {
         })
       })
       
-      const data = await response.json()
-      if (data.success) {
-        await loadPosts()
-        alert('Post scheduled successfully!')
+      const dbData = await dbResponse.json()
+      if (!dbData.success) {
+        throw new Error('Failed to save post to database')
       }
+
+      // If this is an immediate post, also publish to social media
+      if (post.isImmediate && post.platform === 'facebook') {
+        console.log('Publishing immediately to Facebook...')
+        
+        // Create the social post object for the API
+        const socialPost = {
+          id: dbData.post.id,
+          platform: post.platform,
+          content: post.content,
+          hashtags: hashtags,
+          scheduledFor: null // Immediate posting
+        }
+
+        // Get media URLs if available
+        const mediaUrls = post.imageUrl ? [post.imageUrl] : []
+
+        const publishResponse = await fetch('/api/marketing/publish', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            post: socialPost,
+            brand: currentBrand,
+            mediaUrls: mediaUrls
+          })
+        })
+
+        const publishData = await publishResponse.json()
+        
+        if (publishData.success) {
+          console.log('Successfully published to Facebook!')
+          await loadPosts()
+          alert('Post published to Facebook successfully! 🎉')
+        } else {
+          console.error('Publishing failed:', publishData.error)
+          await loadPosts()
+          alert(`Post saved but publishing failed: ${publishData.error}`)
+        }
+      } else {
+        // Just saved to database for scheduling
+        await loadPosts()
+        const message = post.scheduledFor 
+          ? 'Post scheduled successfully!' 
+          : 'Post saved as draft!'
+        alert(message)
+      }
+      
     } catch (error) {
-      console.error('Failed to schedule post:', error)
+      console.error('Failed to handle post:', error)
+      alert('Failed to process post. Please try again.')
     }
   }
 
