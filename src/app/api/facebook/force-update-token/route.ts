@@ -65,10 +65,21 @@ async function updateToken() {
     })
 
   } catch (error) {
-    console.error('Force update error:', error)
+    console.error('🔴 Force update error:', error)
+    console.error('🔴 Error type:', typeof error)
+    console.error('🔴 Error constructor:', error?.constructor?.name)
+    
+    if (error instanceof Error) {
+      console.error('🔴 Error message:', error.message)
+      console.error('🔴 Error stack:', error.stack)
+    }
+    
     return NextResponse.json({
       error: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
+      errorType: typeof error,
+      errorConstructor: error?.constructor?.name,
+      stack: error instanceof Error ? error.stack : undefined,
+      rawError: String(error)
     }, { status: 500 })
   }
 }
