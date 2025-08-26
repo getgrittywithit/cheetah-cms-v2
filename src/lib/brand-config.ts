@@ -15,6 +15,9 @@ export interface BrandConfig {
     twitter?: string
     tiktok?: string
     youtube?: string
+    youtubeChannelId?: string
+    pinterest?: string
+    linkedin?: string
   }
   aiSettings: {
     voice: string
@@ -46,8 +49,12 @@ export interface BrandConfig {
 //     accent: '#DC2626'
 //   },
 //   socialTokens: {
+//     facebook: process.env.FITNESS_FOCUS_FACEBOOK_TOKEN,
 //     instagram: process.env.FITNESS_FOCUS_INSTAGRAM_TOKEN,
-//     tiktok: process.env.FITNESS_FOCUS_TIKTOK_TOKEN
+//     youtube: process.env.FITNESS_FOCUS_YOUTUBE_ACCESS_TOKEN,
+//     youtubeChannelId: process.env.FITNESS_FOCUS_YOUTUBE_CHANNEL_ID,
+//     tiktok: process.env.FITNESS_FOCUS_TIKTOK_ACCESS_TOKEN, // organize-only
+//     pinterest: process.env.FITNESS_FOCUS_PINTEREST_ACCESS_TOKEN
 //   },
 //   aiSettings: {
 //     voice: 'Motivating, energetic, and supportive fitness coach',
@@ -72,7 +79,12 @@ export const brandConfigs: Record<string, BrandConfig> = {
     },
     socialTokens: {
       facebook: process.env.DAILY_DISH_FACEBOOK_PAGE_ACCESS_TOKEN,
-      instagram: process.env.DAILY_DISH_INSTAGRAM_ACCESS_TOKEN
+      instagram: process.env.DAILY_DISH_INSTAGRAM_ACCESS_TOKEN,
+      youtube: process.env.DAILY_DISH_YOUTUBE_ACCESS_TOKEN,
+      youtubeChannelId: process.env.DAILY_DISH_YOUTUBE_CHANNEL_ID,
+      twitter: process.env.DAILY_DISH_TWITTER_ACCESS_TOKEN,
+      pinterest: process.env.DAILY_DISH_PINTEREST_ACCESS_TOKEN,
+      tiktok: process.env.DAILY_DISH_TIKTOK_ACCESS_TOKEN // organize-only
     },
     aiSettings: {
       voice: 'Friendly, helpful, and enthusiastic about food. Encouraging and approachable.',
@@ -99,7 +111,11 @@ Target Audience: Busy professionals and home cooks looking for quick, tasty meal
     },
     socialTokens: {
       facebook: process.env.GRIT_COLLECTIVE_FACEBOOK_TOKEN,
-      instagram: process.env.GRIT_COLLECTIVE_INSTAGRAM_TOKEN
+      instagram: process.env.GRIT_COLLECTIVE_INSTAGRAM_TOKEN,
+      youtube: process.env.GRIT_COLLECTIVE_YOUTUBE_ACCESS_TOKEN,
+      youtubeChannelId: process.env.GRIT_COLLECTIVE_YOUTUBE_CHANNEL_ID,
+      pinterest: process.env.GRIT_COLLECTIVE_PINTEREST_ACCESS_TOKEN,
+      tiktok: process.env.GRIT_COLLECTIVE_TIKTOK_ACCESS_TOKEN // organize-only
     },
     aiSettings: {
       voice: 'Inspirational, authentic, encouraging with a slightly edgy vibe',

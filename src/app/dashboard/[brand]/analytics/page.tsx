@@ -21,7 +21,7 @@ export default function BrandAnalyticsPage({ params }: BrandAnalyticsPageProps) 
   const { brand } = params
   const brandConfig = getBrandConfig(brand)
   
-  if (\!brandConfig) {
+  if (!brandConfig) {
     notFound()
   }
 

@@ -50,7 +50,13 @@ export default function BrandFilesManager({ brandConfig }: BrandFilesManagerProp
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [bucketName, setBucketName] = useState('')
   const [r2Status, setR2Status] = useState<'loading' | 'success' | 'error' | 'missing-config'>('loading')
+  const [showCreateFolder, setShowCreateFolder] = useState(false)
+  const [newFolderName, setNewFolderName] = useState('')
+  const [creating, setCreating] = useState(false)
+  const [dragActive, setDragActive] = useState(false)
+  const [uploadFolder, setUploadFolder] = useState('uploads')
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const dropZoneRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     loadFiles()
@@ -84,7 +90,7 @@ export default function BrandFilesManager({ brandConfig }: BrandFilesManagerProp
     }
   }
 
-  const handleFileUpload = async (file: File, folder: string = 'uploads') => {
+  const handleFileUpload = async (file: File, folder: string = uploadFolder) => {
     setUploading(true)
     const formData = new FormData()
     formData.append('file', file)
@@ -142,7 +148,58 @@ export default function BrandFilesManager({ brandConfig }: BrandFilesManagerProp
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || [])
-    files.forEach(file => handleFileUpload(file))
+    files.forEach(file => handleFileUpload(file, uploadFolder))
+  }
+
+  // Handle drag and drop
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActive(true)
+    } else if (e.type === 'dragleave') {
+      setDragActive(false)
+    }
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+    
+    const files = Array.from(e.dataTransfer.files)
+    files.forEach(file => handleFileUpload(file, uploadFolder))
+  }
+
+  // Handle folder creation
+  const handleCreateFolder = async () => {
+    if (!newFolderName.trim()) return
+    
+    setCreating(true)
+    try {
+      const response = await fetch(`/api/brand-files/${brandConfig.slug}/create-folder`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folderName: newFolderName.trim() })
+      })
+
+      const data = await response.json()
+      
+      if (data.success) {
+        setUploadMessage({ type: 'success', text: `Folder "${data.folder.originalName}" created successfully!` })
+        await loadFiles()
+        setNewFolderName('')
+        setShowCreateFolder(false)
+      } else {
+        setUploadMessage({ type: 'error', text: data.error || 'Failed to create folder' })
+      }
+    } catch (error) {
+      console.error('Create folder failed:', error)
+      setUploadMessage({ type: 'error', text: 'Failed to create folder. Please try again.' })
+    } finally {
+      setCreating(false)
+      setTimeout(() => setUploadMessage(null), 5000)
+    }
   }
 
   const filteredFiles = files.filter(file => {
@@ -222,6 +279,55 @@ export default function BrandFilesManager({ brandConfig }: BrandFilesManagerProp
         </div>
       )}
 
+      {/* Drag and Drop Zone */}
+      <div 
+        ref={dropZoneRef}
+        onDragEnter={handleDrag}
+        onDragLeave={handleDrag}
+        onDragOver={handleDrag}
+        onDrop={handleDrop}
+        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+          dragActive 
+            ? 'border-blue-500 bg-blue-50 text-blue-700' 
+            : 'border-gray-300 bg-gray-50 hover:border-gray-400'
+        }`}
+      >
+        <Upload className={`w-12 h-12 mx-auto mb-4 ${
+          dragActive ? 'text-blue-500' : 'text-gray-400'
+        }`} />
+        <h3 className={`text-lg font-medium mb-2 ${
+          dragActive ? 'text-blue-700' : 'text-gray-900'
+        }`}>
+          {dragActive ? 'Drop files here' : 'Drop files to upload'}
+        </h3>
+        <p className={`text-sm mb-4 ${
+          dragActive ? 'text-blue-600' : 'text-gray-600'
+        }`}>
+          or click the button below to browse
+        </p>
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 inline-flex items-center"
+        >
+          {uploading ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Upload className="w-4 h-4 mr-2" />
+          )}
+          {uploading ? 'Uploading...' : 'Choose Files'}
+        </button>
+        
+        <input
+          ref={fileInputRef}
+          type="file"
+          onChange={handleFileSelect}
+          multiple
+          className="hidden"
+          accept="image/*,video/*,.pdf,.txt,.json"
+        />
+      </div>
+
       {/* Header with Controls */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -250,6 +356,21 @@ export default function BrandFilesManager({ brandConfig }: BrandFilesManagerProp
               ))}
             </select>
 
+            {/* Upload to Folder */}
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600">Upload to:</span>
+              <select
+                value={uploadFolder}
+                onChange={(e) => setUploadFolder(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="uploads">uploads</option>
+                {folders.filter(f => f !== 'uploads').map(folder => (
+                  <option key={folder} value={folder}>{folder}</option>
+                ))}
+              </select>
+            </div>
+
             {/* Type Filter */}
             <select
               value={selectedType}
@@ -264,6 +385,15 @@ export default function BrandFilesManager({ brandConfig }: BrandFilesManagerProp
           </div>
 
           <div className="flex items-center space-x-3">
+            {/* Create Folder Button */}
+            <button
+              onClick={() => setShowCreateFolder(true)}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              New Folder
+            </button>
+            
             {/* View Toggle */}
             <div className="flex border border-gray-300 rounded-lg">
               <button
@@ -279,29 +409,6 @@ export default function BrandFilesManager({ brandConfig }: BrandFilesManagerProp
                 <ListIcon className="w-4 h-4" />
               </button>
             </div>
-
-            {/* Upload Button */}
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center disabled:bg-gray-400"
-            >
-              {uploading ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <Upload className="w-4 h-4 mr-2" />
-              )}
-              {uploading ? 'Uploading...' : 'Upload Files'}
-            </button>
-            
-            <input
-              ref={fileInputRef}
-              type="file"
-              onChange={handleFileSelect}
-              multiple
-              className="hidden"
-              accept="image/*,video/*,.pdf,.txt,.json"
-            />
           </div>
         </div>
       </div>
@@ -532,6 +639,72 @@ export default function BrandFilesManager({ brandConfig }: BrandFilesManagerProp
                   Delete
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Folder Modal */}
+      {showCreateFolder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Create New Folder</h3>
+              <button
+                onClick={() => {
+                  setShowCreateFolder(false)
+                  setNewFolderName('')
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Folder Name
+              </label>
+              <input
+                type="text"
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && !creating) {
+                    handleCreateFolder()
+                  }
+                }}
+                placeholder="Enter folder name"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                autoFocus
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Folder names will be automatically cleaned (spaces become dashes, special characters removed)
+              </p>
+            </div>
+            
+            <div className="flex space-x-3">
+              <button
+                onClick={() => {
+                  setShowCreateFolder(false)
+                  setNewFolderName('')
+                }}
+                className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                disabled={creating}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateFolder}
+                disabled={!newFolderName.trim() || creating}
+                className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:bg-gray-400 flex items-center justify-center"
+              >
+                {creating ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  'Create Folder'
+                )}
+              </button>
             </div>
           </div>
         </div>
