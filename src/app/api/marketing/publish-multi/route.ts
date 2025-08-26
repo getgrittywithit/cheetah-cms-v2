@@ -40,6 +40,13 @@ export async function POST(request: NextRequest) {
         
         // Check if brand has token for this platform
         const platformToken = brandConfig.socialTokens?.[platform as keyof typeof brandConfig.socialTokens]
+        console.log(`🔵 Platform ${platform} token check:`, {
+          hasToken: !!platformToken,
+          tokenLength: platformToken?.length,
+          brandName: brandConfig.name,
+          availableTokens: Object.keys(brandConfig.socialTokens || {})
+        })
+        
         if (!platformToken) {
           console.log(`🔴 No ${platform} token found for brand:`, brandConfig.name)
           results.push({
@@ -100,12 +107,30 @@ export async function POST(request: NextRequest) {
             }]
           }
 
+          console.log(`🔵 Calling SocialMediaAPI.publishPost for ${platform}:`, {
+            platform,
+            contentLength: content.length,
+            hashtagsLength: hashtags?.length,
+            hasImageUrl: !!imageUrl,
+            brandName: adaptedBrand.name,
+            hasAccessToken: !!adaptedBrand.socialAccounts[0]?.accessToken,
+            hasPageId: !!adaptedBrand.socialAccounts[0]?.pageId,
+            hasAccountId: !!adaptedBrand.socialAccounts[0]?.accountId
+          })
+
           const publishResult = await SocialMediaAPI.publishPost({
+            id: `multi-${Date.now()}-${platform}`,
             platform,
             content,
-            hashtags,
-            imageUrl
+            hashtags: hashtags ? hashtags.split(' ').filter(Boolean) : [],
+            scheduledFor: null
           }, adaptedBrand, imageUrl ? [imageUrl] : [])
+
+          console.log(`🔵 Publish result for ${platform}:`, {
+            success: publishResult.success,
+            error: publishResult.error,
+            postId: publishResult.postId
+          })
 
           if (publishResult.success) {
             console.log(`🟢 Successfully published to ${platform}`)
