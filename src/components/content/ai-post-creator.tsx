@@ -60,6 +60,7 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
   const [postingSuccess, setPostingSuccess] = useState<{[platform: string]: boolean}>({})
   const [showScheduleModal, setShowScheduleModal] = useState(false)
   const [selectedPostForScheduling, setSelectedPostForScheduling] = useState<GeneratedPost | null>(null)
+  const [autoSavedDrafts, setAutoSavedDrafts] = useState<{[platform: string]: string}>({}) // Store draft IDs
 
   // Helper to get combined datetime
   const getCombinedDateTime = () => {
@@ -113,11 +114,82 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
           }
         })
         setVisiblePosts(newVisibility)
+
+        // Auto-save drafts with generated images
+        autoSaveDrafts(data.posts)
       }
     } catch (error) {
       console.error('Failed to generate posts:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Auto-save drafts with generated images
+  const autoSaveDrafts = async (posts: GeneratedPost[]) => {
+    try {
+      for (const post of posts) {
+        // Skip if already auto-saved
+        if (autoSavedDrafts[post.platform]) continue
+
+        const draftData = {
+          brandId: brandSlug, // Use brandSlug as brandId for now
+          platform: post.platform,
+          content: post.content,
+          hashtags: post.hashtags,
+          media: post.imageUrl ? [post.imageUrl] : [], // Include generated image
+          status: 'draft'
+        }
+
+        const response = await fetch('/api/marketing/posts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(draftData)
+        })
+
+        const result = await response.json()
+        if (result.success) {
+          // Track auto-saved draft ID
+          setAutoSavedDrafts(prev => ({ 
+            ...prev, 
+            [post.platform]: result.post.id 
+          }))
+          console.log(`Auto-saved draft for ${post.platform}:`, result.post.id)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to auto-save drafts:', error)
+    }
+  }
+
+  // Update existing auto-saved drafts when content changes
+  const updateAutoSavedDraft = async (platform: string, updatedContent: string) => {
+    const draftId = autoSavedDrafts[platform]
+    if (!draftId) return
+
+    try {
+      const post = generatedPosts.find(p => p.platform === platform)
+      if (!post) return
+
+      const updateData = {
+        id: draftId,
+        content: updatedContent,
+        hashtags: post.hashtags,
+        media: imageUrls[platform] ? [imageUrls[platform]] : (post.imageUrl ? [post.imageUrl] : [])
+      }
+
+      const response = await fetch('/api/marketing/posts', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData)
+      })
+
+      const result = await response.json()
+      if (result.success) {
+        console.log(`Updated auto-saved draft for ${platform}`)
+      }
+    } catch (error) {
+      console.error('Failed to update auto-saved draft:', error)
     }
   }
 
@@ -150,6 +222,9 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
         if (newPost.imageUrl) {
           setImageUrls(prev => ({ ...prev, [platformId]: newPost.imageUrl || '' }))
         }
+
+        // Auto-save this additional post as draft
+        autoSaveDrafts([newPost])
       }
     } catch (error) {
       console.error('Failed to generate additional post:', error)
@@ -174,6 +249,9 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
           : post
       )
     )
+    
+    // Update auto-saved draft with new content
+    updateAutoSavedDraft(platform, newContent)
   }
 
   const copyToClipboard = (text: string) => {
@@ -191,6 +269,14 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
       const imageUrl = URL.createObjectURL(file)
       setImageUrls(prev => ({ ...prev, [platform]: imageUrl }))
       setSelectedImages(prev => ({ ...prev, [platform]: file }))
+
+      // Update auto-saved draft with new image
+      if (autoSavedDrafts[platform]) {
+        const post = generatedPosts.find(p => p.platform === platform)
+        if (post) {
+          updateAutoSavedDraft(platform, post.content)
+        }
+      }
     } catch (error) {
       console.error('Failed to upload image:', error)
     } finally {
@@ -322,6 +408,10 @@ Examples:
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <h3 className="text-lg font-semibold text-gray-900">Your Posts Are Ready! 🎉</h3>
+              <div className="flex items-center space-x-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                <Check className="w-3 h-3" />
+                <span>Auto-saving drafts with images</span>
+              </div>
               
               {/* Platform Toggle Controls */}
               <div className="flex items-center space-x-2">
@@ -395,6 +485,12 @@ Examples:
                       <Icon className="w-5 h-5" />
                     </div>
                     <h4 className="font-medium text-gray-900 capitalize">{post.platform}</h4>
+                    {autoSavedDrafts[post.platform] && (
+                      <div className="flex items-center space-x-1 text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                        <Check className="w-3 h-3" />
+                        <span>Auto-saved</span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center space-x-2">
                     <button
