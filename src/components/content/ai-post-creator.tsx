@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   Send, 
   Sparkles, 
@@ -49,9 +49,28 @@ export default function AIPostCreator({ brandName, onSchedulePost }: AIPostCreat
   const [loading, setLoading] = useState(false)
   const [editingPost, setEditingPost] = useState<string | null>(null)
   const [scheduleDate, setScheduleDate] = useState('')
+  const [scheduleTime, setScheduleTime] = useState('')
   const [selectedImages, setSelectedImages] = useState<{[platform: string]: File | null}>({})
   const [imageUrls, setImageUrls] = useState<{[platform: string]: string}>({})
   const [uploadingImages, setUploadingImages] = useState<{[platform: string]: boolean}>({})
+  const [postingStates, setPostingStates] = useState<{[platform: string]: boolean}>({})
+  const [postingSuccess, setPostingSuccess] = useState<{[platform: string]: boolean}>({})
+
+  // Helper to get combined datetime
+  const getCombinedDateTime = () => {
+    if (!scheduleDate) return null
+    const time = scheduleTime || '09:00'
+    const dateTime = `${scheduleDate}T${time}`
+    return new Date(dateTime).toISOString()
+  }
+
+  // Set default time to current time + 1 hour when component mounts
+  useEffect(() => {
+    const now = new Date()
+    const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000)
+    const timeString = oneHourLater.toTimeString().slice(0, 5)
+    setScheduleTime(timeString)
+  }, [])
 
   const platforms = [
     { id: 'instagram', name: 'Instagram', icon: Instagram },
@@ -140,14 +159,35 @@ export default function AIPostCreator({ brandName, onSchedulePost }: AIPostCreat
     setSelectedImages(prev => ({ ...prev, [platform]: null }))
   }
 
-  const schedulePost = (post: GeneratedPost) => {
-    onSchedulePost({
-      platform: post.platform,
-      content: post.content,
-      hashtags: post.hashtags.join(' '),
-      scheduledFor: scheduleDate,
-      imageUrl: imageUrls[post.platform]
-    })
+  const schedulePost = async (post: GeneratedPost, isImmediate: boolean = false) => {
+    const platform = post.platform
+    setPostingStates(prev => ({ ...prev, [platform]: true }))
+    setPostingSuccess(prev => ({ ...prev, [platform]: false }))
+    
+    try {
+      const scheduledFor = isImmediate ? null : getCombinedDateTime()
+      
+      await onSchedulePost({
+        platform: post.platform,
+        content: post.content,
+        hashtags: post.hashtags.join(' '),
+        scheduledFor,
+        imageUrl: imageUrls[post.platform],
+        isImmediate
+      })
+      
+      setPostingSuccess(prev => ({ ...prev, [platform]: true }))
+      
+      // Clear success state after 3 seconds
+      setTimeout(() => {
+        setPostingSuccess(prev => ({ ...prev, [platform]: false }))
+      }, 3000)
+      
+    } catch (error) {
+      console.error('Failed to schedule post:', error)
+    } finally {
+      setPostingStates(prev => ({ ...prev, [platform]: false }))
+    }
   }
 
   return (
@@ -228,15 +268,22 @@ Examples:
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-900">Your Posts Are Ready! 🎉</h3>
-            <div className="flex items-center space-x-3 bg-purple-50 px-4 py-2 rounded-lg">
+            <div className="flex items-center space-x-3 bg-purple-50 px-4 py-3 rounded-lg">
               <Clock className="w-4 h-4 text-purple-600" />
               <label className="text-sm font-medium text-purple-900">Schedule for:</label>
               <input
-                type="datetime-local"
+                type="date"
                 value={scheduleDate}
                 onChange={(e) => setScheduleDate(e.target.value)}
                 className="text-sm border border-purple-300 rounded px-3 py-1.5 focus:ring-2 focus:ring-purple-500"
-                min={new Date().toISOString().slice(0, 16)}
+                min={new Date().toISOString().slice(0, 10)}
+              />
+              <input
+                type="time"
+                value={scheduleTime}
+                onChange={(e) => setScheduleTime(e.target.value)}
+                className="text-sm border border-purple-300 rounded px-3 py-1.5 focus:ring-2 focus:ring-purple-500"
+                placeholder="09:00"
               />
             </div>
           </div>
@@ -369,28 +416,48 @@ Examples:
                 {/* Action Buttons */}
                 <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                   <div className="flex items-center space-x-3">
-                    {scheduleDate ? (
+                    {postingStates[post.platform] ? (
                       <button
-                        onClick={() => schedulePost(post)}
-                        className="flex items-center space-x-2 bg-purple-600 text-white px-6 py-2.5 rounded-lg hover:bg-purple-700 font-medium"
+                        disabled
+                        className="flex items-center space-x-2 bg-gray-400 text-white px-6 py-2.5 rounded-lg font-medium cursor-not-allowed"
                       >
-                        <Calendar className="w-4 h-4" />
-                        <span>Schedule Post</span>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Processing...</span>
+                      </button>
+                    ) : postingSuccess[post.platform] ? (
+                      <button
+                        disabled
+                        className="flex items-center space-x-2 bg-green-600 text-white px-6 py-2.5 rounded-lg font-medium cursor-not-allowed"
+                      >
+                        <Check className="w-4 h-4" />
+                        <span>Posted Successfully!</span>
                       </button>
                     ) : (
                       <>
                         <button
-                          onClick={() => schedulePost(post)}
-                          className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 font-medium"
+                          onClick={() => schedulePost(post, true)}
+                          className="flex items-center space-x-2 bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 font-medium"
                         >
                           <Send className="w-4 h-4" />
-                          <span>Save as Draft</span>
+                          <span>Post Now</span>
                         </button>
-                        <span className="text-sm text-gray-600">or set a date above to schedule for later</span>
+                        
+                        <button
+                          onClick={() => schedulePost(post, false)}
+                          className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 font-medium"
+                          disabled={!scheduleDate}
+                        >
+                          <Calendar className="w-4 h-4" />
+                          <span>{scheduleDate ? 'Schedule Post' : 'Save as Draft'}</span>
+                        </button>
+                        
+                        {!scheduleDate && (
+                          <span className="text-sm text-gray-600">Set date/time above to schedule</span>
+                        )}
                       </>
                     )}
                     
-                    {isEditing && (
+                    {isEditing && !postingStates[post.platform] && (
                       <button
                         onClick={() => setEditingPost(null)}
                         className="flex items-center space-x-2 bg-gray-600 text-white px-4 py-2.5 rounded-lg hover:bg-gray-700"
@@ -402,7 +469,11 @@ Examples:
                   </div>
                   
                   <div className="text-sm text-gray-600">
-                    Posting to: <span className="font-medium text-gray-700 capitalize">{post.platform}</span>
+                    {scheduleDate && scheduleTime ? (
+                      <span>Scheduled for: <span className="font-medium text-gray-700">{new Date(`${scheduleDate}T${scheduleTime}`).toLocaleString()}</span></span>
+                    ) : (
+                      <span>Posting to: <span className="font-medium text-gray-700 capitalize">{post.platform}</span></span>
+                    )}
                   </div>
                 </div>
               </div>
