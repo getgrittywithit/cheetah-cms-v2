@@ -9,6 +9,16 @@ export async function GET(request: NextRequest) {
     const platform = searchParams.get('platform')
     const status = searchParams.get('status')
     const brandId = searchParams.get('brandId')
+    const startDate = searchParams.get('startDate')
+    const endDate = searchParams.get('endDate')
+    
+    console.log('🔵 Marketing Posts API - Request params:', {
+      platform,
+      status,
+      brandId,
+      startDate,
+      endDate
+    })
     
     // For now, use a hardcoded user ID (replace with proper auth later)
     const userId = '00000000-0000-0000-0000-000000000000'
@@ -32,11 +42,24 @@ export async function GET(request: NextRequest) {
       query = query.eq('brand_profile_id', brandId)
     }
     
+    // Apply date filters if provided
+    if (startDate) {
+      query = query.gte('scheduled_date', startDate)
+    }
+    
+    if (endDate) {
+      query = query.lte('scheduled_date', endDate)
+    }
+    
+    console.log('🔵 Executing query on content_calendar table')
     const { data, error } = await query
     
     if (error) {
+      console.error('🔴 Supabase query error:', error)
       throw error
     }
+    
+    console.log('🔵 Query successful, found', data?.length || 0, 'posts')
     
     // Transform data to match SocialPost interface
     const posts: SocialPost[] = (data || []).map(item => ({
@@ -58,9 +81,17 @@ export async function GET(request: NextRequest) {
       total: posts.length
     })
   } catch (error) {
-    console.error('Failed to get social posts:', error)
+    console.error('🔴 Failed to get social posts:', error)
+    
+    // Provide more specific error messages
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    
     return NextResponse.json(
-      { error: 'Failed to get social posts' },
+      { 
+        error: 'Failed to load scheduled posts',
+        details: errorMessage,
+        timestamp: new Date().toISOString()
+      },
       { status: 500 }
     )
   }
