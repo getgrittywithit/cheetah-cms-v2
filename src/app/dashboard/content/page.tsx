@@ -16,7 +16,8 @@ import {
   Facebook,
   Twitter,
   Video,
-  Youtube
+  Youtube,
+  Edit
 } from 'lucide-react'
 import AIPostCreator from '@/components/content/ai-post-creator'
 import VideoCaptionCreator from '@/components/content/video-caption-creator'
@@ -380,12 +381,42 @@ export default function ContentPage() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold">Content Calendar</h2>
-              <button 
-                onClick={() => window.location.href = '/api/debug/brand-social'}
-                className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200"
-              >
-                🔧 Debug Brand Config
-              </button>
+              <div className="flex items-center space-x-2">
+                <button 
+                  onClick={() => window.location.href = '/api/debug/brand-social'}
+                  className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200"
+                >
+                  🔧 Debug Brand Config
+                </button>
+                <button 
+                  onClick={() => window.location.href = '/api/facebook/check-token'}
+                  className="text-sm bg-green-100 text-green-700 px-3 py-1 rounded hover:bg-green-200"
+                >
+                  🔑 Check FB Token
+                </button>
+                <button 
+                  onClick={async () => {
+                    const token = prompt('Enter your Facebook Page Access Token:')
+                    if (token) {
+                      try {
+                        const response = await fetch('/api/facebook/update-token', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ token })
+                        })
+                        const data = await response.json()
+                        alert(data.success ? 'Token updated successfully!' : `Error: ${data.error}`)
+                        await loadPosts() // Refresh
+                      } catch (error) {
+                        alert('Failed to update token')
+                      }
+                    }
+                  }}
+                  className="text-sm bg-purple-100 text-purple-700 px-3 py-1 rounded hover:bg-purple-200"
+                >
+                  🔄 Update FB Token
+                </button>
+              </div>
             </div>
             
             {/* Status Filter Tabs */}
