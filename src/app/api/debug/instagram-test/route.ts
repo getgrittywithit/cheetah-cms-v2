@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const testUrl = `https://graph.facebook.com/v18.0/${accountId}?fields=id,username,account_type&access_token=${accessToken}`
+    const testUrl = `https://graph.facebook.com/v18.0/${accountId}?fields=id,username,name,profile_picture_url&access_token=${accessToken}`
     
     console.log('🔵 Testing Instagram API with URL:', testUrl.replace(accessToken, 'TOKEN_HIDDEN'))
     
@@ -42,16 +42,49 @@ export async function GET(request: NextRequest) {
       data: data
     })
 
+    // Test 2: Check if we can access the media endpoint (without actually posting)
+    const mediaEndpointUrl = `https://graph.facebook.com/v18.0/${accountId}/media`
+    
+    const testMediaContainer = await fetch(mediaEndpointUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        image_url: 'https://via.placeholder.com/400x400.png?text=Test+Image',
+        caption: 'Test caption for API verification',
+        access_token: accessToken
+      }).toString()
+    })
+
+    const mediaData = await testMediaContainer.json()
+    
+    console.log('🔵 Media container test response:', {
+      status: testMediaContainer.status,
+      ok: testMediaContainer.ok,
+      data: mediaData
+    })
+
     return NextResponse.json({
-      success: response.ok,
-      status: response.status,
-      accountInfo: data,
-      testUrl: testUrl.replace(accessToken, 'TOKEN_HIDDEN'),
+      accountTest: {
+        success: response.ok,
+        status: response.status,
+        data: data
+      },
+      mediaContainerTest: {
+        success: testMediaContainer.ok,
+        status: testMediaContainer.status,
+        data: mediaData
+      },
       debugInfo: {
         hasAccessToken: !!accessToken,
         accessTokenLength: accessToken.length,
         accountId: accountId,
-        brandName: brandConfig.name
+        brandName: brandConfig.name,
+        testUrls: {
+          account: testUrl.replace(accessToken, 'TOKEN_HIDDEN'),
+          media: mediaEndpointUrl
+        }
       }
     })
 
