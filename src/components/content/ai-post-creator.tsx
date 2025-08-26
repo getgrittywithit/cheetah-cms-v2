@@ -191,23 +191,40 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
     }
   }
 
-  // Generate AI image for a specific platform
+  // Generate AI image for a specific platform or universal post
   const generateImageForPlatform = async (platform: string) => {
     if (!prompt.trim()) return
 
     setGeneratingImages(prev => ({ ...prev, [platform]: true }))
     try {
+      // Find the post content for context
+      const post = generatedPosts.find(p => p.platform === platform || p.platform === 'universal')
+      let imagePrompt = prompt
+      
+      // For Daily Dish Dash, create detailed food photography prompts
+      if (brandSlug === 'daily-dish-dash') {
+        imagePrompt = `Professional food photography of ${prompt}, hyper-realistic, magazine quality, appetizing, vibrant colors, perfect lighting, shallow depth of field, food styling, commercial photography, high resolution, mouth-watering presentation, restaurant quality plating`
+        
+        // Add context from the recipe if available
+        if (post?.content) {
+          const contentPreview = post.content.substring(0, 200)
+          imagePrompt += `, ${contentPreview.toLowerCase()}`
+        }
+      } else {
+        // For other brands, use original prompt with some context
+        imagePrompt = prompt + (post?.content ? ` - ${post.content.substring(0, 100)}` : '')
+      }
+      
       const response = await fetch('/api/ai/generate-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: prompt + (generatedPosts.find(p => p.platform === platform)?.content ? 
-            ` - ${generatedPosts.find(p => p.platform === platform)?.content.substring(0, 100)}` : ''),
+          prompt: imagePrompt,
           brand: brandName,
           brandSlug: brandSlug,
-          style: 'natural',
+          style: brandSlug === 'daily-dish-dash' ? 'photographic' : 'natural',
           size: '1024x1024',
-          quality: 'standard'
+          quality: 'hd'
         })
       })
 
@@ -507,56 +524,76 @@ Examples:
             </div>
           </div>
 
-          {generatedPosts.filter(post => visiblePosts[post.platform]).map(post => {
-            const Icon = platformIcons[post.platform as keyof typeof platformIcons]
-            const isEditing = editingPost === post.platform
-            
-            return (
-              <div key={post.platform} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className={`p-2 rounded ${platformColors[post.platform as keyof typeof platformColors]}`}>
-                      <Icon className="w-5 h-5" />
+          {generatedPosts.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              {generatedPosts.map(post => {
+                // Handle universal post vs individual posts
+                const isUniversal = post.platform === 'universal'
+                const targetPlatforms = isUniversal ? (post as any).platforms : [post.platform]
+                const isEditing = editingPost === (isUniversal ? 'universal' : post.platform)
+                
+                return (
+                  <div key={isUniversal ? 'universal' : post.platform}>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        {isUniversal ? (
+                          <>
+                            <div className="flex items-center space-x-2">
+                              <div className="p-2 rounded bg-purple-100 text-purple-600">
+                                <Sparkles className="w-5 h-5" />
+                              </div>
+                              <h4 className="font-medium text-gray-900">Universal Post</h4>
+                              <div className="flex items-center space-x-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                                <span>For: {targetPlatforms.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(', ')}</span>
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            {(() => {
+                              const platform = platforms.find(p => p.id === post.platform)
+                              const PlatformIcon = platform?.icon || Instagram
+                              return (
+                                <div className={`p-2 rounded ${platformColors[post.platform as keyof typeof platformColors]}`}>
+                                  <PlatformIcon className="w-5 h-5" />
+                                </div>
+                              )
+                            })()}
+                            <h4 className="font-medium text-gray-900 capitalize">{post.platform}</h4>
+                          </>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => copyToClipboard(post.content + '\n\n' + post.hashtags.join(' '))}
+                          className="p-2 text-gray-600 hover:text-gray-800"
+                          title="Copy to clipboard"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setEditingPost(isEditing ? null : (isUniversal ? 'universal' : post.platform))}
+                          className="p-2 text-gray-600 hover:text-gray-800"
+                          title="Edit post"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
-                    <h4 className="font-medium text-gray-900 capitalize">{post.platform}</h4>
-                    {autoSavedDrafts[post.platform] && (
-                      <div className="flex items-center space-x-1 text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                        <Check className="w-3 h-3" />
-                        <span>Auto-saved</span>
+
+                    {/* Post Content */}
+                    {isEditing ? (
+                      <textarea
+                        value={post.content}
+                        onChange={(e) => updatePostContent(isUniversal ? 'universal' : post.platform, e.target.value)}
+                        className="w-full p-3 border border-gray-300 rounded-lg mb-3"
+                        rows={8}
+                      />
+                    ) : (
+                      <div className="bg-gray-50 p-4 rounded-lg mb-3">
+                        <p className="text-gray-900 whitespace-pre-wrap">{post.content}</p>
                       </div>
                     )}
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => copyToClipboard(post.content + '\n\n' + post.hashtags.join(' '))}
-                      className="p-2 text-gray-600 hover:text-gray-800"
-                      title="Copy to clipboard"
-                    >
-                      <Copy className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => setEditingPost(isEditing ? null : post.platform)}
-                      className="p-2 text-gray-600 hover:text-gray-800"
-                      title="Edit post"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Post Content */}
-                {isEditing ? (
-                  <textarea
-                    value={post.content}
-                    onChange={(e) => updatePostContent(post.platform, e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg mb-3"
-                    rows={6}
-                  />
-                ) : (
-                  <div className="bg-gray-50 p-4 rounded-lg mb-3">
-                    <p className="text-gray-900 whitespace-pre-wrap">{post.content}</p>
-                  </div>
-                )}
 
                 {/* Hashtags */}
                 <div className="mb-3">
@@ -570,38 +607,38 @@ Examples:
                   </div>
                 </div>
 
-                {/* Image Upload */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Add Image</label>
-                  {imageUrls[post.platform] ? (
+                    {/* Image Upload */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Add Image</label>
+                      {imageUrls[isUniversal ? 'universal' : post.platform] ? (
                     <div className="relative">
-                      <img 
-                        src={imageUrls[post.platform]} 
-                        alt="Post image" 
-                        className="w-full max-w-md h-48 object-cover rounded-lg border border-gray-200"
-                      />
+                        <img 
+                          src={imageUrls[isUniversal ? 'universal' : post.platform]} 
+                          alt="Post image" 
+                          className="w-full max-w-md h-48 object-cover rounded-lg border border-gray-200"
+                        />
                       {post.imageUrl && (
                         <div className="absolute top-2 left-2 bg-purple-600 text-white px-2 py-1 rounded text-xs font-medium flex items-center space-x-1">
                           <Sparkles className="w-3 h-3" />
                           <span>AI Generated</span>
                         </div>
                       )}
-                      <button
-                        onClick={() => removeImage(post.platform)}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                      >
+                        <button
+                          onClick={() => removeImage(isUniversal ? 'universal' : post.platform)}
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                        >
                         <X className="w-4 h-4" />
                       </button>
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {/* AI Image Generation Button */}
-                      <button
-                        onClick={() => generateImageForPlatform(post.platform)}
-                        disabled={generatingImages[post.platform] || !prompt.trim()}
+                        {/* AI Image Generation Button */}
+                        <button
+                          onClick={() => generateImageForPlatform(isUniversal ? 'universal' : post.platform)}
+                          disabled={generatingImages[isUniversal ? 'universal' : post.platform] || !prompt.trim()}
                         className="w-full flex items-center justify-center space-x-2 bg-purple-600 text-white px-4 py-3 rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                       >
-                        {generatingImages[post.platform] ? (
+                        {generatingImages[isUniversal ? 'universal' : post.platform] ? (
                           <>
                             <Loader2 className="w-5 h-5 animate-spin" />
                             <span>Generating AI Image...</span>
@@ -631,13 +668,13 @@ Examples:
                           accept="image/*"
                           onChange={(e) => {
                             const file = e.target.files?.[0]
-                            if (file) handleImageUpload(post.platform, file)
+                            if (file) handleImageUpload(isUniversal ? 'universal' : post.platform, file)
                           }}
                           className="hidden"
-                          id={`image-upload-${post.platform}`}
+                          id={`image-upload-${isUniversal ? 'universal' : post.platform}`}
                         />
-                        <label htmlFor={`image-upload-${post.platform}`} className="cursor-pointer">
-                          {uploadingImages[post.platform] ? (
+                        <label htmlFor={`image-upload-${isUniversal ? 'universal' : post.platform}`} className="cursor-pointer">
+                          {uploadingImages[isUniversal ? 'universal' : post.platform] ? (
                             <div className="flex items-center justify-center space-x-2">
                               <Loader2 className="w-6 h-6 text-purple-600 animate-spin" />
                               <span className="text-sm text-gray-700">Uploading...</span>
@@ -673,7 +710,7 @@ Examples:
                 {/* Action Buttons */}
                 <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                   <div className="flex items-center space-x-3">
-                    {postingStates[post.platform] ? (
+                    {postingStates[isUniversal ? 'universal' : post.platform] ? (
                       <button
                         disabled
                         className="flex items-center space-x-2 bg-gray-400 text-white px-6 py-2.5 rounded-lg font-medium cursor-not-allowed"
@@ -681,7 +718,7 @@ Examples:
                         <Loader2 className="w-4 h-4 animate-spin" />
                         <span>Processing...</span>
                       </button>
-                    ) : postingSuccess[post.platform] ? (
+                    ) : postingSuccess[isUniversal ? 'universal' : post.platform] ? (
                       <button
                         disabled
                         className="flex items-center space-x-2 bg-green-600 text-white px-6 py-2.5 rounded-lg font-medium cursor-not-allowed"
@@ -709,7 +746,7 @@ Examples:
                       </>
                     )}
                     
-                    {isEditing && !postingStates[post.platform] && (
+                    {isEditing && !postingStates[isUniversal ? 'universal' : post.platform] && (
                       <button
                         onClick={() => setEditingPost(null)}
                         className="flex items-center space-x-2 bg-gray-600 text-white px-4 py-2.5 rounded-lg hover:bg-gray-700"
@@ -724,7 +761,7 @@ Examples:
                     {scheduleDate && scheduleTime ? (
                       <span>Scheduled for: <span className="font-medium text-gray-700">{new Date(`${scheduleDate}T${scheduleTime}`).toLocaleString()}</span></span>
                     ) : (
-                      <span>Posting to: <span className="font-medium text-gray-700 capitalize">{post.platform}</span></span>
+                      <span>Posting to: <span className="font-medium text-gray-700 capitalize">{isUniversal ? targetPlatforms.join(', ') : post.platform}</span></span>
                     )}
                   </div>
                 </div>
@@ -733,6 +770,8 @@ Examples:
           })}
         </div>
       )}
+    </div>
+  )}
 
       {/* Schedule Confirmation Modal */}
       {showScheduleModal && selectedPostForScheduling && (

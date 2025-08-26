@@ -51,22 +51,23 @@ export async function POST(request: NextRequest) {
     let generatedPosts
     try {
       console.log('🔵 Generating universal AI caption for all platforms')
-      const universalPost = await generateAICaptionForPlatform(prompt, brand, 'universal', tone, style, brandVoice, brandPersonality)
+      const universalPost = await generateAICaptionForPlatform(prompt, brand, brandSlug, 'universal', tone, style, brandVoice, brandPersonality)
       console.log('🔵 Generated universal caption', {
         hasContent: !!universalPost.content,
         contentLength: universalPost.content?.length,
         hashtagsCount: universalPost.hashtags?.length
       })
       
-      // Create the same post for each platform
-      generatedPosts = platforms.map(platform => ({
-        platform,
+      // Return one universal post instead of multiple platform-specific posts
+      generatedPosts = [{
+        platform: 'universal',
+        platforms: platforms, // Store which platforms this applies to
         content: universalPost.content,
         hashtags: universalPost.hashtags,
         suggestions: universalPost.suggestions
-      }))
+      }]
       
-      console.log('🔵 Applied universal caption to', platforms.length, 'platforms')
+      console.log('🔵 Created universal post for', platforms.length, 'platforms')
       
     } catch (error) {
       console.error('🔴 Error generating universal caption:', error)
@@ -105,6 +106,7 @@ export async function POST(request: NextRequest) {
 async function generateAICaptionForPlatform(
   prompt: string, 
   brand: string, 
+  brandSlug: string,
   platform: string, 
   tone?: string, 
   style?: string,
@@ -113,7 +115,35 @@ async function generateAICaptionForPlatform(
 ) {
   const platformSpecific = getPlatformSpecificGuidelines(platform)
   
-  const systemPrompt = `You are an expert social media content creator for ${brand}.
+  // Special handling for Daily Dish Dash - generate recipe content
+  const isDailyDishDash = brandSlug === 'daily-dish-dash'
+  
+  let systemPrompt
+  if (isDailyDishDash) {
+    systemPrompt = `You are an expert recipe creator and food content writer for Daily Dish Dash - focusing on QUICK, EASY recipes for busy people.
+
+BRAND VOICE: ${brandVoice}
+BRAND PERSONALITY: ${brandPersonality}
+
+Your task is to create engaging recipe content with:
+1. A STRONG HOOK (engaging opening line)
+2. Brief description of the dish
+3. COMPLETE RECIPE with ingredients and step-by-step instructions
+4. Strong Call-To-Action at the end
+5. Relevant food hashtags
+
+Structure:
+- Hook: Engaging opening line
+- Description: 2-3 sentences about why this recipe is great
+- Recipe: Full ingredients list and instructions
+- CTA: Ask for engagement (comments, shares, tries)
+
+Return a JSON object with:
+- content: Complete recipe post (hook + description + recipe + CTA)
+- hashtags: Array of food-related hashtags (without # symbol)
+- suggestions: Array of 3 recipe variations or improvements`
+  } else {
+    systemPrompt = `You are an expert social media content creator for ${brand}.
 
 BRAND VOICE: ${brandVoice}
 BRAND PERSONALITY: ${brandPersonality}
@@ -134,8 +164,26 @@ Return a JSON object with:
 - content: The main post text (optimized for platform character limits)
 - hashtags: Array of relevant hashtags (without # symbol)
 - suggestions: Array of 3 alternative approaches or improvements`
+  }
 
-  const userPrompt = `Create a ${platform} post about: ${prompt}
+  let userPrompt
+  if (isDailyDishDash) {
+    userPrompt = `Create a complete recipe post for: ${prompt}
+
+Requirements:
+- Strong engaging hook to grab attention
+- Brief description (2-3 sentences) explaining why this recipe is amazing
+- COMPLETE RECIPE including:
+  * Ingredients list (with measurements)
+  * Step-by-step cooking instructions
+  * Prep/cook time if relevant
+- Strong call-to-action asking for engagement
+- Focus on QUICK and EASY recipes (15-30 minutes max)
+- Use accessible ingredients
+- Write in ${brand}'s voice: ${brandVoice}
+- Add relevant food hashtags`
+  } else {
+    userPrompt = `Create a ${platform} post about: ${prompt}
 
 Requirements:
 - Write in ${brand}'s voice: ${brandVoice}
@@ -144,6 +192,7 @@ Requirements:
 - Include call-to-action appropriate for the platform
 - Add relevant hashtags that will increase visibility
 - Keep within platform character limits`
+  }
 
   const completion = await openai.chat.completions.create({
     model: "gpt-4o-mini",
