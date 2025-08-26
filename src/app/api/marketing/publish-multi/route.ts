@@ -95,6 +95,7 @@ export async function POST(request: NextRequest) {
               platform: platform,
               accessToken: platformToken,
               pageId: platform === 'facebook' ? brandConfig.socialTokens?.facebookPageId : undefined,
+              accountId: platform === 'instagram' ? brandConfig.socialTokens?.instagramAccountId : undefined,
               isActive: true
             }]
           }

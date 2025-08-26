@@ -11,7 +11,9 @@ export interface BrandConfig {
   }
   socialTokens: {
     facebook?: string
+    facebookPageId?: string
     instagram?: string
+    instagramAccountId?: string
     twitter?: string
     tiktok?: string
     youtube?: string
@@ -80,7 +82,8 @@ export const brandConfigs: Record<string, BrandConfig> = {
     socialTokens: {
       facebook: process.env.DAILY_DISH_FACEBOOK_PAGE_ACCESS_TOKEN,
       facebookPageId: process.env.DAILY_DISH_FACEBOOK_PAGE_ID,
-      instagram: process.env.DAILY_DISH_INSTAGRAM_ACCOUNT_ID,
+      instagram: process.env.DAILY_DISH_INSTAGRAM_ACCESS_TOKEN,
+      instagramAccountId: process.env.DAILY_DISH_INSTAGRAM_ACCOUNT_ID,
       youtube: process.env.DAILY_DISH_YOUTUBE_ACCESS_TOKEN,
       youtubeChannelId: process.env.DAILY_DISH_YOUTUBE_CHANNEL_ID,
       twitter: process.env.DAILY_DISH_TWITTER_ACCESS_TOKEN,
