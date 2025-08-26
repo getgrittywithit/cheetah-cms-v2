@@ -26,6 +26,38 @@ export interface BrandConfig {
 }
 
 // Brand configurations - add new brands here
+// 
+// TO ADD A NEW BRAND:
+// 1. Add a new entry to this brandConfigs object with a unique slug
+// 2. Set up environment variables for the brand's R2 bucket and social tokens
+// 3. The brand will automatically appear in the brand switcher and all routes will work
+// 4. No additional pages need to be created - they're generated dynamically
+//
+// Example for adding a new brand called "Fitness Focus":
+// 'fitness-focus': {
+//   id: 'fitness-focus',
+//   name: 'Fitness Focus',
+//   slug: 'fitness-focus',
+//   description: 'Motivating fitness and wellness content',
+//   bucket: process.env.FITNESS_FOCUS_R2_BUCKET || 'fitness-focus',
+//   theme: {
+//     primary: '#EF4444', // Red theme
+//     secondary: '#F3F4F6',
+//     accent: '#DC2626'
+//   },
+//   socialTokens: {
+//     instagram: process.env.FITNESS_FOCUS_INSTAGRAM_TOKEN,
+//     tiktok: process.env.FITNESS_FOCUS_TIKTOK_TOKEN
+//   },
+//   aiSettings: {
+//     voice: 'Motivating, energetic, and supportive fitness coach',
+//     personality: ['Motivating', 'Energetic', 'Supportive', 'Results-driven'],
+//     systemPrompt: 'You create motivating fitness content...'
+//   },
+//   industry: 'Fitness & Wellness',
+//   targetAudience: 'Fitness enthusiasts and people starting their wellness journey'
+// },
+
 export const brandConfigs: Record<string, BrandConfig> = {
   'daily-dish-dash': {
     id: 'daily-dish-dash',
