@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import AIPostCreator from '@/components/content/ai-post-creator'
 import VideoCaptionCreator from '@/components/content/video-caption-creator'
+import DraftEditModal from '@/components/content/draft-edit-modal'
 import { SocialPost } from '@/lib/marketing-types'
 
 const platformIcons = {
@@ -55,6 +56,8 @@ export default function BrandContentPage({ params }: BrandContentPageProps) {
   const [activeView, setActiveView] = useState<'create' | 'video' | 'calendar' | 'analytics'>('create')
   const [socialPosts, setSocialPosts] = useState<SocialPost[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedDraft, setSelectedDraft] = useState<SocialPost | null>(null)
+  const [isDraftModalOpen, setIsDraftModalOpen] = useState(false)
 
   const loadPosts = async () => {
     try {
@@ -330,7 +333,20 @@ export default function BrandContentPage({ params }: BrandContentPageProps) {
               {socialPosts.map(post => {
                 const Icon = platformIcons[post.platform as keyof typeof platformIcons]
                 return (
-                  <div key={post.id} className="p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+                  <div 
+                    key={post.id} 
+                    className={`p-4 border rounded-lg transition-all ${
+                      post.status === 'draft' 
+                        ? 'border-gray-200 hover:border-blue-400 hover:shadow-md cursor-pointer bg-white hover:bg-blue-50/30' 
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                    onClick={() => {
+                      if (post.status === 'draft') {
+                        setSelectedDraft(post)
+                        setIsDraftModalOpen(true)
+                      }
+                    }}
+                  >
                     <div className="flex items-center justify-between mb-2">
                       <div className={`p-1.5 rounded ${platformColors[post.platform as keyof typeof platformColors]}`}>
                         <Icon className="w-4 h-4" />
@@ -357,22 +373,9 @@ export default function BrandContentPage({ params }: BrandContentPageProps) {
 
                     {/* Action Buttons */}
                     {post.status === 'draft' && (
-                      <div className="flex items-center space-x-2">
-                        <button 
-                          onClick={async () => {
-                            if (post.platform === 'facebook' && confirm('Post this to Facebook now?')) {
-                              await handlePublishNow(post)
-                            } else {
-                              alert('Publishing currently only supported for Facebook')
-                            }
-                          }}
-                          className="flex-1 bg-green-600 text-white text-xs px-3 py-1.5 rounded hover:bg-green-700"
-                        >
-                          Post Now
-                        </button>
-                        <button className="text-gray-600 hover:text-gray-800 p-1">
-                          <Edit className="w-4 h-4" />
-                        </button>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-600 font-medium">Click to edit</span>
+                        <Edit className="w-4 h-4 text-gray-400" />
                       </div>
                     )}
                     
@@ -420,6 +423,53 @@ export default function BrandContentPage({ params }: BrandContentPageProps) {
           </div>
         )}
       </div>
+
+      {/* Draft Edit Modal */}
+      {selectedDraft && (
+        <DraftEditModal
+          isOpen={isDraftModalOpen}
+          onClose={() => {
+            setIsDraftModalOpen(false)
+            setSelectedDraft(null)
+          }}
+          post={selectedDraft}
+          onUpdate={async (postId, updates) => {
+            // Update the post in the database
+            const response = await fetch('/api/marketing/posts', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: postId, ...updates })
+            })
+            if (response.ok) {
+              await loadPosts()
+            } else {
+              throw new Error('Failed to update post')
+            }
+          }}
+          onDelete={async (postId) => {
+            // Delete the post from the database
+            const response = await fetch('/api/marketing/posts', {
+              method: 'DELETE',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: postId })
+            })
+            if (response.ok) {
+              await loadPosts()
+            } else {
+              throw new Error('Failed to delete post')
+            }
+          }}
+          onPublish={async (post, scheduledFor) => {
+            // Use the existing handleSchedulePost function
+            await handleSchedulePost({
+              ...post,
+              scheduledFor,
+              isImmediate: !scheduledFor
+            })
+            await loadPosts()
+          }}
+        />
+      )}
     </div>
   )
 }
