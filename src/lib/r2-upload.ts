@@ -57,8 +57,9 @@ export class R2ImageUploader {
 
       await this.s3Client.send(uploadCommand)
 
-      // Construct the public URL
-      const publicUrl = `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${bucketName}/${key}`
+      // Construct the public URL using the custom domain
+      const baseUrl = process.env.R2_PUBLIC_URL || `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`
+      const publicUrl = `${baseUrl}/${key}`
       
       console.log('🔵 Image uploaded successfully to R2:', publicUrl)
 
@@ -95,7 +96,8 @@ export class R2ImageUploader {
 
       await this.s3Client.send(uploadCommand)
 
-      const publicUrl = `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${bucketName}/${key}`
+      const baseUrl = process.env.R2_PUBLIC_URL || `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`
+      const publicUrl = `${baseUrl}/${key}`
 
       return {
         success: true,

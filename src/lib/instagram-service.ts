@@ -157,7 +157,14 @@ export class InstagramService {
       })
 
       if (!response.ok) {
-        throw new Error(data.error?.message || `Instagram API error: ${response.status}`)
+        console.error('🔴 Media container creation failed:', data)
+        const errorMessage = data.error?.error_user_msg || data.error?.message || `Instagram API error: ${response.status}`
+        throw new Error(`Instagram media container failed: ${errorMessage}`)
+      }
+
+      if (!data.id) {
+        console.error('🔴 No media ID returned:', data)
+        throw new Error('Instagram API did not return media container ID')
       }
 
       return {
