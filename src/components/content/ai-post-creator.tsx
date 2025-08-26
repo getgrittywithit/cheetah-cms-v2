@@ -345,8 +345,29 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
         })
         
         const result = await response.json()
+        console.log('🔵 Multi-platform publish result:', result)
+        
         if (!result.success) {
-          throw new Error(result.error || 'Failed to publish to multiple platforms')
+          // Show detailed error information
+          const errorDetails = result.results?.map(r => 
+            r.success ? null : `${r.platform}: ${r.error}`
+          ).filter(Boolean).join('\n')
+          
+          const errorMessage = errorDetails || result.error || 'Failed to publish to multiple platforms'
+          console.error('🔴 Multi-platform publish failed:', errorMessage)
+          alert(`Publishing failed:\n${errorMessage}`)
+          throw new Error(errorMessage)
+        }
+        
+        // Show success/failure summary
+        const successCount = result.results?.filter(r => r.success).length || 0
+        const failedCount = result.results?.filter(r => !r.success).length || 0
+        
+        if (successCount > 0) {
+          const message = failedCount > 0 
+            ? `Posted to ${successCount} platform(s).\n${failedCount} failed (check console for details).`
+            : `Successfully posted to ${successCount} platform(s)!`
+          alert(message)
         }
       } else {
         // Single platform - use existing flow
@@ -369,6 +390,8 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
       
     } catch (error) {
       console.error('Failed to schedule post:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      alert(`Failed to publish post: ${errorMessage}`)
     } finally {
       setPostingStates(prev => ({ ...prev, [platform]: false }))
       setSelectedPostForScheduling(null)

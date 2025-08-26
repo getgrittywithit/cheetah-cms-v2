@@ -141,7 +141,10 @@ export class SocialMediaAPI {
 
       // Use the comprehensive Instagram service
       const imageUrl = mediaUrls && mediaUrls.length > 0 ? mediaUrls[0] : null
-      const brandSlug = 'daily-dish-dash' // TODO: get this from brand context
+      // Extract brand slug from brand name (this is a temporary solution)
+      const brandSlug = brand.name === 'Daily Dish Dash' ? 'daily-dish-dash' : 
+                       brand.name === 'Grit Collective Co.' ? 'grit-collective' : 
+                       'daily-dish-dash' // Default fallback
       
       console.log('🔵 Instagram posting via SocialMediaAPI:', {
         postId: post.id,
