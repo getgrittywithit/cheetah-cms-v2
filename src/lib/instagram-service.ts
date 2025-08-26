@@ -34,8 +34,10 @@ export class InstagramService {
         hasImage: !!imageUrl,
         captionLength: caption.length,
         hashtagCount: hashtags.length,
-        accountId: accountId.substring(0, 8) + '...',
-        brandSlug
+        accountId: accountId,
+        accessTokenLength: accessToken.length,
+        brandSlug,
+        imageUrl: imageUrl?.substring(0, 100) + '...'
       })
 
       // Step 1: Upload image to R2 (if we have an image)
@@ -133,7 +135,9 @@ export class InstagramService {
       console.log('🔵 Creating media container with:', {
         url,
         imageUrl: imageUrl.substring(0, 50) + '...',
-        captionLength: fullCaption.length
+        captionLength: fullCaption.length,
+        accessTokenPrefix: accessToken.substring(0, 20) + '...',
+        formDataString: formData.toString().substring(0, 200) + '...'
       })
 
       const response = await fetch(url, {

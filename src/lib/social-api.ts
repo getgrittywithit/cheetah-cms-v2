@@ -143,6 +143,16 @@ export class SocialMediaAPI {
       const imageUrl = mediaUrls && mediaUrls.length > 0 ? mediaUrls[0] : null
       const brandSlug = 'daily-dish-dash' // TODO: get this from brand context
       
+      console.log('🔵 Instagram posting via SocialMediaAPI:', {
+        postId: post.id,
+        hasImageUrl: !!imageUrl,
+        contentLength: post.content.length,
+        hashtagsCount: post.hashtags.length,
+        accountId: account.accountId,
+        accessTokenLength: account.accessToken.length,
+        brandSlug
+      })
+      
       const result = await InstagramService.postToInstagram(
         imageUrl,
         post.content,
