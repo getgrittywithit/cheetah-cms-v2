@@ -15,7 +15,8 @@ import {
   X,
   CheckCircle,
   AlertCircle,
-  Loader2
+  Loader2,
+  Plus
 } from 'lucide-react'
 
 interface FileItem {
