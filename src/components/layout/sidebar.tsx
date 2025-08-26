@@ -12,7 +12,8 @@ import {
   Zap as Lightning,
   Package,
   Globe,
-  Building2
+  Building2,
+  Calendar
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import BrandSwitcher from './brand-switcher'
@@ -48,7 +49,8 @@ function getBrandNavigation(brand: string) {
   
   return [
     { name: 'Dashboard', href: brandPath, icon: LayoutDashboard },
-    { name: 'Content', href: `${brandPath}/content`, icon: Megaphone },
+    { name: 'Content Creator', href: `${brandPath}/content`, icon: Megaphone },
+    { name: 'Calendar', href: `${brandPath}/calendar`, icon: Calendar },
     { name: 'Platforms', href: `${brandPath}/platforms`, icon: Globe },
     { name: 'Files', href: `${brandPath}/files`, icon: FolderOpen },
     { name: 'Analytics', href: `${brandPath}/analytics`, icon: BarChart3 },
@@ -111,7 +113,8 @@ export default function Sidebar({ user }: SidebarProps) {
           <div className="space-y-2">
             {brandNavigation.map((item) => {
               const isActive = pathname === item.href || 
-                              (item.name === 'Content' && pathname.startsWith(`/dashboard/${currentBrand}/content`)) ||
+                              (item.name === 'Content Creator' && pathname.startsWith(`/dashboard/${currentBrand}/content`)) ||
+                              (item.name === 'Calendar' && pathname.startsWith(`/dashboard/${currentBrand}/calendar`)) ||
                               (item.name === 'Platforms' && pathname.startsWith(`/dashboard/${currentBrand}/platforms`)) ||
                               (item.name === 'Files' && pathname.startsWith(`/dashboard/${currentBrand}/files`)) ||
                               (item.name === 'Analytics' && pathname.startsWith(`/dashboard/${currentBrand}/analytics`)) ||

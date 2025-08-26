@@ -61,6 +61,7 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
   const [showScheduleModal, setShowScheduleModal] = useState(false)
   const [selectedPostForScheduling, setSelectedPostForScheduling] = useState<GeneratedPost | null>(null)
   const [autoSavedDrafts, setAutoSavedDrafts] = useState<{[platform: string]: string}>({}) // Store draft IDs
+  const [generatingImages, setGeneratingImages] = useState<{[platform: string]: boolean}>({})
 
   // Helper to get combined datetime
   const getCombinedDateTime = () => {
@@ -89,7 +90,8 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
 
     setLoading(true)
     try {
-      const response = await fetch('/api/ai/generate-post', {
+      // First, generate captions only (no images)
+      const response = await fetch('/api/ai/generate-caption', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -108,14 +110,10 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
         const newVisibility: {[platform: string]: boolean} = {}
         data.posts.forEach((post: GeneratedPost) => {
           newVisibility[post.platform] = true
-          // If posts have AI-generated images, add them to imageUrls
-          if (post.imageUrl) {
-            setImageUrls(prev => ({ ...prev, [post.platform]: post.imageUrl || '' }))
-          }
         })
         setVisiblePosts(newVisibility)
 
-        // Auto-save drafts with generated images
+        // Auto-save drafts (captions only, no images yet)
         autoSaveDrafts(data.posts)
       }
     } catch (error) {
@@ -193,6 +191,47 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
     }
   }
 
+  // Generate AI image for a specific platform
+  const generateImageForPlatform = async (platform: string) => {
+    if (!prompt.trim()) return
+
+    setGeneratingImages(prev => ({ ...prev, [platform]: true }))
+    try {
+      const response = await fetch('/api/ai/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: prompt + (generatedPosts.find(p => p.platform === platform)?.content ? 
+            ` - ${generatedPosts.find(p => p.platform === platform)?.content.substring(0, 100)}` : ''),
+          brand: brandName,
+          brandSlug: brandSlug,
+          style: 'natural',
+          size: '1024x1024',
+          quality: 'standard'
+        })
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        setImageUrls(prev => ({ ...prev, [platform]: data.imageUrl }))
+        
+        // Update auto-saved draft with new image
+        if (autoSavedDrafts[platform]) {
+          const post = generatedPosts.find(p => p.platform === platform)
+          if (post) {
+            updateAutoSavedDraft(platform, post.content)
+          }
+        }
+      } else {
+        console.error('Failed to generate image:', data.error)
+      }
+    } catch (error) {
+      console.error('Failed to generate image:', error)
+    } finally {
+      setGeneratingImages(prev => ({ ...prev, [platform]: false }))
+    }
+  }
+
   const generateForAdditionalPlatform = async (platformId: string) => {
     if (!prompt.trim()) return
 
@@ -218,12 +257,7 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
         // Set as visible
         setVisiblePosts(prev => ({ ...prev, [platformId]: true }))
         
-        // Add image if available
-        if (newPost.imageUrl) {
-          setImageUrls(prev => ({ ...prev, [platformId]: newPost.imageUrl || '' }))
-        }
-
-        // Auto-save this additional post as draft
+        // Auto-save this additional post as draft (caption only)
         autoSaveDrafts([newPost])
       }
     } catch (error) {
@@ -560,31 +594,63 @@ Examples:
                       </button>
                     </div>
                   ) : (
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0]
-                          if (file) handleImageUpload(post.platform, file)
-                        }}
-                        className="hidden"
-                        id={`image-upload-${post.platform}`}
-                      />
-                      <label htmlFor={`image-upload-${post.platform}`} className="cursor-pointer">
-                        {uploadingImages[post.platform] ? (
-                          <div className="flex items-center justify-center space-x-2">
-                            <Loader2 className="w-6 h-6 text-purple-600 animate-spin" />
-                            <span className="text-sm text-gray-700">Uploading...</span>
-                          </div>
+                    <div className="space-y-3">
+                      {/* AI Image Generation Button */}
+                      <button
+                        onClick={() => generateImageForPlatform(post.platform)}
+                        disabled={generatingImages[post.platform] || !prompt.trim()}
+                        className="w-full flex items-center justify-center space-x-2 bg-purple-600 text-white px-4 py-3 rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {generatingImages[post.platform] ? (
+                          <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            <span>Generating AI Image...</span>
+                          </>
                         ) : (
-                          <div>
-                            <ImagePlus className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                            <p className="text-sm text-gray-700">Click to add an image</p>
-                            <p className="text-xs text-gray-600 mt-1">JPG, PNG, GIF up to 10MB</p>
-                          </div>
+                          <>
+                            <Sparkles className="w-5 h-5" />
+                            <span>Generate AI Image</span>
+                          </>
                         )}
-                      </label>
+                      </button>
+                      
+                      {/* Divider */}
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-gray-300" />
+                        </div>
+                        <div className="relative flex justify-center text-sm">
+                          <span className="px-2 bg-white text-gray-500">or</span>
+                        </div>
+                      </div>
+                      
+                      {/* Manual Upload Option */}
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            if (file) handleImageUpload(post.platform, file)
+                          }}
+                          className="hidden"
+                          id={`image-upload-${post.platform}`}
+                        />
+                        <label htmlFor={`image-upload-${post.platform}`} className="cursor-pointer">
+                          {uploadingImages[post.platform] ? (
+                            <div className="flex items-center justify-center space-x-2">
+                              <Loader2 className="w-6 h-6 text-purple-600 animate-spin" />
+                              <span className="text-sm text-gray-700">Uploading...</span>
+                            </div>
+                          ) : (
+                            <div>
+                              <ImagePlus className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                              <p className="text-sm text-gray-700">Upload your own image</p>
+                              <p className="text-xs text-gray-600 mt-1">JPG, PNG, GIF up to 10MB</p>
+                            </div>
+                          )}
+                        </label>
+                      </div>
                     </div>
                   )}
                 </div>
