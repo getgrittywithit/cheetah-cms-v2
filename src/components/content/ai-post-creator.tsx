@@ -352,20 +352,23 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
     setShowScheduleModal(true)
   }
 
-  const handleScheduleConfirm = async (scheduleData: { scheduledFor: string | null, isImmediate: boolean }) => {
+  const handleScheduleConfirm = async (scheduleData: { scheduledFor: string | null, isImmediate: boolean, selectedPlatform?: string }) => {
     if (!selectedPostForScheduling) return
     
-    const platform = selectedPostForScheduling.platform
+    // For universal posts, use the selected platform; otherwise use the original platform
+    const targetPlatform = scheduleData.selectedPlatform || selectedPostForScheduling.platform
+    const platform = selectedPostForScheduling.platform // For UI state management
+    
     setPostingStates(prev => ({ ...prev, [platform]: true }))
     setPostingSuccess(prev => ({ ...prev, [platform]: false }))
     
     try {
       await onSchedulePost({
-        platform: selectedPostForScheduling.platform,
+        platform: targetPlatform, // Use the actual target platform for publishing
         content: selectedPostForScheduling.content,
         hashtags: selectedPostForScheduling.hashtags.join(' '),
         scheduledFor: scheduleData.scheduledFor,
-        imageUrl: imageUrls[selectedPostForScheduling.platform],
+        imageUrl: imageUrls[platform] || imageUrls['universal'], // Try both platform-specific and universal image
         isImmediate: scheduleData.isImmediate
       })
       
@@ -790,6 +793,7 @@ Examples:
           content={selectedPostForScheduling.content}
           initialDate={scheduleDate}
           initialTime={scheduleTime}
+          availablePlatforms={selectedPostForScheduling.platform === 'universal' ? (selectedPostForScheduling as any).platforms || selectedPlatforms : []}
         />
       )}
     </div>

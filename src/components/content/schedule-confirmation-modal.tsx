@@ -1,14 +1,15 @@
 import { useState } from 'react'
-import { Calendar, Clock, Send, X, AlertTriangle } from 'lucide-react'
+import { Calendar, Clock, Send, X, AlertTriangle, Instagram, Facebook, Twitter } from 'lucide-react'
 
 interface ScheduleConfirmationModalProps {
   isOpen: boolean
   onClose: () => void
-  onConfirm: (scheduleData: { scheduledFor: string | null, isImmediate: boolean }) => void
+  onConfirm: (scheduleData: { scheduledFor: string | null, isImmediate: boolean, selectedPlatform?: string }) => void
   platform: string
   content: string
   initialDate?: string
   initialTime?: string
+  availablePlatforms?: string[] // For universal posts
 }
 
 export default function ScheduleConfirmationModal({ 
@@ -18,11 +19,26 @@ export default function ScheduleConfirmationModal({
   platform, 
   content, 
   initialDate = '',
-  initialTime = '' 
+  initialTime = '', 
+  availablePlatforms = []
 }: ScheduleConfirmationModalProps) {
   const [scheduleDate, setScheduleDate] = useState(initialDate)
   const [scheduleTime, setScheduleTime] = useState(initialTime)
   const [isImmediate, setIsImmediate] = useState(false)
+  const [selectedPlatform, setSelectedPlatform] = useState(platform === 'universal' ? availablePlatforms[0] : platform)
+  
+  const isUniversalPost = platform === 'universal'
+  const platformIcons = {
+    instagram: Instagram,
+    facebook: Facebook,
+    twitter: Twitter
+  }
+  
+  const platformColors = {
+    instagram: 'bg-pink-100 text-pink-600 border-pink-200',
+    facebook: 'bg-blue-100 text-blue-600 border-blue-200', 
+    twitter: 'bg-sky-100 text-sky-600 border-sky-200'
+  }
 
   if (!isOpen) return null
 
@@ -56,10 +72,10 @@ export default function ScheduleConfirmationModal({
 
   const handleConfirm = () => {
     if (isImmediate) {
-      onConfirm({ scheduledFor: null, isImmediate: true })
+      onConfirm({ scheduledFor: null, isImmediate: true, selectedPlatform: selectedPlatform })
     } else {
       const scheduledFor = getCombinedDateTime()
-      onConfirm({ scheduledFor, isImmediate: false })
+      onConfirm({ scheduledFor, isImmediate: false, selectedPlatform: selectedPlatform })
     }
     onClose()
   }
@@ -79,10 +95,43 @@ export default function ScheduleConfirmationModal({
             </button>
           </div>
 
+          {/* Platform Selection for Universal Posts */}
+          {isUniversalPost && (
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Choose Platform to Post To:
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {availablePlatforms.map(platformId => {
+                  const Icon = platformIcons[platformId as keyof typeof platformIcons]
+                  const colorClass = platformColors[platformId as keyof typeof platformColors]
+                  const isSelected = selectedPlatform === platformId
+                  
+                  return (
+                    <button
+                      key={platformId}
+                      onClick={() => setSelectedPlatform(platformId)}
+                      className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-all ${
+                        isSelected 
+                          ? colorClass + ' ring-2 ring-offset-1 ring-current'
+                          : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                      }`}
+                    >
+                      {Icon && <Icon className="w-4 h-4" />}
+                      <span className="text-sm font-medium capitalize">{platformId}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Content Preview */}
           <div className="mb-6 p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center mb-2">
-              <span className="text-sm font-medium text-gray-700 capitalize">{platform} Post:</span>
+              <span className="text-sm font-medium text-gray-700 capitalize">
+                {isUniversalPost ? `${selectedPlatform} Post:` : `${platform} Post:`}
+              </span>
             </div>
             <p className="text-sm text-gray-900 line-clamp-3">{content}</p>
           </div>
