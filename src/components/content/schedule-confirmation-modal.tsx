@@ -4,7 +4,7 @@ import { Calendar, Clock, Send, X, AlertTriangle, Instagram, Facebook, Twitter }
 interface ScheduleConfirmationModalProps {
   isOpen: boolean
   onClose: () => void
-  onConfirm: (scheduleData: { scheduledFor: string | null, isImmediate: boolean, selectedPlatform?: string }) => void
+  onConfirm: (scheduleData: { scheduledFor: string | null, isImmediate: boolean, selectedPlatforms?: string[] }) => void
   platform: string
   content: string
   initialDate?: string
@@ -25,7 +25,7 @@ export default function ScheduleConfirmationModal({
   const [scheduleDate, setScheduleDate] = useState(initialDate)
   const [scheduleTime, setScheduleTime] = useState(initialTime)
   const [isImmediate, setIsImmediate] = useState(false)
-  const [selectedPlatform, setSelectedPlatform] = useState(platform === 'universal' ? availablePlatforms[0] : platform)
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(platform === 'universal' ? availablePlatforms : [platform])
   
   const isUniversalPost = platform === 'universal'
   const platformIcons = {
@@ -72,10 +72,10 @@ export default function ScheduleConfirmationModal({
 
   const handleConfirm = () => {
     if (isImmediate) {
-      onConfirm({ scheduledFor: null, isImmediate: true, selectedPlatform: selectedPlatform })
+      onConfirm({ scheduledFor: null, isImmediate: true, selectedPlatforms: selectedPlatforms })
     } else {
       const scheduledFor = getCombinedDateTime()
-      onConfirm({ scheduledFor, isImmediate: false, selectedPlatform: selectedPlatform })
+      onConfirm({ scheduledFor, isImmediate: false, selectedPlatforms: selectedPlatforms })
     }
     onClose()
   }
@@ -99,18 +99,24 @@ export default function ScheduleConfirmationModal({
           {isUniversalPost && (
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-3">
-                Choose Platform to Post To:
+                Choose Platforms to Post To (select multiple):
               </label>
               <div className="flex flex-wrap gap-2">
                 {availablePlatforms.map(platformId => {
                   const Icon = platformIcons[platformId as keyof typeof platformIcons]
                   const colorClass = platformColors[platformId as keyof typeof platformColors]
-                  const isSelected = selectedPlatform === platformId
+                  const isSelected = selectedPlatforms.includes(platformId)
                   
                   return (
                     <button
                       key={platformId}
-                      onClick={() => setSelectedPlatform(platformId)}
+                      onClick={() => {
+                        if (isSelected) {
+                          setSelectedPlatforms(prev => prev.filter(p => p !== platformId))
+                        } else {
+                          setSelectedPlatforms(prev => [...prev, platformId])
+                        }
+                      }}
                       className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-all ${
                         isSelected 
                           ? colorClass + ' ring-2 ring-offset-1 ring-current'
@@ -119,6 +125,7 @@ export default function ScheduleConfirmationModal({
                     >
                       {Icon && <Icon className="w-4 h-4" />}
                       <span className="text-sm font-medium capitalize">{platformId}</span>
+                      {isSelected && <span className="text-xs">✓</span>}
                     </button>
                   )
                 })}
@@ -130,7 +137,7 @@ export default function ScheduleConfirmationModal({
           <div className="mb-6 p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center mb-2">
               <span className="text-sm font-medium text-gray-700 capitalize">
-                {isUniversalPost ? `${selectedPlatform} Post:` : `${platform} Post:`}
+                {isUniversalPost ? `${selectedPlatforms.join(', ')} Post:` : `${platform} Post:`}
               </span>
             </div>
             <p className="text-sm text-gray-900 line-clamp-3">{content}</p>

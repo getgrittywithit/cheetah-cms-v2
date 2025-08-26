@@ -318,25 +318,47 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
     setShowScheduleModal(true)
   }
 
-  const handleScheduleConfirm = async (scheduleData: { scheduledFor: string | null, isImmediate: boolean, selectedPlatform?: string }) => {
+  const handleScheduleConfirm = async (scheduleData: { scheduledFor: string | null, isImmediate: boolean, selectedPlatforms?: string[] }) => {
     if (!selectedPostForScheduling) return
     
-    // For universal posts, use the selected platform; otherwise use the original platform
-    const targetPlatform = scheduleData.selectedPlatform || selectedPostForScheduling.platform
+    const targetPlatforms = scheduleData.selectedPlatforms || [selectedPostForScheduling.platform]
     const platform = selectedPostForScheduling.platform // For UI state management
     
     setPostingStates(prev => ({ ...prev, [platform]: true }))
     setPostingSuccess(prev => ({ ...prev, [platform]: false }))
     
     try {
-      await onSchedulePost({
-        platform: targetPlatform, // Use the actual target platform for publishing
-        content: selectedPostForScheduling.content,
-        hashtags: selectedPostForScheduling.hashtags.join(' '),
-        scheduledFor: scheduleData.scheduledFor,
-        imageUrl: imageUrls[platform] || imageUrls['universal'], // Try both platform-specific and universal image
-        isImmediate: scheduleData.isImmediate
-      })
+      // For multiple platforms, use the new multi-platform publish endpoint
+      if (targetPlatforms.length > 1) {
+        const response = await fetch('/api/marketing/publish-multi', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            platforms: targetPlatforms,
+            content: selectedPostForScheduling.content,
+            hashtags: selectedPostForScheduling.hashtags.join(' '),
+            scheduledFor: scheduleData.scheduledFor,
+            imageUrl: imageUrls[platform] || imageUrls['universal'],
+            isImmediate: scheduleData.isImmediate,
+            brandSlug: brandSlug
+          })
+        })
+        
+        const result = await response.json()
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to publish to multiple platforms')
+        }
+      } else {
+        // Single platform - use existing flow
+        await onSchedulePost({
+          platform: targetPlatforms[0],
+          content: selectedPostForScheduling.content,
+          hashtags: selectedPostForScheduling.hashtags.join(' '),
+          scheduledFor: scheduleData.scheduledFor,
+          imageUrl: imageUrls[platform] || imageUrls['universal'],
+          isImmediate: scheduleData.isImmediate
+        })
+      }
       
       setPostingSuccess(prev => ({ ...prev, [platform]: true }))
       
