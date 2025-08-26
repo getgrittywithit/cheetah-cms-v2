@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { SocialMediaAPI } from '@/lib/social-api'
+import { supabaseAdmin } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,8 +41,28 @@ export async function POST(request: NextRequest) {
       const result = await SocialMediaAPI.publishPost(post, brand, mediaUrls)
       
       if (result.success) {
-        // Update post status in your database here
-        // For now, just return the result
+        console.log('🔵 Post published successfully, updating database status...')
+        
+        // Update post status in database
+        try {
+          const { error: updateError } = await supabaseAdmin
+            .from('social_posts')
+            .update({ 
+              status: 'published',
+              published_at: new Date().toISOString(),
+              platform_post_id: result.platformPostId || null
+            })
+            .eq('id', post.id)
+
+          if (updateError) {
+            console.error('🔴 Failed to update post status in database:', updateError)
+          } else {
+            console.log('🔵 Post status updated to published in database')
+          }
+        } catch (dbError) {
+          console.error('🔴 Database update error:', dbError)
+        }
+        
         return NextResponse.json({
           success: true,
           message: 'Post published successfully',

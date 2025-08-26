@@ -57,7 +57,7 @@ export class R2ImageUploader {
       await this.s3Client.send(uploadCommand)
 
       // Construct the public URL
-      const publicUrl = `https://dailydishdash.${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${key}`
+      const publicUrl = `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/dailydishdash/${key}`
       
       console.log('🔵 Image uploaded successfully to R2:', publicUrl)
 
@@ -93,7 +93,7 @@ export class R2ImageUploader {
 
       await this.s3Client.send(uploadCommand)
 
-      const publicUrl = `https://dailydishdash.${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${key}`
+      const publicUrl = `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/dailydishdash/${key}`
 
       return {
         success: true,
