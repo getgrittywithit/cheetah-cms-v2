@@ -20,21 +20,47 @@ export async function GET(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Test with a real image URL that should work with Instagram
-    // This is a sample food image from Lorem Picsum
-    const testImageUrl = 'https://picsum.photos/1080/1080?random=1'
+    // Test with a DALL-E-style URL to simulate the real flow
+    // This will trigger the R2 upload process just like real posts
+    const testDalleUrl = 'https://oaidalleapiprodscus.blob.core.windows.net/private/org-test/test-image.png'
     const testCaption = 'Test post from Daily Dish Dash API 🧪'
     const testHashtags = ['#test', '#dailydishdash', '#api']
 
-    console.log('🔵 Testing Instagram posting with real image:', {
-      imageUrl: testImageUrl,
+    console.log('🔵 Testing complete Instagram flow with simulated DALL-E URL:', {
+      simulatedDalleUrl: testDalleUrl,
       caption: testCaption,
       hashtags: testHashtags,
-      accountId: accountId
+      accountId: accountId,
+      willTriggerR2Upload: testDalleUrl.includes('oaidalleapiprodscus.blob.core.windows.net')
     })
 
+    // Since we can't use a real DALL-E URL in testing, let's use a direct R2 approach
+    // First, let's create a simple test image and upload it to R2
+    const testImageResponse = await fetch('https://via.placeholder.com/1080x1080.jpg')
+    if (!testImageResponse.ok) {
+      throw new Error('Failed to fetch test image')
+    }
+
+    const testImageBuffer = await testImageResponse.arrayBuffer()
+    
+    // Upload to R2 using the brand-specific uploader
+    const { R2ImageUploader } = await import('@/lib/r2-upload')
+    const uploader = new R2ImageUploader('daily-dish-dash')
+    
+    const uploadResult = await uploader.uploadImageBuffer(
+      testImageBuffer, 
+      `instagram-test-${Date.now()}.jpg`,
+      'image/jpeg'
+    )
+
+    if (!uploadResult.success) {
+      throw new Error(`R2 upload failed: ${uploadResult.error}`)
+    }
+
+    console.log('🔵 Test image uploaded to R2:', uploadResult.url)
+
     const result = await InstagramService.postToInstagram(
-      testImageUrl,
+      uploadResult.url, // Use the R2 URL
       testCaption,
       testHashtags,
       accessToken,
@@ -48,11 +74,18 @@ export async function GET(request: NextRequest) {
       success: result.success,
       result: result,
       testDetails: {
-        imageUrl: testImageUrl,
-        caption: testCaption,
-        hashtags: testHashtags,
-        accountId: accountId,
-        accessTokenLength: accessToken.length
+        r2Upload: {
+          success: uploadResult.success,
+          url: uploadResult.url,
+          key: uploadResult.key
+        },
+        instagramPost: {
+          caption: testCaption,
+          hashtags: testHashtags,
+          accountId: accountId,
+          accessTokenLength: accessToken.length,
+          finalImageUrl: uploadResult.url
+        }
       }
     })
 
