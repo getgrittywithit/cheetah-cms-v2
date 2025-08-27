@@ -2,26 +2,43 @@ import { NextRequest, NextResponse } from 'next/server'
 import { SocialPost } from '@/lib/marketing-types'
 import { supabaseAdmin } from '@/lib/supabase'
 import { cookies } from 'next/headers'
-import { getBrandConfig } from '@/lib/brand-config'
+// Removed getBrandConfig import - now using database lookups only
 
 // Helper function to resolve brand ID from slug or UUID
 async function resolveBrandId(brandIdOrSlug: string): Promise<string | null> {
   // If it looks like a UUID, use it as-is
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
   if (uuidRegex.test(brandIdOrSlug)) {
+    console.log('🔵 Using provided UUID:', brandIdOrSlug)
     return brandIdOrSlug
   }
   
-  // Otherwise, try to get brand config for the slug
-  const brandConfig = getBrandConfig(brandIdOrSlug)
-  if (brandConfig?.id) {
-    return brandConfig.id
+  // Look up brand by slug in database
+  console.log('🔵 Looking up brand by slug:', brandIdOrSlug)
+  try {
+    const { data: brand, error } = await supabaseAdmin
+      .from('brand_profiles')
+      .select('id')
+      .eq('slug', brandIdOrSlug)
+      .single()
+    
+    if (error) {
+      console.error('🔴 Brand lookup error:', error)
+      return null
+    }
+    
+    if (brand?.id) {
+      console.log('🔵 Found brand ID for slug:', { slug: brandIdOrSlug, id: brand.id })
+      return brand.id
+    }
+    
+    console.log('🔴 No brand found for slug:', brandIdOrSlug)
+    return null
+    
+  } catch (error) {
+    console.error('🔴 Database error during brand lookup:', error)
+    return null
   }
-  
-  // Fallback: create a deterministic UUID from slug for existing data
-  // This is a temporary solution until proper brand profiles are set up
-  const namespace = '550e8400-e29b-41d4-a716-446655440000' // Fixed namespace UUID
-  return `${namespace.substring(0, 24)}${brandIdOrSlug.replace(/[^a-zA-Z0-9]/g, '').substring(0, 12).padEnd(12, '0')}`
 }
 
 export async function GET(request: NextRequest) {
