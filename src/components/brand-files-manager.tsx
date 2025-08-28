@@ -55,6 +55,9 @@ export default function BrandFilesManager({ brandConfig }: BrandFilesManagerProp
   const [creating, setCreating] = useState(false)
   const [dragActive, setDragActive] = useState(false)
   const [uploadFolder, setUploadFolder] = useState('uploads')
+  const [draggedFile, setDraggedFile] = useState<FileItem | null>(null)
+  const [dropTargetFolder, setDropTargetFolder] = useState<string | null>(null)
+  const [movingFile, setMovingFile] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const dropZoneRef = useRef<HTMLDivElement>(null)
 
@@ -169,6 +172,70 @@ export default function BrandFilesManager({ brandConfig }: BrandFilesManagerProp
     
     const files = Array.from(e.dataTransfer.files)
     files.forEach(file => handleFileUpload(file, uploadFolder))
+  }
+
+  // Handle file move between folders
+  const handleFileMove = async (sourceFile: FileItem, targetFolder: string) => {
+    if (sourceFile.folder === targetFolder) return // No move needed
+    
+    setMovingFile(true)
+    try {
+      const response = await fetch(`/api/brand-files/${brandConfig.slug}/move`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sourceKey: sourceFile.key,
+          targetFolder: targetFolder
+        })
+      })
+
+      const data = await response.json()
+      
+      if (data.success) {
+        setUploadMessage({ type: 'success', text: `File moved to ${targetFolder} successfully!` })
+        await loadFiles()
+      } else {
+        setUploadMessage({ type: 'error', text: data.error || 'Failed to move file' })
+      }
+    } catch (error) {
+      console.error('Move failed:', error)
+      setUploadMessage({ type: 'error', text: 'Failed to move file. Please try again.' })
+    } finally {
+      setMovingFile(false)
+      setTimeout(() => setUploadMessage(null), 5000)
+    }
+  }
+
+  // Handle drag start for files
+  const handleFileDragStart = (e: React.DragEvent, file: FileItem) => {
+    setDraggedFile(file)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  // Handle drag end for files
+  const handleFileDragEnd = () => {
+    setDraggedFile(null)
+    setDropTargetFolder(null)
+  }
+
+  // Handle folder drop target events
+  const handleFolderDragOver = (e: React.DragEvent, folder: string) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDropTargetFolder(folder)
+  }
+
+  const handleFolderDragLeave = () => {
+    setDropTargetFolder(null)
+  }
+
+  const handleFolderDrop = (e: React.DragEvent, folder: string) => {
+    e.preventDefault()
+    if (draggedFile && draggedFile.folder !== folder) {
+      handleFileMove(draggedFile, folder)
+    }
+    setDraggedFile(null)
+    setDropTargetFolder(null)
   }
 
   // Handle folder creation
@@ -344,16 +411,16 @@ export default function BrandFilesManager({ brandConfig }: BrandFilesManagerProp
               />
             </div>
 
-            {/* Folder Filter */}
+            {/* Type Filter */}
             <select
-              value={selectedFolder}
-              onChange={(e) => setSelectedFolder(e.target.value)}
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
             >
-              <option value="all">All folders</option>
-              {folders.map(folder => (
-                <option key={folder} value={folder}>{folder}</option>
-              ))}
+              <option value="all">All types</option>
+              <option value="image">Images</option>
+              <option value="video">Videos</option>
+              <option value="application">Documents</option>
             </select>
 
             {/* Upload to Folder */}
@@ -370,18 +437,6 @@ export default function BrandFilesManager({ brandConfig }: BrandFilesManagerProp
                 ))}
               </select>
             </div>
-
-            {/* Type Filter */}
-            <select
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All types</option>
-              <option value="image">Images</option>
-              <option value="video">Videos</option>
-              <option value="application">Documents</option>
-            </select>
           </div>
 
           <div className="flex items-center space-x-3">
@@ -435,138 +490,231 @@ export default function BrandFilesManager({ brandConfig }: BrandFilesManagerProp
         </div>
       </div>
 
-      {/* Files Grid/List */}
-      {loading ? (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12">
-          <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-gray-400" />
-            <p className="text-gray-600">Loading files...</p>
-          </div>
-        </div>
-      ) : filteredFiles.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12">
-          <div className="text-center">
-            <FolderOpen className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No files found</h3>
-            <p className="text-gray-600 mb-4">
-              {files.length === 0 
-                ? "Start by uploading your first file"
-                : "No files match your current filters"
-              }
-            </p>
+      {/* Main Content Area with Sidebar */}
+      <div className="flex gap-6">
+        {/* Folder Sidebar */}
+        <div className="w-64 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-gray-900">Folders</h3>
             <button
-              onClick={() => fileInputRef.current?.click()}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 inline-flex items-center"
+              onClick={() => setShowCreateFolder(true)}
+              className="p-1 text-gray-400 hover:text-gray-600"
             >
-              <Upload className="w-4 h-4 mr-2" />
-              Upload Files
+              <Plus className="w-4 h-4" />
             </button>
           </div>
-        </div>
-      ) : (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className={viewMode === 'grid' 
-            ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4" 
-            : "space-y-2"
-          }>
-            {filteredFiles.map((file) => {
-              const IconComponent = getFileIcon(file.type)
+          
+          <div className="space-y-1">
+            {/* All Files */}
+            <button
+              onClick={() => setSelectedFolder('all')}
+              className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                selectedFolder === 'all'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <FolderOpen className="w-4 h-4" />
+              <span className="text-sm font-medium">All Files</span>
+              <span className="ml-auto text-xs text-gray-500">{files.length}</span>
+            </button>
+            
+            {/* Individual Folders */}
+            {folders.map(folder => {
+              const folderFiles = files.filter(f => f.folder === folder)
+              const isDropTarget = dropTargetFolder === folder
+              const isDraggedOver = draggedFile && dropTargetFolder === folder
               
-              return viewMode === 'grid' ? (
+              return (
                 <div
-                  key={file.key}
-                  className="group relative bg-gray-50 rounded-lg p-4 hover:bg-gray-100 cursor-pointer transition-colors"
-                  onClick={() => setSelectedFile(file)}
+                  key={folder}
+                  onDragOver={(e) => handleFolderDragOver(e, folder)}
+                  onDragLeave={handleFolderDragLeave}
+                  onDrop={(e) => handleFolderDrop(e, folder)}
+                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
+                    selectedFolder === folder
+                      ? 'bg-blue-100 text-blue-700'
+                      : isDraggedOver
+                      ? 'bg-green-100 border-2 border-green-300 border-dashed'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                  onClick={() => setSelectedFolder(folder)}
                 >
-                  <div className="flex flex-col items-center">
-                    {file.type.startsWith('image/') ? (
-                      <div className="w-16 h-16 rounded-lg overflow-hidden mb-2">
-                        <img 
-                          src={file.url} 
-                          alt={file.filename}
-                          className="w-full h-full object-cover"
-                        />
+                  <FolderOpen className={`w-4 h-4 ${
+                    isDraggedOver ? 'text-green-600' : ''
+                  }`} />
+                  <span className="text-sm font-medium flex-1">{folder}</span>
+                  <span className="text-xs text-gray-500">{folderFiles.length}</span>
+                </div>
+              )
+            })}
+          </div>
+          
+          {/* Drop Zone Helper */}
+          {draggedFile && (
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-xs text-blue-700 font-medium mb-1">Moving file:</p>
+              <p className="text-xs text-blue-600 truncate">{draggedFile.filename}</p>
+              <p className="text-xs text-blue-500 mt-1">Drop on a folder to move</p>
+            </div>
+          )}
+        </div>
+
+        {/* Files Grid/List */}
+        <div className="flex-1">
+          {loading ? (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12">
+              <div className="text-center">
+                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-gray-400" />
+                <p className="text-gray-600">Loading files...</p>
+              </div>
+            </div>
+          ) : filteredFiles.length === 0 ? (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12">
+              <div className="text-center">
+                <FolderOpen className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No files found</h3>
+                <p className="text-gray-600 mb-4">
+                  {files.length === 0 
+                    ? "Start by uploading your first file"
+                    : "No files match your current filters"
+                  }
+                </p>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 inline-flex items-center"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload Files
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              {movingFile && (
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center">
+                    <Loader2 className="w-4 h-4 animate-spin mr-2 text-blue-600" />
+                    <span className="text-sm text-blue-700">Moving file...</span>
+                  </div>
+                </div>
+              )}
+              
+              <div className={viewMode === 'grid' 
+                ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4" 
+                : "space-y-2"
+              }>
+                {filteredFiles.map((file) => {
+                  const IconComponent = getFileIcon(file.type)
+                  const isDragging = draggedFile?.key === file.key
+                  
+                  return viewMode === 'grid' ? (
+                    <div
+                      key={file.key}
+                      draggable
+                      onDragStart={(e) => handleFileDragStart(e, file)}
+                      onDragEnd={handleFileDragEnd}
+                      className={`group relative bg-gray-50 rounded-lg p-4 hover:bg-gray-100 cursor-pointer transition-colors ${
+                        isDragging ? 'opacity-50 scale-95' : ''
+                      }`}
+                      onClick={() => setSelectedFile(file)}
+                    >
+                      <div className="flex flex-col items-center">
+                        {file.type.startsWith('image/') ? (
+                          <div className="w-16 h-16 rounded-lg overflow-hidden mb-2">
+                            <img 
+                              src={file.url} 
+                              alt={file.filename}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mb-2">
+                            <IconComponent className="w-8 h-8 text-blue-600" />
+                          </div>
+                        )}
+                        
+                        <p className="text-sm font-medium text-gray-900 truncate w-full text-center">
+                          {file.filename}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {formatFileSize(file.size)}
+                        </p>
+                        
+                        {/* Action buttons on hover */}
+                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex space-x-1">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                window.open(file.url, '_blank')
+                              }}
+                              className="p-1 bg-white rounded shadow hover:bg-gray-50"
+                            >
+                              <Eye className="w-3 h-3" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDeleteFile(file.key)
+                              }}
+                              className="p-1 bg-white rounded shadow hover:bg-red-50 text-red-600"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                    ) : (
-                      <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mb-2">
-                        <IconComponent className="w-8 h-8 text-blue-600" />
+                    </div>
+                  ) : (
+                    <div
+                      key={file.key}
+                      draggable
+                      onDragStart={(e) => handleFileDragStart(e, file)}
+                      onDragEnd={handleFileDragEnd}
+                      className={`flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors ${
+                        isDragging ? 'opacity-50' : ''
+                      }`}
+                      onClick={() => setSelectedFile(file)}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <IconComponent className="w-8 h-8 text-gray-400" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{file.filename}</p>
+                          <p className="text-xs text-gray-500">
+                            {file.folder} • {formatFileSize(file.size)} • {new Date(file.lastModified).toLocaleDateString()}
+                          </p>
+                        </div>
                       </div>
-                    )}
-                    
-                    <p className="text-sm font-medium text-gray-900 truncate w-full text-center">
-                      {file.filename}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {formatFileSize(file.size)}
-                    </p>
-                    
-                    {/* Action buttons on hover */}
-                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="flex space-x-1">
+                      
+                      <div className="flex items-center space-x-2">
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
                             window.open(file.url, '_blank')
                           }}
-                          className="p-1 bg-white rounded shadow hover:bg-gray-50"
+                          className="p-2 text-gray-400 hover:text-gray-600"
                         >
-                          <Eye className="w-3 h-3" />
+                          <Eye className="w-4 h-4" />
                         </button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
                             handleDeleteFile(file.key)
                           }}
-                          className="p-1 bg-white rounded shadow hover:bg-red-50 text-red-600"
+                          className="p-2 text-gray-400 hover:text-red-600"
                         >
-                          <Trash2 className="w-3 h-3" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
-                  </div>
-                </div>
-              ) : (
-                <div
-                  key={file.key}
-                  className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg cursor-pointer"
-                  onClick={() => setSelectedFile(file)}
-                >
-                  <div className="flex items-center space-x-3">
-                    <IconComponent className="w-8 h-8 text-gray-400" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{file.filename}</p>
-                      <p className="text-xs text-gray-500">
-                        {file.folder} • {formatFileSize(file.size)} • {new Date(file.lastModified).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        window.open(file.url, '_blank')
-                      }}
-                      className="p-2 text-gray-400 hover:text-gray-600"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleDeleteFile(file.key)
-                      }}
-                      className="p-2 text-gray-400 hover:text-red-600"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* File Preview Modal */}
       {selectedFile && (
