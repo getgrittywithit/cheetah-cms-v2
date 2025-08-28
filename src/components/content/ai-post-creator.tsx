@@ -15,7 +15,9 @@ import {
   Loader2,
   ImagePlus,
   X,
-  BookmarkPlus
+  BookmarkPlus,
+  Package,
+  RefreshCw
 } from 'lucide-react'
 import ScheduleConfirmationModal from './schedule-confirmation-modal'
 
@@ -25,6 +27,15 @@ interface GeneratedPost {
   hashtags: string[]
   suggestions: string[]
   imageUrl?: string
+}
+
+interface Product {
+  id: number
+  name: string
+  thumbnail: string
+  base_price: number
+  variant_count: number
+  synced: boolean
 }
 
 interface AIPostCreatorProps {
@@ -64,6 +75,12 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
   const [savedDrafts, setSavedDrafts] = useState<{[platform: string]: string}>({}) // Store manually saved draft IDs
   const [savingDraft, setSavingDraft] = useState(false)
   const [generatingImages, setGeneratingImages] = useState<{[platform: string]: boolean}>({})
+  
+  // Product-related state
+  const [products, setProducts] = useState<Product[]>([])
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [loadingProducts, setLoadingProducts] = useState(false)
+  const [showProductSelector, setShowProductSelector] = useState(false)
 
   // Helper to get combined datetime
   const getCombinedDateTime = () => {
@@ -87,6 +104,27 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
     { id: 'twitter', name: 'Twitter', icon: Twitter }
   ]
 
+  // Fetch products from Printful
+  const fetchProducts = async () => {
+    if (brandSlug !== 'grit-collective') return // Only for Grit Collective
+    
+    setLoadingProducts(true)
+    try {
+      const response = await fetch('/api/printful/sync')
+      const data = await response.json()
+      
+      if (data.success) {
+        setProducts(data.products || [])
+      } else {
+        console.error('Failed to fetch products:', data.error)
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error)
+    } finally {
+      setLoadingProducts(false)
+    }
+  }
+
   const generatePosts = async () => {
     if (!prompt.trim()) return
 
@@ -100,7 +138,8 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
           prompt,
           brand: brandName,
           brandSlug: brandSlug,
-          platforms: selectedPlatforms
+          platforms: selectedPlatforms,
+          selectedProduct: selectedProduct // Include selected product data
         })
       })
 
@@ -448,10 +487,100 @@ export default function AIPostCreator({ brandName, brandSlug, onSchedulePost }: 
           </div>
         </div>
 
+        {/* Product Selector - Only show for Grit Collective */}
+        {brandSlug === 'grit-collective' && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-medium text-gray-700">
+                <Package className="w-4 h-4 inline mr-2" />
+                Select a Product (Optional)
+              </label>
+              <button
+                onClick={fetchProducts}
+                disabled={loadingProducts}
+                className="flex items-center space-x-2 px-3 py-1.5 text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg border border-blue-200"
+              >
+                {loadingProducts ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-3 h-3" />
+                )}
+                <span>{loadingProducts ? 'Loading...' : 'Refresh Products'}</span>
+              </button>
+            </div>
+
+            {products.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                <button
+                  onClick={() => setSelectedProduct(null)}
+                  className={`p-3 rounded-lg border-2 transition-all text-center ${
+                    !selectedProduct
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="text-sm font-medium text-gray-700">No Product</div>
+                  <div className="text-xs text-gray-500">General post</div>
+                </button>
+                
+                {products.map((product) => (
+                  <button
+                    key={product.id}
+                    onClick={() => setSelectedProduct(product)}
+                    className={`p-3 rounded-lg border-2 transition-all ${
+                      selectedProduct?.id === product.id
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    {product.thumbnail && (
+                      <img 
+                        src={product.thumbnail} 
+                        alt={product.name}
+                        className="w-full h-20 object-cover rounded mb-2"
+                      />
+                    )}
+                    <div className="text-xs font-medium text-gray-700 truncate">
+                      {product.name}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      ${product.base_price?.toFixed(2) || '0.00'}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {selectedProduct && (
+              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  {selectedProduct.thumbnail && (
+                    <img 
+                      src={selectedProduct.thumbnail}
+                      alt={selectedProduct.name}
+                      className="w-12 h-12 object-cover rounded"
+                    />
+                  )}
+                  <div>
+                    <div className="font-medium text-green-800">Selected: {selectedProduct.name}</div>
+                    <div className="text-sm text-green-600">${selectedProduct.base_price?.toFixed(2) || '0.00'}</div>
+                  </div>
+                  <button
+                    onClick={() => setSelectedProduct(null)}
+                    className="ml-auto text-green-600 hover:text-green-800"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Conversation Input */}
         <div className="space-y-3">
           <label className="block text-sm font-medium text-gray-700">
-            What do you want to post about?
+            {selectedProduct ? `Create a post about: ${selectedProduct.name}` : 'What do you want to post about?'}
           </label>
           <div className="relative">
             <textarea

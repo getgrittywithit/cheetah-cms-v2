@@ -9,6 +9,14 @@ interface GenerateCaptionRequest {
   platforms: string[]
   tone?: string
   style?: string
+  selectedProduct?: {
+    id: number
+    name: string
+    thumbnail: string
+    base_price: number
+    variant_count: number
+    synced: boolean
+  }
 }
 
 // Initialize OpenAI
@@ -26,7 +34,7 @@ export async function POST(request: NextRequest) {
       promptLength: body.prompt?.length
     })
     
-    const { prompt, brand, brandSlug, platforms, tone, style }: GenerateCaptionRequest = body
+    const { prompt, brand, brandSlug, platforms, tone, style, selectedProduct }: GenerateCaptionRequest = body
 
     if (!prompt || !brand || !platforms || platforms.length === 0) {
       console.log('🔴 Missing required fields:', { 
@@ -51,7 +59,7 @@ export async function POST(request: NextRequest) {
     let generatedPosts
     try {
       console.log('🔵 Generating universal AI caption for all platforms')
-      const universalPost = await generateAICaptionForPlatform(prompt, brand, brandSlug, 'universal', tone, style, brandVoice, brandPersonality)
+      const universalPost = await generateAICaptionForPlatform(prompt, brand, brandSlug, 'universal', tone, style, brandVoice, brandPersonality, selectedProduct)
       console.log('🔵 Generated universal caption', {
         hasContent: !!universalPost.content,
         contentLength: universalPost.content?.length,
@@ -111,12 +119,21 @@ async function generateAICaptionForPlatform(
   tone?: string, 
   style?: string,
   brandVoice?: string,
-  brandPersonality?: string
+  brandPersonality?: string,
+  selectedProduct?: {
+    id: number
+    name: string
+    thumbnail: string
+    base_price: number
+    variant_count: number
+    synced: boolean
+  }
 ) {
   const platformSpecific = getPlatformSpecificGuidelines(platform)
   
   // Special handling for Daily Dish Dash - generate recipe content
   const isDailyDishDash = brandSlug === 'daily-dish-dash'
+  const isGritCollective = brandSlug === 'grit-collective'
   
   let systemPrompt
   if (isDailyDishDash) {
@@ -142,6 +159,44 @@ Return a JSON object with:
 - content: Complete recipe post (hook + description + recipe + CTA)
 - hashtags: Array of food-related hashtags (without # symbol)
 - suggestions: Array of 3 recipe variations or improvements`
+  } else if (isGritCollective && selectedProduct) {
+    systemPrompt = `You are an expert social media content creator for Grit Collective Co. - creating authentic content about handcrafted products that inspire positive emotions.
+
+BRAND VOICE: ${brandVoice}
+BRAND PERSONALITY: ${brandPersonality}
+BRAND PHILOSOPHY: "No quit, just Grit" - embodying resilience and authenticity
+
+PRODUCT CONTEXT:
+Product Name: ${selectedProduct.name}
+Product Price: $${selectedProduct.base_price?.toFixed(2) || '0.00'}
+Product Variants: ${selectedProduct.variant_count} options available
+
+PLATFORM: ${platform}
+${platformSpecific}
+
+Your task is to create engaging product-focused content that:
+1. Showcases the specific product in an authentic, inspiring way
+2. Connects the product to emotions, memories, or meaningful moments
+3. Uses sensory descriptions and craftsmanship language
+4. Includes the brand's "No quit, just Grit" philosophy when relevant
+5. Incorporates botanical/nature references when appropriate
+6. Drives engagement and builds community around the product
+7. Includes pricing information naturally (not pushy)
+
+${tone ? `TONE: ${tone}` : ''}
+${style ? `STYLE: ${style}` : ''}
+
+Voice Guidelines:
+- Speak like talking to a good friend
+- Share stories about how the product creates positive emotions
+- Use phrases like "Handcrafted with love", "Made by our family for yours"
+- Focus on quality craftsmanship and emotional connections
+- Avoid corporate jargon - be authentic and vulnerable
+
+Return a JSON object with:
+- content: Product-focused post that tells a story and creates emotional connection
+- hashtags: Array of relevant hashtags including product, craft, and lifestyle tags (without # symbol)
+- suggestions: Array of 3 alternative product story angles or improvements`
   } else {
     systemPrompt = `You are an expert social media content creator for ${brand}.
 
@@ -182,6 +237,26 @@ Requirements:
 - Use accessible ingredients
 - Write in ${brand}'s voice: ${brandVoice}
 - Add relevant food hashtags`
+  } else if (isGritCollective && selectedProduct) {
+    userPrompt = `Create a compelling social media post featuring the product: ${selectedProduct.name}
+
+User's idea/context: ${prompt}
+
+Requirements for this product post:
+- Feature the product: ${selectedProduct.name} (${selectedProduct.variant_count} variants, $${selectedProduct.base_price?.toFixed(2)})
+- Tell a story that connects the product to emotions, memories, or meaningful moments
+- Use Grit Collective's voice: ${brandVoice}
+- Incorporate brand personality: ${brandPersonality}
+- Include sensory descriptions (touch, scent, visual appeal)
+- Reference the handcrafted quality and small-batch nature
+- Connect to the "No quit, just Grit" philosophy when relevant
+- Include botanical/nature references if appropriate
+- Add pricing information naturally (not pushy sales language)
+- Create an emotional connection with the audience
+- Use authentic, friend-to-friend language
+- Include strong call-to-action for engagement
+- Add relevant product and lifestyle hashtags
+- Make it platform-optimized for ${platform}`
   } else {
     userPrompt = `Create a ${platform} post about: ${prompt}
 
