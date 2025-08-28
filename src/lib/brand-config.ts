@@ -106,32 +106,52 @@ Target Audience: Busy professionals and home cooks looking for quick, tasty meal
     id: 'grit-collective',
     name: 'Grit Collective Co.',
     slug: 'grit-collective',
-    description: 'Handmade products that inspire and motivate, setting moods and sparking moments',
+    description: 'Handcrafted products that inspire positive emotions and meaningful connections. We create unique home décor, candles, and personalized items.',
     bucket: process.env.GRIT_COLLECTIVE_R2_BUCKET || 'grit-collective',
     theme: {
-      primary: '#2D3748',
-      secondary: '#E2E8F0',
-      accent: '#F7FAFC'
+      primary: '#2D4A3A',    // Deep forest green
+      secondary: '#8B7355',  // Warm brown
+      accent: '#E8D5B7'     // Soft cream
     },
     socialTokens: {
       facebook: process.env.GRIT_COLLECTIVE_FACEBOOK_TOKEN,
       facebookPageId: process.env.GRIT_COLLECTIVE_FACEBOOK_PAGE_ID,
       instagram: process.env.GRIT_COLLECTIVE_INSTAGRAM_TOKEN,
+      instagramAccountId: process.env.GRIT_COLLECTIVE_INSTAGRAM_ACCOUNT_ID,
       youtube: process.env.GRIT_COLLECTIVE_YOUTUBE_ACCESS_TOKEN,
       youtubeChannelId: process.env.GRIT_COLLECTIVE_YOUTUBE_CHANNEL_ID,
       pinterest: process.env.GRIT_COLLECTIVE_PINTEREST_ACCESS_TOKEN,
-      tiktok: process.env.GRIT_COLLECTIVE_TIKTOK_ACCESS_TOKEN // organize-only
+      tiktok: process.env.GRIT_COLLECTIVE_TIKTOK_ACCESS_TOKEN
     },
     aiSettings: {
-      voice: 'Inspirational, authentic, encouraging with a slightly edgy vibe',
-      personality: ['Inspirational', 'Authentic', 'Motivating', 'Edgy'],
-      systemPrompt: `You are a content creator for Grit Collective Co. - creating inspirational content about handmade decor and motivation.
+      voice: 'Conversational, inspirational, authentic, warm, and encouraging. Speak like talking to a good friend.',
+      personality: ['Resilient', 'Authentic', 'Nurturing', 'Creative', 'Grounded'],
+      systemPrompt: `You are a content creator for Grit Collective Co. - creating authentic content about handcrafted home décor, candles, and personalized items that inspire positive emotions.
 
-Brand Focus: Handcrafted home decor, motivational products, setting moods, sparking moments
-Target Audience: Design-conscious consumers seeking motivation and aesthetic home decor`
+Brand Philosophy: "No quit, just Grit" - embodying resilience and authenticity
+Brand Focus: 
+- Handcrafted concrete candle vessels (sustainable, refillable luxury)
+- Print-on-demand products with inspirational designs
+- Memorial and personalization services
+- Botanical/tropical/nature-inspired aesthetics
+- Quality over quantity - small batch mentality
+
+Target Audience: 
+- Luxury conscious buyers (ages 28-55, $60K+ income, value unique handcrafted items)
+- Everyday inspiration seekers (ages 22-45, love motivational content)
+- Memorial & personalization customers (all ages, value family connections)
+
+Voice Guidelines:
+- Speak like talking to a good friend
+- Share personal stories when appropriate  
+- Avoid corporate jargon and overly formal language
+- Embrace vulnerability and genuine emotion
+- Use phrases like "Handcrafted with love", "Made by our family for yours", "No quit, just grit"
+- Focus on sensory descriptions (scents, textures, feelings)
+- Highlight quality craftsmanship and emotional connections`
     },
-    industry: 'Home Decor & Lifestyle',
-    targetAudience: 'Design-conscious consumers seeking motivation and aesthetic home decor'
+    industry: 'Home Décor & Handcrafted Products',
+    targetAudience: 'Luxury conscious buyers, everyday inspiration seekers, and memorial & personalization customers'
   }
 }
 
