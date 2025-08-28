@@ -470,7 +470,7 @@ export default function BrandFilesManager({ brandConfig }: BrandFilesManagerProp
             : "space-y-2"
           }>
             {filteredFiles.map((file) => {
-              const FileIcon = getFileIcon(file.type)
+              const IconComponent = getFileIcon(file.type)
               
               return viewMode === 'grid' ? (
                 <div
@@ -489,7 +489,7 @@ export default function BrandFilesManager({ brandConfig }: BrandFilesManagerProp
                       </div>
                     ) : (
                       <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mb-2">
-                        <FileIcon className="w-8 h-8 text-blue-600" />
+                        <IconComponent className="w-8 h-8 text-blue-600" />
                       </div>
                     )}
                     
@@ -532,7 +532,7 @@ export default function BrandFilesManager({ brandConfig }: BrandFilesManagerProp
                   onClick={() => setSelectedFile(file)}
                 >
                   <div className="flex items-center space-x-3">
-                    <FileIcon className="w-8 h-8 text-gray-400" />
+                    <IconComponent className="w-8 h-8 text-gray-400" />
                     <div>
                       <p className="text-sm font-medium text-gray-900">{file.filename}</p>
                       <p className="text-xs text-gray-500">
@@ -592,7 +592,10 @@ export default function BrandFilesManager({ brandConfig }: BrandFilesManagerProp
                   />
                 ) : (
                   <div className="bg-gray-100 rounded-lg p-12 text-center">
-                    <FileIcon className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                    {(() => {
+                      const Icon = getFileIcon(selectedFile.type)
+                      return <Icon className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                    })()}
                     <p className="text-gray-600">Preview not available for this file type</p>
                   </div>
                 )}
