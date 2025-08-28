@@ -14,11 +14,11 @@ export function getBrandR2Config(brandSlug: string): BrandR2Config | null {
   switch (brandSlug) {
     case 'daily-dish-dash':
       return {
-        accountId: process.env.DAILY_DISH_R2_ACCOUNT_ID || '',
-        accessKeyId: process.env.DAILY_DISH_R2_ACCESS_KEY_ID || '',
-        secretAccessKey: process.env.DAILY_DISH_R2_SECRET_ACCESS_KEY || '',
+        accountId: process.env.DAILY_DISH_R2_ACCOUNT_ID || process.env.R2_ACCOUNT_ID || '',
+        accessKeyId: process.env.DAILY_DISH_R2_ACCESS_KEY_ID || process.env.R2_ACCESS_KEY_ID || '',
+        secretAccessKey: process.env.DAILY_DISH_R2_SECRET_ACCESS_KEY || process.env.R2_SECRET_ACCESS_KEY || '',
         bucketName: process.env.DAILY_DISH_R2_BUCKET || 'dailydishdash',
-        publicUrl: process.env.DAILY_DISH_R2_PUBLIC_URL
+        publicUrl: process.env.DAILY_DISH_R2_PUBLIC_URL || process.env.R2_PUBLIC_URL
       }
     
     case 'grit-collective':
