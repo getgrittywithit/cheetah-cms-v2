@@ -1,6 +1,5 @@
 import { notFound } from 'next/navigation'
 import { getBrandConfig, isValidBrandSlug } from '@/lib/brand-config'
-import { BrandProvider } from '@/contexts/brand-context'
 
 interface BrandLayoutProps {
   children: React.ReactNode
@@ -22,11 +21,9 @@ export default function BrandLayout({ children, params }: BrandLayoutProps) {
   }
 
   return (
-    <BrandProvider initialBrand={brandConfig}>
-      <div className="min-h-screen bg-gray-50">
-        {children}
-      </div>
-    </BrandProvider>
+    <div className="min-h-screen bg-gray-50">
+      {children}
+    </div>
   )
 }
 

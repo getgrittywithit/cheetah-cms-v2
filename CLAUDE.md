@@ -66,6 +66,11 @@ TIKTOK_ACCESS_TOKEN=your_tiktok_token
 GOOGLE_ANALYTICS_ID=your_ga_id
 GOOGLE_SEARCH_CONSOLE_ID=your_gsc_id
 
+# Printful Integration
+PRINTFUL_API_KEY=your_printful_api_key_here
+PRINTFUL_STORE_ID=your_printful_store_id_here
+PRINTFUL_WEBHOOK_SECRET=your_webhook_secret_here
+
 # Email/Marketing
 MAILCHIMP_API_KEY=your_mailchimp_key
 SENDGRID_API_KEY=your_sendgrid_key

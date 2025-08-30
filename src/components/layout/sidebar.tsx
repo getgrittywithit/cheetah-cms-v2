@@ -13,7 +13,9 @@ import {
   Package,
   Globe,
   Building2,
-  Calendar
+  Calendar,
+  ShoppingCart,
+  Users
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import BrandSwitcher from './brand-switcher'
@@ -51,7 +53,11 @@ function getBrandNavigation(brand: string) {
     { name: 'Dashboard', href: brandPath, icon: LayoutDashboard },
     { name: 'Content Creator', href: `${brandPath}/content`, icon: Megaphone },
     { name: 'Calendar', href: `${brandPath}/calendar`, icon: Calendar },
+    { name: 'Products', href: `${brandPath}/products`, icon: Package },
+    { name: 'Orders', href: `${brandPath}/orders`, icon: ShoppingCart },
+    { name: 'Customers', href: `${brandPath}/customers`, icon: Users },
     { name: 'Platforms', href: `${brandPath}/platforms`, icon: Globe },
+    { name: 'Integrations', href: `${brandPath}/integrations`, icon: Lightning },
     { name: 'Files', href: `${brandPath}/files`, icon: FolderOpen },
     { name: 'Analytics', href: `${brandPath}/analytics`, icon: BarChart3 },
     { name: 'Settings', href: `${brandPath}/settings`, icon: Settings },
@@ -61,7 +67,6 @@ function getBrandNavigation(brand: string) {
 // Generate global/system navigation links
 function getGlobalNavigation() {
   return [
-    { name: 'Products', href: '/dashboard/products', icon: Package },
     { name: 'Brand Management', href: '/dashboard/brands', icon: Building2 },
   ]
 }
@@ -115,6 +120,9 @@ export default function Sidebar({ user }: SidebarProps) {
               const isActive = pathname === item.href || 
                               (item.name === 'Content Creator' && pathname.startsWith(`/dashboard/${currentBrand}/content`)) ||
                               (item.name === 'Calendar' && pathname.startsWith(`/dashboard/${currentBrand}/calendar`)) ||
+                              (item.name === 'Products' && pathname.startsWith(`/dashboard/${currentBrand}/products`)) ||
+                              (item.name === 'Orders' && pathname.startsWith(`/dashboard/${currentBrand}/orders`)) ||
+                              (item.name === 'Customers' && pathname.startsWith(`/dashboard/${currentBrand}/customers`)) ||
                               (item.name === 'Platforms' && pathname.startsWith(`/dashboard/${currentBrand}/platforms`)) ||
                               (item.name === 'Files' && pathname.startsWith(`/dashboard/${currentBrand}/files`)) ||
                               (item.name === 'Analytics' && pathname.startsWith(`/dashboard/${currentBrand}/analytics`)) ||
