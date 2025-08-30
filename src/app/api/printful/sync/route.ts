@@ -66,22 +66,28 @@ export async function GET(request: NextRequest) {
           .limit(1)
           .single()
 
+        // Validate required fields
+        if (!transformedProduct.name) {
+          console.error(`Product ${printfulProduct.id} missing name, skipping`)
+          continue
+        }
+
         const productData = {
           user_id: userProfile?.id || null,
           name: transformedProduct.name,
-          description: `Print-on-demand product from Printful`,
-          slug: transformedProduct.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          description: transformedProduct.description || `Print-on-demand product from Printful`,
+          slug: transformedProduct.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').substring(0, 100),
           product_type: 'printful',
-          price: transformedProduct.base_price,
+          price: transformedProduct.base_price || 0,
           status: 'active' as const,
           visibility: 'visible' as const,
           requires_shipping: true,
           is_physical: true,
           track_inventory: false,
-          featured_image: transformedProduct.thumbnail,
+          featured_image: transformedProduct.thumbnail || null,
           printful_sync_product_id: printfulProduct.id.toString(),
           brand_profile_id: brandProfile.id,
-          tags: ['printful', 'print-on-demand']
+          tags: ['printful', 'print-on-demand', brandSlug]
         }
 
         let product
