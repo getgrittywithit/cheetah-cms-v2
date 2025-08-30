@@ -126,6 +126,7 @@ export default function BrandProductsPage({ params }: { params: { brand: string 
         <p className="text-gray-700">
           Manage your product catalog and Printful integration for {brandConfig.name}
         </p>
+        {/* Updated: Force deployment refresh */}
       </div>
 
       {/* Tabs */}
