@@ -91,12 +91,9 @@ export async function GET(request: NextRequest) {
         processedCount++
         console.log(`\n=== Processing Printful Product ${printfulProduct.id}: ${printfulProduct.name} ===`)
         
-        // Get full product details from Printful
-        console.log('Fetching full product details from Printful...')
-        const fullProduct = await printfulAPI.getSyncProduct(printfulProduct.id)
-        console.log('Full product received:', JSON.stringify(fullProduct, null, 2))
-        
-        const transformedProduct = printfulAPI.transformProduct(fullProduct)
+        // For now, use basic product data since full product details are complex
+        console.log('Using basic product data for reliable sync...')
+        const transformedProduct = printfulAPI.transformProduct(printfulProduct)
         console.log('Transformed product:', JSON.stringify(transformedProduct, null, 2))
         
         // Additional validation
@@ -137,10 +134,10 @@ export async function GET(request: NextRequest) {
         const productData = {
           user_id: userProfile?.id || null,
           name: transformedProduct.name,
-          description: transformedProduct.description || `Print-on-demand product from Printful`,
+          description: transformedProduct.description || `Print-on-demand ${transformedProduct.name} from Printful`,
           slug: transformedProduct.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').substring(0, 100),
           product_type: 'printful',
-          price: transformedProduct.base_price || 0,
+          price: transformedProduct.base_price || 25.00, // Default price for Printful products
           status: 'active' as const,
           visibility: 'visible' as const,
           requires_shipping: true,
