@@ -29,7 +29,7 @@ function getBrandFromPath(pathname: string): string {
   const segment = match[1]
   
   // These are global pages, not brands
-  const globalPages = ['products'] // Only Products stays global for now
+  const globalPages = [] // No global pages, everything is brand-specific now
   
   if (globalPages.includes(segment)) {
     return 'daily-dish-dash' // Default to Daily Dish Dash for global pages
@@ -68,7 +68,6 @@ function getBrandNavigation(brand: string) {
 function getGlobalNavigation() {
   return [
     { name: 'Brand Management', href: '/dashboard/brands', icon: Building2 },
-    { name: 'Products (Global)', href: '/dashboard/products', icon: Package },
   ]
 }
 
