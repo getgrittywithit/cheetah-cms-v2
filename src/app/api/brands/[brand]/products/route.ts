@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { getBrandConfig, isValidBrandSlug } from '@/lib/brand-config'
 import { ProductInsert } from '@/types/product'
+import { cmsLogger } from '@/lib/dev-logger'
 
 // GET /api/brands/[brand]/products - Get products for specific brand
 export async function GET(
@@ -9,8 +10,15 @@ export async function GET(
   { params }: { params: { brand: string } }
 ) {
   try {
+    cmsLogger.info('Products API called', { 
+      brand: params.brand,
+      url: request.url,
+      method: 'GET'
+    })
+
     // Validate brand slug
     if (!isValidBrandSlug(params.brand)) {
+      cmsLogger.warn('Invalid brand slug', { brand: params.brand })
       return NextResponse.json({ error: 'Invalid brand' }, { status: 400 })
     }
 
@@ -49,12 +57,29 @@ export async function GET(
     // For now, filter by brand using tags until brand_profile_id mapping is set up
     query = query.contains('tags', [params.brand])
 
+    cmsLogger.debug('Executing products query', { 
+      brand: params.brand, 
+      status, 
+      search, 
+      limit, 
+      offset 
+    })
+
     const { data: products, error, count } = await query
 
     if (error) {
-      console.error('Error fetching brand products:', error)
+      cmsLogger.error('Error fetching brand products', error, { 
+        brand: params.brand,
+        query: query.toString()
+      })
       return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 })
     }
+
+    cmsLogger.info('Products fetched successfully', { 
+      brand: params.brand,
+      count: products?.length || 0,
+      status 
+    })
 
     // Calculate stats
     const stats = {
@@ -80,7 +105,10 @@ export async function GET(
     return response
 
   } catch (error) {
-    console.error('Error in brand products GET:', error)
+    cmsLogger.error('Error in brand products GET', error, { 
+      brand: params.brand,
+      url: request.url 
+    })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
