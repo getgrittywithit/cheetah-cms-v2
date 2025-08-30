@@ -59,7 +59,15 @@ export async function GET(request: NextRequest) {
           continue
         }
 
+        // Get a user ID for the product (using first available user)
+        const { data: userProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .limit(1)
+          .single()
+
         const productData = {
+          user_id: userProfile?.id || null,
           name: transformedProduct.name,
           description: `Print-on-demand product from Printful`,
           slug: transformedProduct.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
