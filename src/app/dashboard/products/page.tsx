@@ -1,230 +1,92 @@
 'use client'
 
-import { useState } from 'react'
-import { Plus, Upload, Package, Edit2, Eye, Trash2, Palette, RefreshCw } from 'lucide-react'
-import CanvasCreator from './canvas-creator'
-import PrintfulSync from './printful-sync'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { Package, ArrowRight, Building2 } from 'lucide-react'
 
-export default function ProductsPage() {
-  const [activeTab, setActiveTab] = useState('create')
-  
+export default function ProductsRedirect() {
+  const router = useRouter()
+  const [showOptions, setShowOptions] = useState(false)
+
+  useEffect(() => {
+    // Auto-redirect after 3 seconds, but show options first
+    const timer = setTimeout(() => {
+      router.replace('/dashboard/grit-collective/products')
+    }, 3000)
+
+    // Show options immediately
+    setShowOptions(true)
+
+    return () => clearTimeout(timer)
+  }, [router])
+
+  const brands = [
+    {
+      name: 'Grit Collective',
+      slug: 'grit-collective',
+      description: 'Adventure and lifestyle products',
+      color: 'bg-blue-600'
+    },
+    {
+      name: 'Daily Dish Dash',
+      slug: 'daily-dish-dash', 
+      description: 'Food and recipe content',
+      color: 'bg-green-600'
+    }
+  ]
+
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Products</h1>
-        <p className="text-gray-700">Create and manage your products across all platforms</p>
-      </div>
-
-      {/* Tabs */}
-      <div className="border-b border-gray-200 mb-6">
-        <nav className="-mb-px flex space-x-8">
-          <button
-            onClick={() => setActiveTab('create')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'create'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-600 hover:text-gray-800'
-            }`}
-          >
-            <div className="flex items-center space-x-2">
-              <Plus className="w-4 h-4" />
-              <span>Create New</span>
-            </div>
-          </button>
-          <button
-            onClick={() => setActiveTab('canvas')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'canvas'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-600 hover:text-gray-800'
-            }`}
-          >
-            <div className="flex items-center space-x-2">
-              <Palette className="w-4 h-4" />
-              <span>Canvas Creator</span>
-            </div>
-          </button>
-          <button
-            onClick={() => setActiveTab('printful')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'printful'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-600 hover:text-gray-800'
-            }`}
-          >
-            <div className="flex items-center space-x-2">
-              <RefreshCw className="w-4 h-4" />
-              <span>Printful Sync</span>
-            </div>
-          </button>
-          <button
-            onClick={() => setActiveTab('library')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'library'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-600 hover:text-gray-800'
-            }`}
-          >
-            <div className="flex items-center space-x-2">
-              <Package className="w-4 h-4" />
-              <span>Product Library</span>
-            </div>
-          </button>
-        </nav>
-      </div>
-
-      {/* Create Tab */}
-      {activeTab === 'create' && (
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold mb-4">Smart Product Creator - Test Deploy</h2>
-          
-          {/* Image Upload */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Product Image
-            </label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer">
-              <Upload className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-              <p className="text-sm text-gray-700">
-                Drop your image here or click to upload
-              </p>
-              <p className="text-xs text-gray-600 mt-1">
-                AI will auto-detect aspect ratio and suggest product types
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+      <div className="max-w-2xl mx-auto">
+        {showOptions ? (
+          <div className="bg-white rounded-lg shadow-lg p-8">
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Package className="w-8 h-8 text-blue-600" />
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Products Management</h1>
+              <p className="text-gray-600">
+                Products are now managed per brand. Choose your brand to continue:
               </p>
             </div>
-          </div>
 
-          {/* Product Concept */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Product Concept
-            </label>
-            <input
-              type="text"
-              placeholder="e.g., Motivational poster with mountain landscape..."
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+            <div className="space-y-4 mb-8">
+              {brands.map((brand) => (
+                <Link
+                  key={brand.slug}
+                  href={`/dashboard/${brand.slug}/products`}
+                  className="block p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all group"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className={`w-12 h-12 ${brand.color} rounded-lg flex items-center justify-center`}>
+                        <Building2 className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 group-hover:text-blue-600">
+                          {brand.name} Products
+                        </h3>
+                        <p className="text-sm text-gray-600">{brand.description}</p>
+                      </div>
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600" />
+                  </div>
+                </Link>
+              ))}
+            </div>
 
-          {/* AI Generated Content */}
-          <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <h3 className="font-medium text-gray-900 mb-3">AI-Generated Content</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm text-gray-700">Title</label>
-                <div className="mt-1 p-3 bg-white rounded border text-gray-700">
-                  AI will generate an SEO-optimized title...
-                </div>
-              </div>
-              <div>
-                <label className="text-sm text-gray-700">Description</label>
-                <div className="mt-1 p-3 bg-white rounded border text-gray-700 h-24">
-                  AI will create compelling product description...
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm text-gray-700">Suggested Price</label>
-                  <div className="mt-1 p-3 bg-white rounded border text-gray-700">
-                    $--
-                  </div>
-                </div>
-                <div>
-                  <label className="text-sm text-gray-700">Tags</label>
-                  <div className="mt-1 p-3 bg-white rounded border text-gray-700">
-                    Generated tags...
-                  </div>
-                </div>
-              </div>
+            <div className="text-center text-sm text-gray-500">
+              <p>Auto-redirecting to Grit Collective in <span className="font-medium">3 seconds</span></p>
             </div>
           </div>
-
-          {/* Publish Options */}
-          <div className="flex items-center justify-between">
-            <div className="flex space-x-4">
-              <label className="flex items-center">
-                <input type="checkbox" className="mr-2" defaultChecked />
-                <span className="text-sm">Shopify</span>
-              </label>
-              <label className="flex items-center">
-                <input type="checkbox" className="mr-2" defaultChecked />
-                <span className="text-sm">Etsy</span>
-              </label>
-              <label className="flex items-center">
-                <input type="checkbox" className="mr-2" defaultChecked />
-                <span className="text-sm">Printful</span>
-              </label>
-            </div>
-            <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-              Create & Publish
-            </button>
+        ) : (
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading...</p>
           </div>
-        </div>
-      )}
-
-      {/* Canvas Creator Tab */}
-      {activeTab === 'canvas' && (
-        <CanvasCreator />
-      )}
-
-      {/* Printful Sync Tab */}
-      {activeTab === 'printful' && (
-        <PrintfulSync />
-      )}
-
-      {/* Library Tab */}
-      {activeTab === 'library' && (
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="p-6 border-b">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Product Library</h2>
-              <div className="flex space-x-2">
-                <button className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50">
-                  Bulk Edit
-                </button>
-                <button className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50">
-                  Export
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          {/* Product Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-            {/* Sample Product Card */}
-            <div className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-              <div className="aspect-square bg-gray-100 relative">
-                <div className="absolute top-2 right-2 flex space-x-1">
-                  <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Shopify</span>
-                  <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded">Etsy</span>
-                </div>
-              </div>
-              <div className="p-4">
-                <h3 className="font-medium text-gray-900 mb-1">Sample Product Title</h3>
-                <p className="text-sm text-gray-700 mb-3">$24.99</p>
-                <div className="flex items-center justify-between">
-                  <div className="flex space-x-2">
-                    <button className="p-1 hover:bg-gray-100 rounded">
-                      <Eye className="w-4 h-4 text-gray-700" />
-                    </button>
-                    <button className="p-1 hover:bg-gray-100 rounded">
-                      <Edit2 className="w-4 h-4 text-gray-700" />
-                    </button>
-                    <button className="p-1 hover:bg-gray-100 rounded">
-                      <Trash2 className="w-4 h-4 text-gray-700" />
-                    </button>
-                  </div>
-                  <div className="text-xs text-gray-700">
-                    23 sales
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* AI Helper */}
+        )}
+      </div>
     </div>
   )
 }
