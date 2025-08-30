@@ -392,10 +392,18 @@ export default function BrandProductsPage({ params }: { params: { brand: string 
                   {/* Action Buttons */}
                   <div className="flex items-center justify-between">
                     <div className="flex space-x-2">
-                      <button className="p-1 hover:bg-gray-100 rounded" title="View">
+                      <button 
+                        onClick={() => window.open(`/brands/${params.brand}/products/${product.id}`, '_blank')}
+                        className="p-1 hover:bg-gray-100 rounded" 
+                        title="View"
+                      >
                         <Eye className="w-4 h-4 text-gray-700" />
                       </button>
-                      <button className="p-1 hover:bg-gray-100 rounded" title="Edit">
+                      <button 
+                        onClick={() => window.location.href = `/dashboard/${params.brand}/products/${product.id}`}
+                        className="p-1 hover:bg-gray-100 rounded" 
+                        title="Edit"
+                      >
                         <Edit2 className="w-4 h-4 text-gray-700" />
                       </button>
                       <button className="p-1 hover:bg-gray-100 rounded" title="Delete">
