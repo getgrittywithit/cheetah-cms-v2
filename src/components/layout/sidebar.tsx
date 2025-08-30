@@ -28,11 +28,11 @@ function getBrandFromPath(pathname: string): string {
   
   const segment = match[1]
   
-  // These are global pages, not brands
-  const globalPages = [] // No global pages, everything is brand-specific now
+  // These are global pages, not brands - don't show brand switcher
+  const globalPages = ['settings', 'brands']
   
   if (globalPages.includes(segment)) {
-    return 'daily-dish-dash' // Default to Daily Dish Dash for global pages
+    return '' // Return empty string for global pages
   }
   
   // Valid brand slugs (from brand-config.ts)
@@ -60,7 +60,6 @@ function getBrandNavigation(brand: string) {
     { name: 'Integrations', href: `${brandPath}/integrations`, icon: Lightning },
     { name: 'Files', href: `${brandPath}/files`, icon: FolderOpen },
     { name: 'Analytics', href: `${brandPath}/analytics`, icon: BarChart3 },
-    { name: 'Settings', href: `${brandPath}/settings`, icon: Settings },
   ]
 }
 
@@ -68,6 +67,7 @@ function getBrandNavigation(brand: string) {
 function getGlobalNavigation() {
   return [
     { name: 'Brand Management', href: '/dashboard/brands', icon: Building2 },
+    { name: 'Settings', href: '/dashboard/settings', icon: Settings },
   ]
 }
 
@@ -100,8 +100,8 @@ export default function Sidebar({ user }: SidebarProps) {
         </div>
       </div>
 
-      {/* Brand Switcher */}
-      {currentBrand && (
+      {/* Brand Switcher - only show for brand-specific pages */}
+      {currentBrand && currentBrand !== '' && (
         <div className="px-4 py-3 bg-gray-800 border-b border-gray-700">
           <div className="text-xs text-gray-400 uppercase tracking-wide mb-2">Current Brand</div>
           <BrandSwitcher currentBrand={currentBrand} />
@@ -110,13 +110,14 @@ export default function Sidebar({ user }: SidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 px-4 py-4 space-y-6">
-        {/* Brand-specific section */}
-        <div>
-          <div className="text-xs text-gray-400 uppercase tracking-wide mb-3 px-4">
-            Brand Content
-          </div>
-          <div className="space-y-2">
-            {brandNavigation.map((item) => {
+        {/* Brand-specific section - only show for brand pages */}
+        {currentBrand && currentBrand !== '' && (
+          <div>
+            <div className="text-xs text-gray-400 uppercase tracking-wide mb-3 px-4">
+              Brand Content
+            </div>
+            <div className="space-y-2">
+              {brandNavigation.map((item) => {
               const isActive = pathname === item.href || 
                               (item.name === 'Content Creator' && pathname.startsWith(`/dashboard/${currentBrand}/content`)) ||
                               (item.name === 'Calendar' && pathname.startsWith(`/dashboard/${currentBrand}/calendar`)) ||
@@ -143,9 +144,10 @@ export default function Sidebar({ user }: SidebarProps) {
                   {item.name}
                 </Link>
               )
-            })}
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Global/System section */}
         <div>
