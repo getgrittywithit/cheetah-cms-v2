@@ -20,22 +20,65 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get brand profile
-    const { data: brandProfile, error: brandError } = await supabase
+    // Get brand profile or create one if it doesn't exist
+    let { data: brandProfile, error: brandError } = await supabase
       .from('brand_profiles')
       .select('id, name, slug')
       .eq('slug', brandSlug)
       .single()
 
-    if (brandError || !brandProfile) {
+    // If brand profile doesn't exist, create it
+    if (brandError && brandError.code === 'PGRST116') {
+      const brandConfig = await import('@/lib/brand-config').then(m => m.getBrandConfig(brandSlug))
+      
+      if (!brandConfig) {
+        return NextResponse.json(
+          { success: false, error: 'Brand configuration not found' },
+          { status: 404 }
+        )
+      }
+
+      const { data: newBrandProfile, error: createError } = await supabase
+        .from('brand_profiles')
+        .insert({
+          name: brandConfig.name,
+          slug: brandConfig.slug,
+          description: brandConfig.description
+        })
+        .select('id, name, slug')
+        .single()
+
+      if (createError) {
+        console.error('Error creating brand profile:', createError)
+        return NextResponse.json(
+          { success: false, error: 'Failed to create brand profile' },
+          { status: 500 }
+        )
+      }
+
+      brandProfile = newBrandProfile
+    } else if (brandError) {
       return NextResponse.json(
-        { success: false, error: 'Brand not found' },
-        { status: 404 }
+        { success: false, error: 'Database error accessing brand profile' },
+        { status: 500 }
       )
     }
     
     // Get all sync products from Printful
+    console.log('Fetching products from Printful API...')
     const printfulProducts = await printfulAPI.getSyncProducts()
+    console.log(`Found ${printfulProducts.length} products in Printful`)
+    
+    if (printfulProducts.length === 0) {
+      console.log('No products found in Printful - check your Printful dashboard')
+      return NextResponse.json({
+        success: true,
+        products: [],
+        synced_count: 0,
+        total_printful_products: 0,
+        message: `No products found in Printful. Make sure you have products in your Printful store.`
+      })
+    }
     
     // Sync products to database
     const syncedProducts = []
