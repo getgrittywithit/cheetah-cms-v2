@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# IMPORTANT: Ignore the entire storefront directory
+/storefront/
+/printful-api/
