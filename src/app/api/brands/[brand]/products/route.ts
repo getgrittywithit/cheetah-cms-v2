@@ -36,10 +36,7 @@ export async function GET(
 
     let query = supabaseAdmin
       .from('products')
-      .select(`
-        *,
-        product_variants(*)
-      `)
+      .select('*')
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 

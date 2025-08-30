@@ -63,16 +63,24 @@ export class DevLogger {
     // Send to Better Stack
     if (process.env.NEXT_PUBLIC_BETTER_STACK_SOURCE_TOKEN) {
       try {
-        await fetch(process.env.NEXT_PUBLIC_BETTER_STACK_INGESTING_URL || 'https://logs.betterstack.com', {
+        const response = await fetch(process.env.NEXT_PUBLIC_BETTER_STACK_INGESTING_URL || 'https://logs.betterstack.com', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${process.env.NEXT_PUBLIC_BETTER_STACK_SOURCE_TOKEN}`
           },
-          body: JSON.stringify(entry)
+          body: JSON.stringify(entry),
+          signal: AbortSignal.timeout(5000) // 5 second timeout
         })
+        
+        if (!response.ok) {
+          console.warn(`Better Stack responded with ${response.status}`)
+        }
       } catch (error) {
-        console.error('Failed to send log to Better Stack:', error)
+        // Don't log this error to avoid recursion, just silently fail
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Better Stack logging failed:', error.message)
+        }
       }
     }
   }
