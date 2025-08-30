@@ -125,11 +125,19 @@ export async function GET(request: NextRequest) {
           .single()
 
         // Validate required fields
+        console.log(`Validating product ${printfulProduct.id}:`)
+        console.log(`- transformedProduct exists: ${!!transformedProduct}`)
+        console.log(`- transformedProduct.name exists: ${!!transformedProduct.name}`)
+        console.log(`- transformedProduct.name value: "${transformedProduct.name}"`)
+        console.log(`- transformedProduct.name type: ${typeof transformedProduct.name}`)
+        
         if (!transformedProduct.name) {
           console.error(`Product ${printfulProduct.id} missing name, skipping`)
           skippedCount++
           continue
         }
+        
+        console.log(`✅ Product ${printfulProduct.id} passed validation, proceeding with database operations`)
 
         const productData = {
           user_id: userProfile?.id || null,
