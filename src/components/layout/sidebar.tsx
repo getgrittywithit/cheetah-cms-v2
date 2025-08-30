@@ -67,7 +67,6 @@ function getBrandNavigation(brand: string) {
 function getGlobalNavigation() {
   return [
     { name: 'Brand Management', href: '/dashboard/brands', icon: Building2 },
-    { name: 'Products (Global)', href: '/dashboard/products', icon: Package },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
   ]
 }
