@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { printfulAPI } from '@/lib/printful-api'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase'
 
 export async function GET() {
   try {
@@ -23,7 +23,7 @@ export async function GET() {
     
     // Test 3: Check brand profile exists
     console.log('3. Testing brand profile lookup...')
-    const { data: brandProfile, error: brandError } = await supabase
+    const { data: brandProfile, error: brandError } = await supabaseAdmin
       .from('brand_profiles')
       .select('id, name, slug')
       .eq('slug', 'grit-collective')
@@ -41,7 +41,7 @@ export async function GET() {
     
     // Test 4: Check profiles table for user_id
     console.log('4. Testing profiles lookup...')
-    const { data: userProfile, error: userError } = await supabase
+    const { data: userProfile, error: userError } = await supabaseAdmin
       .from('profiles')
       .select('id')
       .limit(1)
@@ -76,7 +76,7 @@ export async function GET() {
       tags: ['test', 'printful']
     }
     
-    const { data: newProduct, error: insertError } = await supabase
+    const { data: newProduct, error: insertError } = await supabaseAdmin
       .from('products')
       .insert(testProductData)
       .select()

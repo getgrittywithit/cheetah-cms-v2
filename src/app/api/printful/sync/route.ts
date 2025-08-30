@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { printfulAPI } from '@/lib/printful-api'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase'
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get brand profile or create one if it doesn't exist
-    let { data: brandProfile, error: brandError } = await supabase
+    let { data: brandProfile, error: brandError } = await supabaseAdmin
       .from('brand_profiles')
       .select('id, name, slug')
       .eq('slug', brandSlug)
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
         )
       }
 
-      const { data: newBrandProfile, error: createError } = await supabase
+      const { data: newBrandProfile, error: createError } = await supabaseAdmin
         .from('brand_profiles')
         .insert({
           name: brandConfig.name,
@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Check if product already exists
-        const { data: existingProduct, error: checkError } = await supabase
+        const { data: existingProduct, error: checkError } = await supabaseAdmin
           .from('products')
           .select('id, printful_sync_product_id')
           .eq('brand_profile_id', brandProfile.id)
@@ -120,7 +120,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Get a user ID for the product (using first available user)
-        const { data: userProfile } = await supabase
+        const { data: userProfile } = await supabaseAdmin
           .from('profiles')
           .select('id')
           .limit(1)
@@ -158,7 +158,7 @@ export async function GET(request: NextRequest) {
         if (existingProduct) {
           // Update existing product
           console.log(`Updating existing product ${existingProduct.id}`)
-          const { data: updatedProduct, error: updateError } = await supabase
+          const { data: updatedProduct, error: updateError } = await supabaseAdmin
             .from('products')
             .update(productData)
             .eq('id', existingProduct.id)
@@ -177,7 +177,7 @@ export async function GET(request: NextRequest) {
         } else {
           // Create new product
           console.log('Creating new product')
-          const { data: newProduct, error: createError } = await supabase
+          const { data: newProduct, error: createError } = await supabaseAdmin
             .from('products')
             .insert(productData)
             .select()
