@@ -27,6 +27,7 @@ interface PrintfulProduct {
 export default function PrintfulSync() {
   const [products, setProducts] = useState<PrintfulProduct[]>([])
   const [loading, setLoading] = useState(false)
+  const [selectedBrand, setSelectedBrand] = useState('grit-collective')
   const [selectedProduct, setSelectedProduct] = useState<PrintfulProduct | null>(null)
   const [syncing, setSyncing] = useState<number | null>(null)
   const [publishing, setPublishing] = useState<number | null>(null)
@@ -41,10 +42,11 @@ export default function PrintfulSync() {
     status: 'draft'
   })
 
-  const syncProducts = async () => {
+  const syncProducts = async (brandSlug?: string) => {
+    const brand = brandSlug || selectedBrand
     setLoading(true)
     try {
-      const response = await fetch('/api/printful/sync')
+      const response = await fetch(`/api/printful/sync?brand=${brand}`)
       const data = await response.json()
       
       if (data.success) {
@@ -198,17 +200,30 @@ export default function PrintfulSync() {
           <div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Printful Products</h2>
             <p className="text-gray-600">
-              Sync completed products from Printful to prepare for Shopify publishing
+              Sync completed products from Printful to your selected brand
             </p>
           </div>
-          <button
-            onClick={syncProducts}
-            disabled={loading}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            {loading ? 'Syncing...' : 'Sync from Printful'}
-          </button>
+          <div className="flex items-center space-x-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
+              <select
+                value={selectedBrand}
+                onChange={(e) => setSelectedBrand(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="grit-collective">Grit Collective</option>
+                <option value="daily-dish-dash">Daily Dish Dash</option>
+              </select>
+            </div>
+            <button
+              onClick={() => syncProducts()}
+              disabled={loading}
+              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 mt-6"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              {loading ? 'Syncing...' : 'Sync from Printful'}
+            </button>
+          </div>
         </div>
       </div>
 
