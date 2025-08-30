@@ -82,12 +82,28 @@ export async function GET(request: NextRequest) {
     
     // Sync products to database
     const syncedProducts = []
+    let processedCount = 0
+    let skippedCount = 0
+    let errorCount = 0
     
     for (const printfulProduct of printfulProducts) {
       try {
-        // Get full product details
-        const fullProduct = await printfulAPI.getSyncProduct(printfulProduct.id)
-        const transformedProduct = printfulAPI.transformProduct(fullProduct)
+        processedCount++
+        console.log(`\n=== Processing Printful Product ${printfulProduct.id}: ${printfulProduct.name} ===`)
+        
+        // TEMPORARY: Skip the getSyncProduct call and work with basic data
+        console.log('Using basic product data for now...')
+        console.log('Basic product:', JSON.stringify(printfulProduct, null, 2))
+        
+        const transformedProduct = printfulAPI.transformProduct(printfulProduct)
+        console.log('Transformed product:', JSON.stringify(transformedProduct, null, 2))
+        
+        // Additional validation
+        if (!transformedProduct || typeof transformedProduct !== 'object') {
+          console.error(`Invalid transformed product for ${printfulProduct.id}:`, transformedProduct)
+          skippedCount++
+          continue
+        }
 
         // Check if product already exists
         const { data: existingProduct, error: checkError } = await supabase
@@ -99,6 +115,7 @@ export async function GET(request: NextRequest) {
 
         if (checkError && checkError.code !== 'PGRST116') {
           console.error('Error checking existing product:', checkError)
+          errorCount++
           continue
         }
 
@@ -112,6 +129,7 @@ export async function GET(request: NextRequest) {
         // Validate required fields
         if (!transformedProduct.name) {
           console.error(`Product ${printfulProduct.id} missing name, skipping`)
+          skippedCount++
           continue
         }
 
@@ -133,10 +151,13 @@ export async function GET(request: NextRequest) {
           tags: ['printful', 'print-on-demand', brandSlug]
         }
 
+        console.log(`About to ${existingProduct ? 'update' : 'create'} product with data:`, JSON.stringify(productData, null, 2))
+        
         let product
         
         if (existingProduct) {
           // Update existing product
+          console.log(`Updating existing product ${existingProduct.id}`)
           const { data: updatedProduct, error: updateError } = await supabase
             .from('products')
             .update(productData)
@@ -146,12 +167,16 @@ export async function GET(request: NextRequest) {
 
           if (updateError) {
             console.error('Error updating product:', updateError)
+            console.error('Product data that failed:', JSON.stringify(productData, null, 2))
+            errorCount++
             continue
           }
           
+          console.log('Successfully updated product:', updatedProduct?.id)
           product = updatedProduct
         } else {
           // Create new product
+          console.log('Creating new product')
           const { data: newProduct, error: createError } = await supabase
             .from('products')
             .insert(productData)
@@ -160,9 +185,12 @@ export async function GET(request: NextRequest) {
 
           if (createError) {
             console.error('Error creating product:', createError)
+            console.error('Product data that failed:', JSON.stringify(productData, null, 2))
+            errorCount++
             continue
           }
           
+          console.log('Successfully created product:', newProduct?.id)
           product = newProduct
         }
 
@@ -173,15 +201,25 @@ export async function GET(request: NextRequest) {
 
       } catch (error) {
         console.error(`Error syncing product ${printfulProduct.id}:`, error)
+        errorCount++
         continue
       }
     }
+    
+    console.log(`\n=== SYNC SUMMARY ===`)
+    console.log(`Processed: ${processedCount}`)
+    console.log(`Skipped: ${skippedCount}`) 
+    console.log(`Errors: ${errorCount}`)
+    console.log(`Synced: ${syncedProducts.length}`)
     
     return NextResponse.json({
       success: true,
       products: syncedProducts,
       synced_count: syncedProducts.length,
       total_printful_products: printfulProducts.length,
+      processed_count: processedCount,
+      skipped_count: skippedCount,
+      error_count: errorCount,
       message: `Synced ${syncedProducts.length} of ${printfulProducts.length} products from Printful to ${brandProfile.name}`
     })
   } catch (error) {

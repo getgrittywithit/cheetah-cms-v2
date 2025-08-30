@@ -45,11 +45,37 @@ export async function GET() {
     const data = await response.json()
     console.log('Printful API Success Response:', data)
 
+    // Test getting full product details for first product
+    let fullProductExample = null
+    if (data.result && data.result.length > 0) {
+      try {
+        const firstProductId = data.result[0].id
+        console.log(`Testing full product fetch for ID: ${firstProductId}`)
+        
+        const fullProductResponse = await fetch(`https://api.printful.com/sync/products/${firstProductId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'X-PF-Store-Id': storeId,
+          },
+        })
+        
+        if (fullProductResponse.ok) {
+          const fullProductData = await fullProductResponse.json()
+          fullProductExample = fullProductData.result
+          console.log('Full product data:', JSON.stringify(fullProductData.result, null, 2))
+        }
+      } catch (err) {
+        console.error('Error fetching full product:', err)
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Printful API connection successful',
       productCount: data.result?.length || 0,
       products: data.result || [],
+      fullProductExample,
       fullResponse: data
     })
 
