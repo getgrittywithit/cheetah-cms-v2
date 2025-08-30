@@ -457,7 +457,7 @@ function BrandPrintfulSync({ brand, brandConfig }: { brand: string, brandConfig:
                     <h4 className="font-medium text-gray-900 truncate">{product.name}</h4>
                     <p className="text-sm text-gray-600">
                       {product.variant_count} variant{product.variant_count !== 1 ? 's' : ''} • 
-                      From ${product.base_price.toFixed(2)}
+                      From ${(product.base_price || 0).toFixed(2)}
                     </p>
                     <div className="flex items-center mt-2 space-x-2">
                       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
@@ -519,7 +519,7 @@ function BrandPrintfulSync({ brand, brandConfig }: { brand: string, brandConfig:
                             <p className="text-xs text-gray-500">SKU: {variant.sku}</p>
                           </div>
                           <div className="text-right">
-                            <p className="font-medium text-green-600">${variant.price.toFixed(2)}</p>
+                            <p className="font-medium text-green-600">${(variant.price || 0).toFixed(2)}</p>
                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                               variant.synced 
                                 ? 'bg-green-100 text-green-800' 

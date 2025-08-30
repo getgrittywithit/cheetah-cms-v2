@@ -91,11 +91,12 @@ export async function GET(request: NextRequest) {
         processedCount++
         console.log(`\n=== Processing Printful Product ${printfulProduct.id}: ${printfulProduct.name} ===`)
         
-        // TEMPORARY: Skip the getSyncProduct call and work with basic data
-        console.log('Using basic product data for now...')
-        console.log('Basic product:', JSON.stringify(printfulProduct, null, 2))
+        // Get full product details from Printful
+        console.log('Fetching full product details from Printful...')
+        const fullProduct = await printfulAPI.getSyncProduct(printfulProduct.id)
+        console.log('Full product received:', JSON.stringify(fullProduct, null, 2))
         
-        const transformedProduct = printfulAPI.transformProduct(printfulProduct)
+        const transformedProduct = printfulAPI.transformProduct(fullProduct)
         console.log('Transformed product:', JSON.stringify(transformedProduct, null, 2))
         
         // Additional validation
