@@ -65,17 +65,36 @@ export async function GET(
       low_stock: products?.filter(p => p.track_inventory && (p.quantity || 0) < 10).length || 0
     }
 
-    return NextResponse.json({ 
+    const response = NextResponse.json({ 
       products: products || [],
       stats,
       brand: brandConfig,
       success: true 
     })
 
+    // Add CORS headers for storefront access
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    
+    return response
+
   } catch (error) {
     console.error('Error in brand products GET:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
+}
+
+// OPTIONS handler for CORS preflight
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  })
 }
 
 // POST /api/brands/[brand]/products - Create product for specific brand
