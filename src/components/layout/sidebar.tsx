@@ -9,9 +9,7 @@ import {
   LogOut,
   Megaphone,
   FolderOpen,
-  Zap as Lightning,
   Package,
-  Globe,
   Building2,
   Calendar,
   ShoppingCart,
@@ -51,8 +49,6 @@ function getBrandNavigation(brand: string) {
     { name: 'Products', href: `${brandPath}/products`, icon: Package },
     { name: 'Orders', href: `${brandPath}/orders`, icon: ShoppingCart },
     { name: 'Customers', href: `${brandPath}/customers`, icon: Users },
-    { name: 'Platforms', href: `${brandPath}/platforms`, icon: Globe },
-    { name: 'Integrations', href: `${brandPath}/integrations`, icon: Lightning },
     { name: 'Files', href: `${brandPath}/files`, icon: FolderOpen },
     { name: 'Analytics', href: `${brandPath}/analytics`, icon: BarChart3 },
   ]
@@ -117,10 +113,8 @@ export default function Sidebar({ user }: SidebarProps) {
                               (item.name === 'Products' && pathname.startsWith(`/dashboard/${currentBrand}/products`)) ||
                               (item.name === 'Orders' && pathname.startsWith(`/dashboard/${currentBrand}/orders`)) ||
                               (item.name === 'Customers' && pathname.startsWith(`/dashboard/${currentBrand}/customers`)) ||
-                              (item.name === 'Platforms' && pathname.startsWith(`/dashboard/${currentBrand}/platforms`)) ||
                               (item.name === 'Files' && pathname.startsWith(`/dashboard/${currentBrand}/files`)) ||
-                              (item.name === 'Analytics' && pathname.startsWith(`/dashboard/${currentBrand}/analytics`)) ||
-                              (item.name === 'Settings' && pathname.startsWith(`/dashboard/${currentBrand}/settings`))
+                              (item.name === 'Analytics' && pathname.startsWith(`/dashboard/${currentBrand}/analytics`))
               
               return (
                 <Link
