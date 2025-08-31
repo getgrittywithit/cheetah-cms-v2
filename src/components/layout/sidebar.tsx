@@ -28,13 +28,6 @@ function getBrandFromPath(pathname: string): string {
   
   const segment = match[1]
   
-  // These are global pages, not brands - don't show brand switcher
-  const globalPages = ['settings', 'brands']
-  
-  if (globalPages.includes(segment)) {
-    return '' // Return empty string for global pages
-  }
-  
   // Valid brand slugs (from brand-config.ts)
   const validBrands = getAllBrands().map(brand => brand.slug)
   
@@ -42,7 +35,9 @@ function getBrandFromPath(pathname: string): string {
     return segment
   }
   
-  return 'daily-dish-dash' // Default fallback
+  // For global pages (settings, brands), default to a brand so navigation stays visible
+  // You could enhance this to remember the last visited brand from localStorage
+  return 'grit-collective' // Default to show Grit Collective when on system pages
 }
 
 // Generate brand-specific navigation links
@@ -100,18 +95,16 @@ export default function Sidebar({ user }: SidebarProps) {
         </div>
       </div>
 
-      {/* Brand Switcher - only show for brand-specific pages */}
-      {currentBrand && currentBrand !== '' && (
-        <div className="px-4 py-3 bg-gray-800 border-b border-gray-700">
-          <div className="text-xs text-gray-400 uppercase tracking-wide mb-2">Current Brand</div>
-          <BrandSwitcher currentBrand={currentBrand} />
-        </div>
-      )}
+      {/* Brand Switcher - always show */}
+      <div className="px-4 py-3 bg-gray-800 border-b border-gray-700">
+        <div className="text-xs text-gray-400 uppercase tracking-wide mb-2">Current Brand</div>
+        <BrandSwitcher currentBrand={currentBrand} />
+      </div>
 
       {/* Navigation */}
       <nav className="flex-1 px-4 py-4 space-y-6">
-        {/* Brand-specific section - only show for brand pages */}
-        {currentBrand && currentBrand !== '' && (
+        {/* Brand-specific section - always show */}
+        {currentBrand && (
           <div>
             <div className="text-xs text-gray-400 uppercase tracking-wide mb-3 px-4">
               Brand Content
