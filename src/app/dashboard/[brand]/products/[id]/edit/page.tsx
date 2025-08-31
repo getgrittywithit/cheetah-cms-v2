@@ -125,6 +125,75 @@ export default function EditProductPage({ params }: { params: { brand: string, i
     setProduct({ ...product, variants: newVariants })
   }
 
+  const handleFeaturedImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('type', 'featured')
+
+      const response = await fetch(`/api/brands/${params.brand}/products/${params.id}/images`, {
+        method: 'POST',
+        body: formData
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        setProduct({ ...product, featured_image: data.imageUrl })
+      }
+    } catch (error) {
+      console.error('Failed to upload featured image:', error)
+    }
+  }
+
+  const handleAdditionalImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('type', 'additional')
+
+      const response = await fetch(`/api/brands/${params.brand}/products/${params.id}/images`, {
+        method: 'POST',
+        body: formData
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        setProduct({ 
+          ...product, 
+          images: [...product.images, data.imageUrl] 
+        })
+      }
+    } catch (error) {
+      console.error('Failed to upload additional image:', error)
+    }
+  }
+
+  const removeAdditionalImage = async (index: number) => {
+    const imageUrl = product.images[index]
+    
+    try {
+      const response = await fetch(
+        `/api/brands/${params.brand}/products/${params.id}/images?url=${encodeURIComponent(imageUrl)}&type=additional&index=${index}`, 
+        { method: 'DELETE' }
+      )
+
+      if (response.ok) {
+        setProduct({
+          ...product,
+          images: product.images.filter((_, i) => i !== index)
+        })
+      }
+    } catch (error) {
+      console.error('Failed to remove image:', error)
+    }
+  }
+
   if (!brandConfig) return <div>Brand not found</div>
   if (loading) return <div>Loading...</div>
 
@@ -215,15 +284,84 @@ export default function EditProductPage({ params }: { params: { brand: string, i
               <label className="block text-sm font-medium mb-1">Featured Image</label>
               <div className="flex items-center space-x-4">
                 {product.featured_image ? (
-                  <img src={product.featured_image} alt="" className="w-24 h-24 object-cover rounded" />
+                  <div className="relative">
+                    <img src={product.featured_image} alt="" className="w-24 h-24 object-cover rounded" />
+                    <button
+                      onClick={async () => {
+                        try {
+                          const response = await fetch(
+                            `/api/brands/${params.brand}/products/${params.id}/images?url=${encodeURIComponent(product.featured_image)}&type=featured`, 
+                            { method: 'DELETE' }
+                          )
+                          if (response.ok) {
+                            setProduct({ ...product, featured_image: '' })
+                          }
+                        } catch (error) {
+                          console.error('Failed to remove featured image:', error)
+                          // Fallback: remove from UI anyway
+                          setProduct({ ...product, featured_image: '' })
+                        }
+                      }}
+                      className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs hover:bg-red-600"
+                    >
+                      ×
+                    </button>
+                  </div>
                 ) : (
                   <div className="w-24 h-24 bg-gray-100 rounded flex items-center justify-center">
                     <Upload className="w-8 h-8 text-gray-400" />
                   </div>
                 )}
-                <button className="px-4 py-2 border rounded-lg hover:bg-gray-50">
-                  Upload Image
-                </button>
+                <div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFeaturedImageUpload}
+                    className="hidden"
+                    id="featured-image-upload"
+                  />
+                  <label
+                    htmlFor="featured-image-upload"
+                    className="px-4 py-2 border rounded-lg hover:bg-gray-50 cursor-pointer inline-block"
+                  >
+                    {product.featured_image ? 'Change Image' : 'Upload Image'}
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Additional Images</label>
+              <div className="grid grid-cols-4 gap-3">
+                {product.images.map((image, index) => (
+                  <div key={index} className="relative">
+                    <img src={image} alt="" className="w-full aspect-square object-cover rounded" />
+                    <button
+                      onClick={() => removeAdditionalImage(index)}
+                      className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs hover:bg-red-600"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+                {product.images.length < 8 && (
+                  <div className="aspect-square border-2 border-dashed border-gray-300 rounded flex items-center justify-center hover:border-gray-400 cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAdditionalImageUpload}
+                      className="hidden"
+                      id={`additional-image-upload-${product.images.length}`}
+                    />
+                    <label
+                      htmlFor={`additional-image-upload-${product.images.length}`}
+                      className="flex flex-col items-center text-gray-500 cursor-pointer"
+                    >
+                      <Plus className="w-6 h-6 mb-1" />
+                      <span className="text-xs">Add</span>
+                    </label>
+                  </div>
+                )}
               </div>
             </div>
           </div>
