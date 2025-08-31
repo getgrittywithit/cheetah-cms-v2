@@ -13,7 +13,8 @@ import {
   Building2,
   Calendar,
   ShoppingCart,
-  Users
+  Users,
+  Zap as Lightning
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import BrandSwitcher from './brand-switcher'
