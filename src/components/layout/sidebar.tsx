@@ -149,59 +149,57 @@ export default function Sidebar({ user }: SidebarProps) {
           </div>
         )}
 
-        {/* Global/System section */}
-        <div>
-          <div className="text-xs text-gray-400 uppercase tracking-wide mb-3 px-4">
-            System
-          </div>
-          <div className="space-y-2">
-            {globalNavigation.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href)
-              
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={clsx(
-                    'flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors',
-                    isActive
-                      ? 'bg-green-600 text-white' // Different color for global tabs
-                      : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                  )}
-                >
-                  <item.icon className="w-5 h-5 mr-3" />
-                  {item.name}
-                </Link>
-              )
-            })}
-          </div>
-        </div>
       </nav>
 
-      {/* User info and logout */}
+      {/* System Navigation */}
       <div className="border-t border-gray-800 p-4">
-        <div className="flex items-center space-x-3 mb-3">
-          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-            <span className="text-sm font-medium text-white">
-              {user.name.charAt(0).toUpperCase()}
-            </span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white truncate">
-              {user.name}
-            </p>
-            <p className="text-xs text-gray-600 truncate">
-              {user.role}
-            </p>
-          </div>
+        <div className="space-y-2 mb-4">
+          {globalNavigation.map((item) => {
+            const isActive = pathname === item.href || pathname.startsWith(item.href)
+            
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={clsx(
+                  'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors',
+                  isActive
+                    ? 'bg-green-600 text-white' // Different color for system links
+                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                )}
+              >
+                <item.icon className="w-4 h-4 mr-3" />
+                {item.name}
+              </Link>
+            )
+          })}
         </div>
-        <button
-          onClick={handleLogout}
-          className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white rounded-lg transition-colors"
-        >
-          <LogOut className="w-4 h-4 mr-3" />
-          Sign out
-        </button>
+        
+        {/* User info and logout */}
+        <div className="border-t border-gray-700 pt-3">
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+              <span className="text-sm font-medium text-white">
+                {user.name.charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-white truncate">
+                {user.name}
+              </p>
+              <p className="text-xs text-gray-600 truncate">
+                {user.role}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="flex items-center w-full px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white rounded-lg transition-colors"
+          >
+            <LogOut className="w-4 h-4 mr-3" />
+            Sign out
+          </button>
+        </div>
       </div>
     </div>
   )
