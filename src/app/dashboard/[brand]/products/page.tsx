@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Upload, Package, Edit2, Eye, Trash2, Palette, RefreshCw, ExternalLink, ShoppingCart, Wand2 } from 'lucide-react'
+import { Plus, Upload, Package, Edit2, Eye, Trash2, Palette, RefreshCw, ExternalLink, ShoppingCart, Wand2, Grid3X3, List } from 'lucide-react'
 import CanvasCreator from '../../products/canvas-creator'
 import { getBrandConfig } from '@/lib/brand-config'
 import AIProductGenerator from '@/components/ai/ai-product-generator'
@@ -13,6 +13,7 @@ export default function BrandProductsPage({ params }: { params: { brand: string 
   const [activeTab, setActiveTab] = useState('library')
   const [libraryProducts, setLibraryProducts] = useState<any[]>([])
   const [loadingLibrary, setLoadingLibrary] = useState(false)
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const brandConfig = getBrandConfig(params.brand)
 
   if (!brandConfig) {
@@ -192,6 +193,30 @@ export default function BrandProductsPage({ params }: { params: { brand: string 
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold">{brandConfig.name} Product Library</h2>
             <div className="flex space-x-3">
+              <div className="flex border border-gray-300 rounded-md overflow-hidden">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`px-3 py-1 text-sm flex items-center ${
+                    viewMode === 'grid' 
+                      ? 'bg-blue-600 text-white' 
+                      : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <Grid3X3 className="w-4 h-4 mr-1" />
+                  Grid
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`px-3 py-1 text-sm flex items-center ${
+                    viewMode === 'list' 
+                      ? 'bg-blue-600 text-white' 
+                      : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <List className="w-4 h-4 mr-1" />
+                  List
+                </button>
+              </div>
               <button className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
                 Filter
               </button>
@@ -208,67 +233,149 @@ export default function BrandProductsPage({ params }: { params: { brand: string 
               <p className="text-gray-600">Loading products...</p>
             </div>
           ) : libraryProducts.length > 0 ? (
-            /* Product Grid */
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {libraryProducts.map((product) => (
-                <div key={product.id} className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="aspect-square bg-gray-100 relative">
-                    {product.featured_image ? (
-                      <img 
-                        src={product.featured_image} 
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Package className="w-16 h-16 text-gray-400" />
+            viewMode === 'grid' ? (
+              /* Grid View */
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {libraryProducts.map((product) => (
+                  <div key={product.id} className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+                    <div className="aspect-square bg-gray-100 relative">
+                      {product.featured_image ? (
+                        <img 
+                          src={product.featured_image} 
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Package className="w-16 h-16 text-gray-400" />
+                        </div>
+                      )}
+                      <div className="absolute top-2 right-2 flex space-x-1">
+                        <button 
+                          onClick={() => router.push(`/dashboard/${params.brand}/products/${product.id}`)}
+                          className="p-1 bg-white rounded shadow-sm hover:bg-gray-50"
+                          title="View"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => router.push(`/dashboard/${params.brand}/products/${product.id}/edit`)}
+                          className="p-1 bg-white rounded shadow-sm hover:bg-gray-50"
+                          title="Edit"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(product.id)}
+                          className="p-1 bg-white rounded shadow-sm hover:bg-gray-50 text-red-600"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
-                    )}
-                    <div className="absolute top-2 right-2 flex space-x-1">
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-medium text-gray-900 mb-1">{product.name}</h3>
+                      <p className="text-sm text-gray-600 mb-2">
+                        {product.product_type === 'printful' ? 'Print-on-demand' : product.product_type}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg font-bold text-gray-900">
+                          ${(product.price || 0).toFixed(2)}
+                        </span>
+                        <span className={`px-2 py-1 ${
+                          product.status === 'active' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-gray-100 text-gray-800'
+                        } text-xs rounded`}>
+                          {product.status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              /* List View */
+              <div className="space-y-2">
+                <div className="grid grid-cols-12 gap-4 text-xs font-medium text-gray-500 uppercase tracking-wide px-4 py-2 border-b">
+                  <div className="col-span-4">Product</div>
+                  <div className="col-span-2">Category</div>
+                  <div className="col-span-1">Price</div>
+                  <div className="col-span-2">Status</div>
+                  <div className="col-span-2">Last Updated</div>
+                  <div className="col-span-1">Actions</div>
+                </div>
+                
+                {libraryProducts.map((product) => (
+                  <div key={product.id} className="grid grid-cols-12 gap-4 items-center px-4 py-3 border border-gray-200 rounded-lg hover:bg-gray-50">
+                    <div className="col-span-4 flex items-center space-x-3">
+                      {product.featured_image ? (
+                        <img 
+                          src={product.featured_image} 
+                          alt={product.name}
+                          className="w-12 h-12 object-cover rounded"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">
+                          <Package className="w-6 h-6 text-gray-400" />
+                        </div>
+                      )}
+                      <div>
+                        <h3 className="font-medium text-gray-900">{product.name}</h3>
+                        <p className="text-sm text-gray-500">{product.slug}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="col-span-2 text-sm text-gray-600">
+                      {product.product_type === 'printful' ? 'Print-on-demand' : product.product_type}
+                    </div>
+                    
+                    <div className="col-span-1 text-sm font-medium">
+                      ${(product.price || 0).toFixed(2)}
+                    </div>
+                    
+                    <div className="col-span-2">
+                      <span className={`inline-flex px-2 py-1 text-xs rounded-full ${
+                        product.status === 'active' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {product.status}
+                      </span>
+                    </div>
+                    
+                    <div className="col-span-2 text-sm text-gray-500">
+                      {new Date(product.updated_at).toLocaleDateString()}
+                    </div>
+                    
+                    <div className="col-span-1 flex space-x-1">
                       <button 
                         onClick={() => router.push(`/dashboard/${params.brand}/products/${product.id}`)}
-                        className="p-1 bg-white rounded shadow-sm hover:bg-gray-50"
+                        className="p-1 hover:bg-gray-100 rounded"
                         title="View"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => router.push(`/dashboard/${params.brand}/products/${product.id}/edit`)}
-                        className="p-1 bg-white rounded shadow-sm hover:bg-gray-50"
+                        className="p-1 hover:bg-gray-100 rounded"
                         title="Edit"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => handleDelete(product.id)}
-                        className="p-1 bg-white rounded shadow-sm hover:bg-gray-50 text-red-600"
+                        className="p-1 hover:bg-gray-100 rounded text-red-600"
                         title="Delete"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
-                  <div className="p-4">
-                    <h3 className="font-medium text-gray-900 mb-1">{product.name}</h3>
-                    <p className="text-sm text-gray-600 mb-2">
-                      {product.product_type === 'printful' ? 'Print-on-demand' : product.product_type}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold text-gray-900">
-                        ${(product.price || 0).toFixed(2)}
-                      </span>
-                      <span className={`px-2 py-1 ${
-                        product.status === 'active' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-gray-100 text-gray-800'
-                      } text-xs rounded`}>
-                        {product.status}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )
           ) : (
             !loadingLibrary && (
               /* Empty State */
