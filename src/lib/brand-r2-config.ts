@@ -26,7 +26,7 @@ export function getBrandR2Config(brandSlug: string): BrandR2Config | null {
         accountId: process.env.GRIT_COLLECTIVE_R2_ACCOUNT_ID || process.env.R2_ACCOUNT_ID || '',
         accessKeyId: process.env.GRIT_COLLECTIVE_R2_ACCESS_KEY_ID || process.env.R2_ACCESS_KEY_ID || '',
         secretAccessKey: process.env.GRIT_COLLECTIVE_R2_SECRET_ACCESS_KEY || process.env.R2_SECRET_ACCESS_KEY || '',
-        bucketName: process.env.GRIT_COLLECTIVE_R2_BUCKET || 'grit-collective',
+        bucketName: process.env.GRIT_COLLECTIVE_R2_BUCKET || 'grit-collective-media',
         publicUrl: process.env.GRIT_COLLECTIVE_R2_PUBLIC_URL || process.env.R2_PUBLIC_URL
       }
     

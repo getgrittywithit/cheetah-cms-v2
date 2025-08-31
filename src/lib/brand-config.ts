@@ -107,7 +107,7 @@ Target Audience: Busy professionals and home cooks looking for quick, tasty meal
     name: 'Grit Collective Co.',
     slug: 'grit-collective',
     description: 'Handcrafted products that inspire positive emotions and meaningful connections. We create unique home décor, candles, and personalized items.',
-    bucket: process.env.GRIT_COLLECTIVE_R2_BUCKET || 'grit-collective',
+    bucket: process.env.GRIT_COLLECTIVE_R2_BUCKET || 'grit-collective-media',
     theme: {
       primary: '#2D4A3A',    // Deep forest green
       secondary: '#8B7355',  // Warm brown
