@@ -509,9 +509,10 @@ function BrandPrintfulSync({ brand, brandConfig }: { brand: string, brandConfig:
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Variants ({selectedProduct.variant_count})</label>
+                    <label className="text-sm font-medium text-gray-700">Variants ({selectedProduct.variant_count || 0})</label>
                     <div className="mt-2 space-y-2">
-                      {selectedProduct.variants.map((variant) => (
+                      {selectedProduct.variants && selectedProduct.variants.length > 0 ? (
+                        selectedProduct.variants.map((variant) => (
                         <div key={variant.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
                           <div>
                             <p className="font-medium text-sm">{variant.name}</p>
@@ -529,7 +530,13 @@ function BrandPrintfulSync({ brand, brandConfig }: { brand: string, brandConfig:
                             </span>
                           </div>
                         </div>
-                      ))}
+                      ))
+                      ) : (
+                        <div className="text-center py-4 text-gray-500">
+                          <p className="text-sm">No variant details available</p>
+                          <p className="text-xs mt-1">Sync individual product for full details</p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -689,7 +696,7 @@ function BrandPrintfulSync({ brand, brandConfig }: { brand: string, brandConfig:
         <AIProductGenerator
           productName={showAIGenerator.name}
           productImage={showAIGenerator.thumbnail}
-          variants={showAIGenerator.variants}
+          variants={showAIGenerator.variants || []}
           onDataGenerated={handleAIDataGenerated}
           onClose={() => setShowAIGenerator(null)}
         />
