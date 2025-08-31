@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Plus, Upload, Package, Edit2, Eye, Trash2, Palette, RefreshCw, ExternalLink, ShoppingCart, Wand2 } from 'lucide-react'
 import CanvasCreator from '../../products/canvas-creator'
 import { getBrandConfig } from '@/lib/brand-config'
@@ -8,6 +9,7 @@ import AIProductGenerator from '@/components/ai/ai-product-generator'
 import type { GeneratedProductData } from '@/lib/ai-product-generator'
 
 export default function BrandProductsPage({ params }: { params: { brand: string } }) {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState('library')
   const [libraryProducts, setLibraryProducts] = useState<any[]>([])
   const [loadingLibrary, setLoadingLibrary] = useState(false)
@@ -30,6 +32,23 @@ export default function BrandProductsPage({ params }: { params: { brand: string 
       console.error('Failed to fetch products:', error)
     } finally {
       setLoadingLibrary(false)
+    }
+  }
+
+  const handleDelete = async (productId: string) => {
+    if (!confirm('Are you sure you want to delete this product?')) return
+    
+    try {
+      const response = await fetch(`/api/brands/${params.brand}/products/${productId}`, {
+        method: 'DELETE'
+      })
+      
+      if (response.ok) {
+        // Refresh products list
+        fetchLibraryProducts()
+      }
+    } catch (error) {
+      console.error('Failed to delete product:', error)
     }
   }
 
@@ -206,13 +225,25 @@ export default function BrandProductsPage({ params }: { params: { brand: string 
                       </div>
                     )}
                     <div className="absolute top-2 right-2 flex space-x-1">
-                      <button className="p-1 bg-white rounded shadow-sm hover:bg-gray-50">
+                      <button 
+                        onClick={() => router.push(`/dashboard/${params.brand}/products/${product.id}`)}
+                        className="p-1 bg-white rounded shadow-sm hover:bg-gray-50"
+                        title="View"
+                      >
                         <Eye className="w-4 h-4" />
                       </button>
-                      <button className="p-1 bg-white rounded shadow-sm hover:bg-gray-50">
+                      <button 
+                        onClick={() => router.push(`/dashboard/${params.brand}/products/${product.id}/edit`)}
+                        className="p-1 bg-white rounded shadow-sm hover:bg-gray-50"
+                        title="Edit"
+                      >
                         <Edit2 className="w-4 h-4" />
                       </button>
-                      <button className="p-1 bg-white rounded shadow-sm hover:bg-gray-50 text-red-600">
+                      <button 
+                        onClick={() => handleDelete(product.id)}
+                        className="p-1 bg-white rounded shadow-sm hover:bg-gray-50 text-red-600"
+                        title="Delete"
+                      >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
