@@ -111,7 +111,17 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
     console.log('Order created successfully:', order.id)
 
-    // TODO: Send confirmation email to customer
+    // Send order notification to CMS for confirmation email
+    await sendOrderNotificationToCMS({
+      orderId: session.id,
+      brandSlug: metadata.brand_slug || 'grit-collective',
+      customerEmail: session.customer_details?.email || '',
+      customerName: session.customer_details?.name || undefined,
+      items: orderItems,
+      total: session.amount_total || 0,
+      currency: session.currency || 'usd'
+    })
+
     // TODO: Notify brand owner
     // TODO: Update inventory if needed
 
@@ -159,5 +169,45 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
     }
   } catch (error) {
     console.error('Error handling payment failed:', error)
+  }
+}
+
+interface OrderNotification {
+  orderId: string
+  brandSlug: string
+  customerEmail: string
+  customerName?: string
+  items: Array<{
+    name: string
+    quantity: number
+    price: number
+  }>
+  total: number
+  currency: string
+}
+
+async function sendOrderNotificationToCMS(orderData: OrderNotification) {
+  try {
+    // Get the CMS base URL - in development it's the same server, in production it would be the CMS domain
+    const cmsBaseUrl = process.env.CMS_BASE_URL || process.env.NEXTAUTH_URL || 'http://localhost:3001'
+    
+    const response = await fetch(`${cmsBaseUrl}/api/webhooks/storefront/order`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(orderData)
+    })
+
+    if (!response.ok) {
+      throw new Error(`CMS notification failed: ${response.status} ${response.statusText}`)
+    }
+
+    const result = await response.json()
+    console.log('Order notification sent to CMS successfully:', result)
+    
+  } catch (error) {
+    console.error('Failed to send order notification to CMS:', error)
+    // Don't throw - we don't want to fail the webhook if email fails
   }
 }
