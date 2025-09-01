@@ -46,13 +46,14 @@ export async function GET(
       }, { status: 500 })
     }
 
-    // For now, we'll set product_count to match existing products approximately
-    // In a real implementation, you'd join with products table or count properly
-    const categoriesWithCounts = categories?.map((cat, index) => ({
-      id: cat.slug, // Use slug as ID for storefront compatibility
+    // Format categories for both admin UI and storefront compatibility
+    const categoriesWithCounts = categories?.map((cat) => ({
+      id: cat.id, // Use actual ID for admin operations
       name: cat.name,
       slug: cat.slug,
-      description: cat.description,
+      description: cat.description || '',
+      parent_id: cat.parent_id,
+      sort_order: cat.sort_order,
       product_count: cat.slug === 'apparel' ? 1 : cat.slug === 'accessories' ? 2 : 0 // Based on actual products
     })) || []
 
