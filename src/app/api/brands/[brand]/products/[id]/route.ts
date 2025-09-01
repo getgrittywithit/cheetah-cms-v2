@@ -42,7 +42,7 @@ export async function GET(
       success: true, 
       product: {
         ...product,
-        category: product.tags?.includes('home-decor') ? 'Home Décor' : 'Uncategorized',
+        product_type: product.product_type || 'handmade',
         variants: [] // Will be populated from variants table
       }
     })
@@ -93,6 +93,8 @@ export async function PUT(
         seo_title: updates.seo_title,
         seo_description: updates.seo_description,
         slug: updates.slug,
+        product_type: updates.product_type || 'handmade',
+        primary_category_id: updates.primary_category_id,
         updated_at: new Date().toISOString()
       })
       .eq('id', params.id)

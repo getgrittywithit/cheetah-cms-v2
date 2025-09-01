@@ -29,7 +29,8 @@ export default function EditProductPage({ params }: { params: { brand: string, i
     status: 'draft' as 'draft' | 'active',
     featured_image: '',
     images: [] as string[],
-    category: '',
+    product_type: 'handmade' as 'handmade' | 'printful' | 'digital',
+    primary_category_id: '',
     tags: [] as string[],
     seo_title: '',
     seo_description: '',
@@ -37,20 +38,31 @@ export default function EditProductPage({ params }: { params: { brand: string, i
     variants: [] as ProductVariant[]
   })
 
-  // Available categories (could be fetched from API)
-  const categories = [
-    'Uncategorized',
-    'Home Décor',
-    'Candles',
-    'Wall Art',
-    'Apparel',
-    'Accessories',
-    'Stationery'
+  const [categories, setCategories] = useState<Array<{id: string, name: string, slug: string}>>([]);
+  
+  // Product type options with user-friendly names
+  const productTypes = [
+    { value: 'handmade', label: 'Handcrafted' },
+    { value: 'printful', label: 'Made to Order' },
+    { value: 'digital', label: 'Digital Download' }
   ]
 
   useEffect(() => {
     fetchProduct()
+    fetchCategories()
   }, [])
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch(`/api/brands/${params.brand}/categories`)
+      const data = await response.json()
+      if (data.success && data.categories) {
+        setCategories(data.categories)
+      }
+    } catch (error) {
+      console.error('Failed to fetch categories:', error)
+    }
+  }
 
   const fetchProduct = async () => {
     try {
@@ -65,7 +77,8 @@ export default function EditProductPage({ params }: { params: { brand: string, i
           status: data.product.status || 'draft',
           featured_image: data.product.featured_image || '',
           images: data.product.images || [],
-          category: data.product.category || 'Uncategorized',
+          product_type: data.product.product_type || 'handmade',
+          primary_category_id: data.product.primary_category_id || '',
           tags: data.product.tags || [],
           seo_title: data.product.seo_title || data.product.name || '',
           seo_description: data.product.seo_description || '',
@@ -436,14 +449,33 @@ export default function EditProductPage({ params }: { params: { brand: string, i
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Category</label>
+              <label className="block text-sm font-medium mb-1">Product Type</label>
               <select
-                value={product.category}
-                onChange={(e) => setProduct({ ...product, category: e.target.value })}
+                value={product.product_type}
+                onChange={(e) => setProduct({ ...product, product_type: e.target.value as 'handmade' | 'printful' | 'digital' })}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               >
+                {productTypes.map(type => (
+                  <option key={type.value} value={type.value}>{type.label}</option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                {product.product_type === 'handmade' && 'Handcrafted items made by you'}
+                {product.product_type === 'printful' && 'Print-on-demand products fulfilled by Printful'}
+                {product.product_type === 'digital' && 'Downloadable digital files'}
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Category</label>
+              <select
+                value={product.primary_category_id}
+                onChange={(e) => setProduct({ ...product, primary_category_id: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select a category</option>
                 {categories.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
                 ))}
               </select>
             </div>
@@ -454,7 +486,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
                 type="text"
                 value={product.tags.join(', ')}
                 onChange={(e) => setProduct({ ...product, tags: e.target.value.split(',').map(t => t.trim()).filter(t => t) })}
-                placeholder="printful, home decor, gift"
+                placeholder="summer, gift idea, bestseller"
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>

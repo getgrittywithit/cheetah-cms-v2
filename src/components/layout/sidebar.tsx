@@ -14,6 +14,8 @@ import {
   Calendar,
   ShoppingCart,
   Users,
+  PenTool,
+  Mail,
   Zap as Lightning
 } from 'lucide-react'
 import { clsx } from 'clsx'
@@ -46,6 +48,8 @@ function getBrandNavigation(brand: string) {
   return [
     { name: 'Dashboard', href: brandPath, icon: LayoutDashboard },
     { name: 'Content Creator', href: `${brandPath}/content`, icon: Megaphone },
+    { name: 'Blog', href: `${brandPath}/blog`, icon: PenTool },
+    { name: 'Email', href: `${brandPath}/email`, icon: Mail },
     { name: 'Calendar', href: `${brandPath}/calendar`, icon: Calendar },
     { name: 'Products', href: `${brandPath}/products`, icon: Package },
     { name: 'Orders', href: `${brandPath}/orders`, icon: ShoppingCart },
@@ -110,6 +114,8 @@ export default function Sidebar({ user }: SidebarProps) {
               {brandNavigation.map((item) => {
               const isActive = pathname === item.href || 
                               (item.name === 'Content Creator' && pathname.startsWith(`/dashboard/${currentBrand}/content`)) ||
+                              (item.name === 'Blog' && pathname.startsWith(`/dashboard/${currentBrand}/blog`)) ||
+                              (item.name === 'Email' && pathname.startsWith(`/dashboard/${currentBrand}/email`)) ||
                               (item.name === 'Calendar' && pathname.startsWith(`/dashboard/${currentBrand}/calendar`)) ||
                               (item.name === 'Products' && pathname.startsWith(`/dashboard/${currentBrand}/products`)) ||
                               (item.name === 'Orders' && pathname.startsWith(`/dashboard/${currentBrand}/orders`)) ||

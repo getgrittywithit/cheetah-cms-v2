@@ -17,7 +17,9 @@ import {
   FileImage,
   MoreHorizontal,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  PenTool,
+  Mail
 } from 'lucide-react'
 import { BrandConfig } from '@/lib/brand-config'
 import { getAllPlatforms } from '@/lib/platform-config'
@@ -35,6 +37,29 @@ interface ScheduledPost {
   createdAt: Date
 }
 
+interface ScheduledBlogPost {
+  id: string
+  title: string
+  excerpt: string
+  scheduledDate: Date
+  status: 'scheduled' | 'published'
+  tags: string[]
+  wordCount: number
+  type: 'blog'
+}
+
+interface ScheduledEmail {
+  id: string
+  subject: string
+  listName: string
+  scheduledDate: Date
+  status: 'scheduled' | 'sent'
+  recipients: number
+  type: 'email'
+}
+
+type CalendarItem = ScheduledPost | ScheduledBlogPost | ScheduledEmail
+
 interface BrandCalendarProps {
   brandConfig: BrandConfig
 }
@@ -46,9 +71,11 @@ const platformIcons = {
   instagram: Instagram,
   twitter: Twitter,
   youtube: Youtube,
-  tiktok: FileImage, // Using FileImage as placeholder for TikTok
+  tiktok: FileImage,
   pinterest: FileImage,
-  linkedin: FileImage
+  linkedin: FileImage,
+  blog: PenTool,
+  email: Mail
 }
 
 const platformColors = {
@@ -58,7 +85,9 @@ const platformColors = {
   youtube: '#FF0000',
   tiktok: '#000000',
   pinterest: '#E60023',
-  linkedin: '#0077B5'
+  linkedin: '#0077B5',
+  blog: '#8B5CF6',
+  email: '#10B981'
 }
 
 export default function BrandCalendar({ brandConfig }: BrandCalendarProps) {
@@ -66,6 +95,8 @@ export default function BrandCalendar({ brandConfig }: BrandCalendarProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('month')
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['all'])
   const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>([])
+  const [scheduledBlogs, setScheduledBlogs] = useState<ScheduledBlogPost[]>([])
+  const [scheduledEmails, setScheduledEmails] = useState<ScheduledEmail[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedPost, setSelectedPost] = useState<ScheduledPost | null>(null)
   const [showPostModal, setShowPostModal] = useState(false)
@@ -85,40 +116,80 @@ export default function BrandCalendar({ brandConfig }: BrandCalendarProps) {
       const startDate = viewMode === 'month' ? getMonthStart(currentDate) : getWeekStart(currentDate)
       const endDate = viewMode === 'month' ? getMonthEnd(currentDate) : getWeekEnd(currentDate)
       
-      const response = await fetch(`/api/marketing/posts?brandId=${brandConfig.slug}&status=scheduled&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
+      // Load social media posts
+      const postsResponse = await fetch(`/api/marketing/posts?brandId=${brandConfig.slug}&status=scheduled&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
       
-      if (!response.ok) {
-        if (response.status === 500) {
-          throw new Error('Server error occurred while loading scheduled posts. Please try again later.')
-        } else if (response.status === 404) {
-          throw new Error('Calendar data not found. Please check your brand configuration.')
-        } else {
-          throw new Error(`Failed to load scheduled posts (${response.status}). Please try again.`)
+      // Load blog posts
+      const blogsResponse = await fetch(`/api/blog/posts?brandId=${brandConfig.slug}&status=scheduled&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
+      
+      // Load email campaigns
+      const emailsResponse = await fetch(`/api/email/campaigns?brandId=${brandConfig.slug}&status=scheduled&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
+      
+      let posts: ScheduledPost[] = []
+      let blogs: ScheduledBlogPost[] = []
+      let emails: ScheduledEmail[] = []
+
+      // Handle social media posts
+      if (postsResponse.ok) {
+        const postsData = await postsResponse.json()
+        if (postsData.success) {
+          posts = postsData.posts.map((post: any) => ({
+            id: post.id,
+            title: post.content.substring(0, 50) + '...',
+            content: post.content,
+            platform: post.platform,
+            scheduledDate: new Date(post.scheduledFor),
+            status: post.status,
+            media: post.media || [],
+            hashtags: post.hashtags || [],
+            createdAt: new Date(post.createdAt)
+          }))
         }
       }
-      
-      const data = await response.json()
-      
-      if (data.success) {
-        const posts: ScheduledPost[] = data.posts.map((post: any) => ({
-          id: post.id,
-          title: post.content.substring(0, 50) + '...',
-          content: post.content,
-          platform: post.platform,
-          scheduledDate: new Date(post.scheduledFor),
-          status: post.status,
-          media: post.media || [],
-          hashtags: post.hashtags || [],
-          createdAt: new Date(post.createdAt)
-        }))
-        setScheduledPosts(posts)
-      } else {
-        throw new Error(data.error || 'Unknown error occurred while loading scheduled posts')
+
+      // Handle blog posts
+      if (blogsResponse.ok) {
+        const blogsData = await blogsResponse.json()
+        if (blogsData.success) {
+          blogs = blogsData.posts.filter((post: any) => post.scheduled_for).map((post: any) => ({
+            id: post.id,
+            title: post.title,
+            excerpt: post.excerpt,
+            scheduledDate: new Date(post.scheduled_for),
+            status: post.status,
+            tags: post.tags || [],
+            wordCount: post.word_count,
+            type: 'blog' as const
+          }))
+        }
       }
+
+      // Handle email campaigns
+      if (emailsResponse.ok) {
+        const emailsData = await emailsResponse.json()
+        if (emailsData.success) {
+          emails = emailsData.campaigns.filter((campaign: any) => campaign.scheduled_for).map((campaign: any) => ({
+            id: campaign.id,
+            subject: campaign.subject,
+            listName: campaign.list_name,
+            scheduledDate: new Date(campaign.scheduled_for),
+            status: campaign.status,
+            recipients: campaign.recipients,
+            type: 'email' as const
+          }))
+        }
+      }
+
+      setScheduledPosts(posts)
+      setScheduledBlogs(blogs)
+      setScheduledEmails(emails)
+      
     } catch (error) {
-      console.error('Failed to load scheduled posts:', error)
-      setError(error instanceof Error ? error.message : 'An unexpected error occurred while loading scheduled posts')
-      setScheduledPosts([]) // Clear any existing posts
+      console.error('Failed to load scheduled content:', error)
+      setError(error instanceof Error ? error.message : 'An unexpected error occurred while loading scheduled content')
+      setScheduledPosts([])
+      setScheduledBlogs([])
+      setScheduledEmails([])
     } finally {
       setLoading(false)
     }
@@ -177,10 +248,28 @@ export default function BrandCalendar({ brandConfig }: BrandCalendarProps) {
     return selectedPlatforms.includes(post.platform)
   })
 
-  const getPostsForDate = (date: Date) => {
-    return filteredPosts.filter(post => 
+  const filteredBlogs = scheduledBlogs.filter(blog => {
+    if (selectedPlatforms.includes('all')) return true
+    return selectedPlatforms.includes('blog')
+  })
+
+  const filteredEmails = scheduledEmails.filter(email => {
+    if (selectedPlatforms.includes('all')) return true
+    return selectedPlatforms.includes('email')
+  })
+
+  const getItemsForDate = (date: Date): CalendarItem[] => {
+    const posts = filteredPosts.filter(post => 
       post.scheduledDate.toDateString() === date.toDateString()
     )
+    const blogs = filteredBlogs.filter(blog => 
+      blog.scheduledDate.toDateString() === date.toDateString()
+    )
+    const emails = filteredEmails.filter(email => 
+      email.scheduledDate.toDateString() === date.toDateString()
+    )
+    
+    return [...posts, ...blogs, ...emails]
   }
 
   const openPostModal = (post: ScheduledPost) => {
@@ -199,7 +288,7 @@ export default function BrandCalendar({ brandConfig }: BrandCalendarProps) {
       const week = []
       for (let i = 0; i < 7; i++) {
         const date = new Date(current)
-        const postsForDate = getPostsForDate(date)
+        const itemsForDate = getItemsForDate(date)
         const isCurrentMonth = date.getMonth() === currentDate.getMonth()
         const isToday = date.toDateString() === new Date().toDateString()
 
@@ -217,26 +306,47 @@ export default function BrandCalendar({ brandConfig }: BrandCalendarProps) {
             </div>
             
             <div className="space-y-1">
-              {postsForDate.slice(0, 3).map(post => {
-                const Icon = platformIcons[post.platform as keyof typeof platformIcons]
+              {itemsForDate.slice(0, 3).map(item => {
+                let platform: string, Icon: any, color: string, displayText: string
+                
+                if ('platform' in item) {
+                  // Social media post
+                  platform = item.platform
+                  Icon = platformIcons[item.platform as keyof typeof platformIcons]
+                  color = platformColors[item.platform as keyof typeof platformColors]
+                  displayText = item.scheduledDate.toTimeString().slice(0, 5)
+                } else if (item.type === 'blog') {
+                  // Blog post
+                  platform = 'blog'
+                  Icon = PenTool
+                  color = platformColors.blog
+                  displayText = item.title.length > 15 ? item.title.slice(0, 15) + '...' : item.title
+                } else {
+                  // Email campaign
+                  platform = 'email'
+                  Icon = Mail
+                  color = platformColors.email
+                  displayText = item.subject.length > 15 ? item.subject.slice(0, 15) + '...' : item.subject
+                }
+                
                 return (
                   <div
-                    key={post.id}
-                    onClick={() => openPostModal(post)}
+                    key={item.id}
+                    onClick={() => 'platform' in item ? openPostModal(item) : {}}
                     className="text-xs p-1 rounded cursor-pointer hover:bg-gray-100 flex items-center space-x-1"
-                    style={{ borderLeft: `3px solid ${platformColors[post.platform as keyof typeof platformColors]}` }}
+                    style={{ borderLeft: `3px solid ${color}` }}
                   >
                     <Icon className="w-3 h-3" />
                     <Clock className="w-3 h-3" />
                     <span className="truncate">
-                      {post.scheduledDate.toTimeString().slice(0, 5)}
+                      {'platform' in item ? item.scheduledDate.toTimeString().slice(0, 5) : displayText}
                     </span>
                   </div>
                 )
               })}
-              {postsForDate.length > 3 && (
+              {itemsForDate.length > 3 && (
                 <div className="text-xs text-gray-500 p-1">
-                  +{postsForDate.length - 3} more
+                  +{itemsForDate.length - 3} more
                 </div>
               )}
             </div>
@@ -282,7 +392,7 @@ export default function BrandCalendar({ brandConfig }: BrandCalendarProps) {
     for (let i = 0; i < 7; i++) {
       const date = new Date(startDate)
       date.setDate(date.getDate() + i)
-      const postsForDate = getPostsForDate(date)
+      const itemsForDate = getItemsForDate(date)
       const isToday = date.toDateString() === new Date().toDateString()
 
       days.push(
@@ -299,45 +409,59 @@ export default function BrandCalendar({ brandConfig }: BrandCalendarProps) {
           </div>
           
           <div className="p-3 min-h-[400px] space-y-2">
-            {postsForDate.map(post => {
-              const Icon = platformIcons[post.platform as keyof typeof platformIcons]
+            {itemsForDate.map(item => {
+              let platform: string, Icon: any, color: string, content: string, details: string[]
+              
+              if ('platform' in item) {
+                // Social media post
+                platform = item.platform
+                Icon = platformIcons[item.platform as keyof typeof platformIcons]
+                color = platformColors[item.platform as keyof typeof platformColors]
+                content = item.content
+                details = [`${item.media.length} images`, item.hashtags.slice(0, 3).join(' ')]
+              } else if (item.type === 'blog') {
+                // Blog post
+                platform = 'blog'
+                Icon = PenTool
+                color = platformColors.blog
+                content = item.excerpt || item.title
+                details = [`${item.wordCount} words`, item.tags.slice(0, 3).join(', ')]
+              } else {
+                // Email campaign
+                platform = 'email'
+                Icon = Mail
+                color = platformColors.email
+                content = item.subject
+                details = [`${item.recipients} recipients`, item.listName]
+              }
+              
               return (
                 <div
-                  key={post.id}
-                  onClick={() => openPostModal(post)}
+                  key={item.id}
+                  onClick={() => 'platform' in item ? openPostModal(item) : {}}
                   className="p-3 rounded-lg cursor-pointer hover:bg-gray-50 border border-gray-200"
-                  style={{ borderLeft: `4px solid ${platformColors[post.platform as keyof typeof platformColors]}` }}
+                  style={{ borderLeft: `4px solid ${color}` }}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-2">
                       <Icon className="w-4 h-4" />
                       <span className="text-xs font-medium text-gray-600 uppercase">
-                        {post.platform}
+                        {platform}
                       </span>
                     </div>
                     <div className="flex items-center space-x-1 text-xs text-gray-500">
                       <Clock className="w-3 h-3" />
-                      {post.scheduledDate.toTimeString().slice(0, 5)}
+                      {item.scheduledDate.toTimeString().slice(0, 5)}
                     </div>
                   </div>
                   
                   <p className="text-sm text-gray-900 line-clamp-3 mb-2">
-                    {post.content}
+                    {content}
                   </p>
                   
-                  {post.media.length > 0 && (
-                    <div className="flex items-center space-x-1 text-xs text-gray-500">
-                      <FileImage className="w-3 h-3" />
-                      <span>{post.media.length} image{post.media.length > 1 ? 's' : ''}</span>
-                    </div>
-                  )}
-                  
-                  {post.hashtags.length > 0 && (
-                    <div className="text-xs text-gray-500 mt-1">
-                      {post.hashtags.slice(0, 3).join(' ')}
-                      {post.hashtags.length > 3 && ' ...'}
-                    </div>
-                  )}
+                  <div className="text-xs text-gray-500 mt-1">
+                    {details.filter(Boolean).join(' • ')}
+                  </div>
                 </div>
               )
             })}
@@ -460,6 +584,38 @@ export default function BrandCalendar({ brandConfig }: BrandCalendarProps) {
                 </button>
               )
             })}
+            
+            {/* Blog Filter */}
+            <button
+              onClick={() => togglePlatformFilter('blog')}
+              className={`flex items-center space-x-1 px-2 py-1 text-xs rounded-full ${
+                selectedPlatforms.includes('blog')
+                  ? 'text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+              style={{
+                backgroundColor: selectedPlatforms.includes('blog') ? platformColors.blog : undefined
+              }}
+            >
+              <PenTool className="w-3 h-3" />
+              <span className="hidden sm:inline">Blog</span>
+            </button>
+            
+            {/* Email Filter */}
+            <button
+              onClick={() => togglePlatformFilter('email')}
+              className={`flex items-center space-x-1 px-2 py-1 text-xs rounded-full ${
+                selectedPlatforms.includes('email')
+                  ? 'text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+              style={{
+                backgroundColor: selectedPlatforms.includes('email') ? platformColors.email : undefined
+              }}
+            >
+              <Mail className="w-3 h-3" />
+              <span className="hidden sm:inline">Email</span>
+            </button>
           </div>
         </div>
       </div>
