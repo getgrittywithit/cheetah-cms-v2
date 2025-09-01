@@ -26,6 +26,13 @@ export interface BrandConfig {
     personality: string[]
     systemPrompt: string
   }
+  emailSettings: {
+    domain: string
+    fromName: string
+    fromEmail: string
+    replyTo?: string
+    signature?: string
+  }
   industry: string
   targetAudience: string
 }
@@ -98,6 +105,13 @@ export const brandConfigs: Record<string, BrandConfig> = {
 Brand Focus: Quick recipes (15-30 minutes max), accessible ingredients, simple techniques
 Target Audience: Busy professionals and home cooks looking for quick, tasty meal solutions`
     },
+    emailSettings: {
+      domain: 'dailydishdash.com',
+      fromName: 'Daily Dish Dash',
+      fromEmail: 'hello@dailydishdash.com',
+      replyTo: 'support@dailydishdash.com',
+      signature: 'Happy cooking! 🍳\nThe Daily Dish Dash Team'
+    },
     industry: 'Food & Cooking',
     targetAudience: 'Busy professionals and home cooks looking for quick, tasty meal solutions'
   },
@@ -149,6 +163,13 @@ Voice Guidelines:
 - Use phrases like "Handcrafted with love", "Made by our family for yours", "No quit, just grit"
 - Focus on sensory descriptions (scents, textures, feelings)
 - Highlight quality craftsmanship and emotional connections`
+    },
+    emailSettings: {
+      domain: 'gritcollectiveco.com',
+      fromName: 'Grit Collective Co.',
+      fromEmail: 'hello@gritcollectiveco.com',
+      replyTo: 'support@gritcollectiveco.com',
+      signature: 'With grit and gratitude,\nThe Grit Collective Co. Family'
     },
     industry: 'Home Décor & Handcrafted Products',
     targetAudience: 'Luxury conscious buyers, everyday inspiration seekers, and memorial & personalization customers'

@@ -147,7 +147,8 @@ export async function POST(request: NextRequest) {
       }
 
       const emailResult = await sendEmail(recipients, emailTemplate, {
-        tags: [`brand:${brandId}`, `campaign:${savedCampaign.id}`]
+        tags: [`brand:${brandId}`, `campaign:${savedCampaign.id}`],
+        brandSlug: brandId
       })
 
       if (!emailResult.success) {

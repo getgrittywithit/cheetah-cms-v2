@@ -25,16 +25,29 @@ export const sendEmail = async (
   options?: {
     scheduledFor?: Date
     tags?: string[]
+    brandSlug?: string
   }
 ) => {
   try {
+    // Get brand-specific email settings if brandSlug provided
+    let fromAddress = template.from || 'hello@cheetah-cms.com'
+    let replyToAddress = template.replyTo
+    
+    if (options?.brandSlug) {
+      const brandConfig = await import('./brand-config').then(m => m.getBrandConfig(options.brandSlug!))
+      if (brandConfig?.emailSettings) {
+        fromAddress = `${brandConfig.emailSettings.fromName} <${brandConfig.emailSettings.fromEmail}>`
+        replyToAddress = replyToAddress || brandConfig.emailSettings.replyTo || brandConfig.emailSettings.fromEmail
+      }
+    }
+
     const emailData = {
-      from: template.from || 'Grit Collective <hello@gritcollective.com>',
+      from: fromAddress,
       to: recipients.map(r => r.name ? `${r.name} <${r.email}>` : r.email),
       subject: template.subject,
       html: template.html,
       text: template.text,
-      replyTo: template.replyTo,
+      replyTo: replyToAddress,
       tags: options?.tags,
       scheduledAt: options?.scheduledFor?.toISOString()
     }
