@@ -363,7 +363,7 @@ export default function BrandCalendar({ brandConfig }: BrandCalendarProps) {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         {/* Month Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold">
+          <h2 className="text-lg font-semibold text-gray-900 font-bold">
             {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
           </h2>
         </div>
@@ -474,7 +474,7 @@ export default function BrandCalendar({ brandConfig }: BrandCalendarProps) {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         {/* Week Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold">
+          <h2 className="text-lg font-semibold text-gray-900 font-bold">
             Week of {startDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
           </h2>
         </div>

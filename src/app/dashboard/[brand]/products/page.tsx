@@ -191,7 +191,7 @@ export default function BrandProductsPage({ params }: { params: { brand: string 
       {activeTab === 'library' && (
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold">{brandConfig.name} Product Library</h2>
+            <h2 className="text-lg font-semibold text-gray-900 font-bold">{brandConfig.name} Product Library</h2>
             <div className="flex space-x-3">
               <div className="flex border border-gray-300 rounded-md overflow-hidden">
                 <button
@@ -199,7 +199,7 @@ export default function BrandProductsPage({ params }: { params: { brand: string 
                   className={`px-3 py-1 text-sm flex items-center ${
                     viewMode === 'grid' 
                       ? 'bg-blue-600 text-white' 
-                      : 'hover:bg-gray-50'
+                      : 'text-gray-800 hover:bg-gray-50 font-medium'
                   }`}
                 >
                   <Grid3X3 className="w-4 h-4 mr-1" />
@@ -210,17 +210,17 @@ export default function BrandProductsPage({ params }: { params: { brand: string 
                   className={`px-3 py-1 text-sm flex items-center ${
                     viewMode === 'list' 
                       ? 'bg-blue-600 text-white' 
-                      : 'hover:bg-gray-50'
+                      : 'text-gray-800 hover:bg-gray-50 font-medium'
                   }`}
                 >
                   <List className="w-4 h-4 mr-1" />
                   List
                 </button>
               </div>
-              <button className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
+              <button className="px-3 py-1 text-sm text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50 font-medium">
                 Filter
               </button>
-              <button className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
+              <button className="px-3 py-1 text-sm text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50 font-medium">
                 Sort
               </button>
             </div>

@@ -269,7 +269,7 @@ export default function BlogDashboard({ brandConfig }: BlogDashboardProps) {
           <div className="bg-white rounded-lg shadow-sm border">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Recent Posts</h3>
+                <h3 className="text-lg font-semibold text-gray-900 font-bold">Recent Posts</h3>
                 <button
                   onClick={() => setActiveTab('manage')}
                   className="text-sm text-blue-600 hover:text-blue-700"

@@ -199,7 +199,7 @@ export default function CategoriesManager({ brandConfig }: CategoriesManagerProp
       {/* Categories List */}
       <div className="bg-white rounded-lg shadow-sm border">
         <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold">Categories ({filteredCategories.length})</h3>
+          <h3 className="text-lg font-semibold text-gray-900 font-bold">Categories ({filteredCategories.length})</h3>
         </div>
         
         {loading ? (

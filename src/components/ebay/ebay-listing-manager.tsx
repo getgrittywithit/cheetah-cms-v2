@@ -247,7 +247,7 @@ export default function EbayListingManager({ brandConfig }: EbayListingManagerPr
       {/* Listings Table */}
       <div className="bg-white rounded-lg shadow-sm border">
         <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold">eBay Listings ({filteredListings.length})</h3>
+          <h3 className="text-lg font-semibold text-gray-900 font-bold">eBay Listings ({filteredListings.length})</h3>
         </div>
         
         {loading ? (

@@ -240,7 +240,7 @@ export default function EmailDashboard({ brandConfig }: EmailDashboardProps) {
           {/* Recent Campaigns */}
           <div className="bg-white rounded-lg shadow-sm border">
             <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold">Recent Campaigns</h3>
+              <h3 className="text-lg font-semibold text-gray-900 font-bold">Recent Campaigns</h3>
             </div>
             <div className="divide-y divide-gray-200">
               {campaigns.slice(0, 5).map((campaign) => (
