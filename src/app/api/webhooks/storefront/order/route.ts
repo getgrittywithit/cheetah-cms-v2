@@ -140,7 +140,12 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error sending confirmation email:', error)
-      return NextResponse.json({ error: 'Failed to send email' }, { status: 500 })
+      console.error('Resend error details:', JSON.stringify(error, null, 2))
+      return NextResponse.json({ 
+        error: 'Failed to send email', 
+        details: error.message || 'Unknown error',
+        hasApiKey: !!process.env.RESEND_API_KEY
+      }, { status: 500 })
     }
 
     console.log('Order confirmation email sent:', data)

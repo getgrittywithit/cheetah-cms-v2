@@ -191,6 +191,11 @@ async function sendOrderNotificationToCMS(orderData: OrderNotification) {
     // Get the CMS base URL - in development it's the same server, in production it would be the CMS domain
     const cmsBaseUrl = process.env.CMS_BASE_URL || process.env.NEXTAUTH_URL || 'http://localhost:3001'
     
+    console.log('Sending order notification to CMS:', { 
+      cmsBaseUrl, 
+      orderData: { ...orderData, items: `${orderData.items.length} items` } 
+    })
+    
     const response = await fetch(`${cmsBaseUrl}/api/webhooks/storefront/order`, {
       method: 'POST',
       headers: {
@@ -199,11 +204,14 @@ async function sendOrderNotificationToCMS(orderData: OrderNotification) {
       body: JSON.stringify(orderData)
     })
 
+    const responseText = await response.text()
+    console.log('CMS response:', { status: response.status, body: responseText })
+
     if (!response.ok) {
-      throw new Error(`CMS notification failed: ${response.status} ${response.statusText}`)
+      throw new Error(`CMS notification failed: ${response.status} ${response.statusText} - ${responseText}`)
     }
 
-    const result = await response.json()
+    const result = JSON.parse(responseText)
     console.log('Order notification sent to CMS successfully:', result)
     
   } catch (error) {
