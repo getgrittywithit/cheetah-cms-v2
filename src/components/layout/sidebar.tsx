@@ -17,6 +17,7 @@ import {
   PenTool,
   Mail,
   Tags,
+  Store,
   Zap as Lightning
 } from 'lucide-react'
 import { clsx } from 'clsx'
@@ -46,7 +47,7 @@ function getBrandFromPath(pathname: string): string {
 function getBrandNavigation(brand: string) {
   const brandPath = `/dashboard/${brand}`
   
-  return [
+  const baseNavigation = [
     { name: 'Dashboard', href: brandPath, icon: LayoutDashboard },
     { name: 'Content Creator', href: `${brandPath}/content`, icon: Megaphone },
     { name: 'Blog', href: `${brandPath}/blog`, icon: PenTool },
@@ -54,11 +55,23 @@ function getBrandNavigation(brand: string) {
     { name: 'Calendar', href: `${brandPath}/calendar`, icon: Calendar },
     { name: 'Products', href: `${brandPath}/products`, icon: Package },
     { name: 'Categories', href: `${brandPath}/categories`, icon: Tags },
+  ]
+
+  // Add eBay tab only for Grit Collective
+  if (brand === 'grit-collective') {
+    baseNavigation.push(
+      { name: 'eBay Listings', href: `${brandPath}/ebay`, icon: Store }
+    )
+  }
+
+  baseNavigation.push(
     { name: 'Orders', href: `${brandPath}/orders`, icon: ShoppingCart },
     { name: 'Customers', href: `${brandPath}/customers`, icon: Users },
     { name: 'Files', href: `${brandPath}/files`, icon: FolderOpen },
     { name: 'Analytics', href: `${brandPath}/analytics`, icon: BarChart3 },
-  ]
+  )
+
+  return baseNavigation
 }
 
 // Generate global/system navigation links
@@ -121,6 +134,7 @@ export default function Sidebar({ user }: SidebarProps) {
                               (item.name === 'Calendar' && pathname.startsWith(`/dashboard/${currentBrand}/calendar`)) ||
                               (item.name === 'Products' && pathname.startsWith(`/dashboard/${currentBrand}/products`)) ||
                               (item.name === 'Categories' && pathname.startsWith(`/dashboard/${currentBrand}/categories`)) ||
+                              (item.name === 'eBay Listings' && pathname.startsWith(`/dashboard/${currentBrand}/ebay`)) ||
                               (item.name === 'Orders' && pathname.startsWith(`/dashboard/${currentBrand}/orders`)) ||
                               (item.name === 'Customers' && pathname.startsWith(`/dashboard/${currentBrand}/customers`)) ||
                               (item.name === 'Files' && pathname.startsWith(`/dashboard/${currentBrand}/files`)) ||
