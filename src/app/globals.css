@@ -25,12 +25,5 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Make default text more readable in main content areas */
-main *, .p-6 *, .bg-white * {
-  color: #374151; /* text-gray-700 equivalent for better readability */
-}
-
-/* Allow Tailwind color utilities to override */
-[class*="text-"] {
-  color: inherit;
-}
+/* Removed overly broad color override that was making all text gray/faded */
+/* Text colors should be set explicitly with Tailwind utilities when needed */
