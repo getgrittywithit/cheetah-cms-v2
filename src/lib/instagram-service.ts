@@ -179,8 +179,10 @@ export class InstagramService {
 
       if (!response.ok) {
         console.error('🔴 Media container creation failed:', data)
+        console.error('🔴 Full Instagram error details:', JSON.stringify(data, null, 2))
         const errorMessage = data.error?.error_user_msg || data.error?.message || `Instagram API error: ${response.status}`
-        throw new Error(`Instagram media container failed: ${errorMessage}`)
+        const errorCode = data.error?.code || 'UNKNOWN'
+        throw new Error(`Instagram media container failed [${errorCode}]: ${errorMessage}`)
       }
 
       if (!data.id) {
