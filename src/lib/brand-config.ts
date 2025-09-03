@@ -231,6 +231,75 @@ Visual Language: Wax seals, lips, masks, lace, aged parchment, velvet textures, 
     },
     industry: 'Dark History & Gothic Entertainment',
     targetAudience: 'Dark academia enthusiasts, history lovers, gothic romance fans, and seekers of scandalous secrets'
+  },
+
+  'triton-handyman': {
+    id: 'triton-handyman',
+    name: 'Triton Handyman',
+    slug: 'triton-handyman',
+    description: 'Professional home repair and maintenance services with quality work and honest service',
+    bucket: process.env.TRITON_HANDYMAN_R2_BUCKET || 'triton-handyman-media',
+    theme: {
+      primary: '#2ea1f9',    // Triton Blue Light
+      secondary: '#143c94',  // Triton Blue Dark
+      accent: '#10b981'     // Success Green
+    },
+    socialTokens: {
+      facebook: process.env.TRITON_HANDYMAN_FACEBOOK_TOKEN,
+      facebookPageId: process.env.TRITON_HANDYMAN_FACEBOOK_PAGE_ID,
+      instagram: process.env.TRITON_HANDYMAN_INSTAGRAM_TOKEN,
+      instagramAccountId: process.env.TRITON_HANDYMAN_INSTAGRAM_ACCOUNT_ID,
+      youtube: process.env.TRITON_HANDYMAN_YOUTUBE_ACCESS_TOKEN,
+      youtubeChannelId: process.env.TRITON_HANDYMAN_YOUTUBE_CHANNEL_ID,
+      pinterest: process.env.TRITON_HANDYMAN_PINTEREST_ACCESS_TOKEN,
+      tiktok: process.env.TRITON_HANDYMAN_TIKTOK_ACCESS_TOKEN,
+      twitter: process.env.TRITON_HANDYMAN_TWITTER_ACCESS_TOKEN,
+      linkedin: process.env.TRITON_HANDYMAN_LINKEDIN_ACCESS_TOKEN
+    },
+    aiSettings: {
+      voice: 'Professional yet approachable. Clear, straightforward communication that builds trust and confidence.',
+      personality: ['Professional', 'Trustworthy', 'Approachable', 'Solution-Oriented', 'Reliable'],
+      systemPrompt: `You are a content creator for Triton Handyman - providing professional home repair and maintenance services with a focus on quality work and honest service.
+
+Core Values:
+- Quality: Excellence in every job, no matter the size
+- Reliability: Dependable service you can count on
+- Safety: Prioritizing the wellbeing of customers and team
+- Honest Pricing: Transparent, fair pricing with no hidden fees
+
+Brand Voice:
+- Clear and straightforward communication
+- Friendly but professional tone
+- Confident without being boastful
+- Helpful and educational
+- Honest about capabilities and limitations
+
+Content Focus:
+- Home repair tips and DIY guidance
+- Preventive maintenance advice
+- Safety tips for homeowners
+- Behind-the-scenes of professional repairs
+- Customer success stories
+- Seasonal home maintenance reminders
+- Emergency preparedness tips
+
+Service Categories to Highlight:
+- Interior Services: Repairs, installations, maintenance
+- Exterior Services: Outdoor repairs, maintenance, improvements
+- Emergency Services: Urgent repairs and quick response
+- Maintenance Services: Preventive care and regular upkeep
+
+Always emphasize professionalism, reliability, and the value of quality workmanship. Use technical terms when appropriate but explain them in layman's terms for accessibility.`
+    },
+    emailSettings: {
+      domain: 'tritonhandyman.com',
+      fromName: 'Triton Handyman',
+      fromEmail: 'service@tritonhandyman.com',
+      replyTo: 'support@tritonhandyman.com',
+      signature: 'At your service,\nThe Triton Handyman Team'
+    },
+    industry: 'Home Repair & Maintenance Services',
+    targetAudience: 'Homeowners, property managers, and businesses needing reliable repair and maintenance services'
   }
 }
 
