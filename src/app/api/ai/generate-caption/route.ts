@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
     const brandConfig = getBrandConfig(brandSlug)
     const brandVoice = brandConfig?.aiSettings?.voice || 'Professional and engaging'
     const brandPersonality = brandConfig?.aiSettings?.personality?.join(', ') || 'Helpful, informative'
+    const brandSystemPrompt = brandConfig?.aiSettings?.systemPrompt
 
     console.log('🔵 Generating AI caption for platforms:', platforms)
     
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
     let generatedPosts
     try {
       console.log('🔵 Generating universal AI caption for all platforms')
-      const universalPost = await generateAICaptionForPlatform(prompt, brand, brandSlug, 'universal', tone, style, brandVoice, brandPersonality, selectedProduct)
+      const universalPost = await generateAICaptionForPlatform(prompt, brand, brandSlug, 'universal', tone, style, brandVoice, brandPersonality, selectedProduct, brandSystemPrompt)
       console.log('🔵 Generated universal caption', {
         hasContent: !!universalPost.content,
         contentLength: universalPost.content?.length,
@@ -127,7 +128,8 @@ async function generateAICaptionForPlatform(
     base_price: number
     variant_count: number
     synced: boolean
-  }
+  },
+  brandSystemPrompt?: string
 ) {
   const platformSpecific = getPlatformSpecificGuidelines(platform)
   
@@ -197,6 +199,22 @@ Return a JSON object with:
 - content: Product-focused post that tells a story and creates emotional connection
 - hashtags: Array of relevant hashtags including product, craft, and lifestyle tags (without # symbol)
 - suggestions: Array of 3 alternative product story angles or improvements`
+  } else if (brandSlug === 'triton-handyman' && brandSystemPrompt) {
+    // Use Triton's specific system prompt with template structure
+    systemPrompt = brandSystemPrompt + `
+
+PLATFORM: ${platform}
+${platformSpecific}
+
+${tone ? `TONE: ${tone}` : ''}
+${style ? `STYLE: ${style}` : ''}
+
+IMPORTANT: Follow the POST TEMPLATE STRUCTURE exactly as specified above. Every post must include the professional closing signature with contact info and hashtags.
+
+Return a JSON object with:
+- content: The complete post following the template structure (opening, main content, value proposition, standard closing)
+- hashtags: Array of additional hashtags beyond the required ones (without # symbol)
+- suggestions: Array of 3 alternative approaches or improvements`
   } else {
     systemPrompt = `You are an expert social media content creator for ${brand}.
 
@@ -257,6 +275,19 @@ Requirements for this product post:
 - Include strong call-to-action for engagement
 - Add relevant product and lifestyle hashtags
 - Make it platform-optimized for ${platform}`
+  } else if (brandSlug === 'triton-handyman') {
+    userPrompt = `Create a ${platform} post about: ${prompt}
+
+Requirements:
+- Follow the POST TEMPLATE STRUCTURE exactly:
+  1. OPENING: Engaging hook or question related to the topic
+  2. MAIN CONTENT: Helpful information, tips, or service highlight (2-3 sentences)
+  3. VALUE PROPOSITION: Brief benefit statement about our service
+  4. STANDARD CLOSING: Use the exact professional signature provided in the template
+- Write in ${brand}'s voice: ${brandVoice}
+- Personality traits: ${brandPersonality}
+- The closing signature with contact info and hashtags is MANDATORY
+- You may add 1-3 additional relevant hashtags beyond the required ones`
   } else {
     userPrompt = `Create a ${platform} post about: ${prompt}
 
