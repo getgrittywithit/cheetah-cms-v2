@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       
       if (dalleUrl) {
         console.log('🔵 Uploading shared image to R2...')
-        const r2Uploader = new R2ImageUploader()
+        const r2Uploader = new R2ImageUploader(brandSlug)
         const fileName = `recipe-${brand.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`
         
         const uploadResult = await r2Uploader.uploadImageFromUrl(dalleUrl, fileName)

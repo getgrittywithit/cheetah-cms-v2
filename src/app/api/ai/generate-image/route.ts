@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       }
 
       console.log('🔵 Uploading image to R2...')
-      const r2Uploader = new R2ImageUploader()
+      const r2Uploader = new R2ImageUploader(brandSlug)
       const fileName = `ai-generated-${brand.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`
       
       const uploadResult = await r2Uploader.uploadImageFromUrl(dalleUrl, fileName)
