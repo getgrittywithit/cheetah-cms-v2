@@ -30,6 +30,24 @@ export function getBrandR2Config(brandSlug: string): BrandR2Config | null {
         publicUrl: process.env.GRIT_COLLECTIVE_R2_PUBLIC_URL || process.env.R2_PUBLIC_URL
       }
     
+    case 'forbidden-files':
+      return {
+        accountId: process.env.FORBIDDEN_FILES_R2_ACCOUNT_ID || process.env.R2_ACCOUNT_ID || '',
+        accessKeyId: process.env.FORBIDDEN_FILES_R2_ACCESS_KEY_ID || process.env.R2_ACCESS_KEY_ID || '',
+        secretAccessKey: process.env.FORBIDDEN_FILES_R2_SECRET_ACCESS_KEY || process.env.R2_SECRET_ACCESS_KEY || '',
+        bucketName: process.env.FORBIDDEN_FILES_R2_BUCKET || 'forbidden-files-media',
+        publicUrl: process.env.FORBIDDEN_FILES_R2_PUBLIC_URL || process.env.R2_PUBLIC_URL
+      }
+    
+    case 'triton-handyman':
+      return {
+        accountId: process.env.TRITON_HANDYMAN_R2_ACCOUNT_ID || process.env.R2_ACCOUNT_ID || '',
+        accessKeyId: process.env.TRITON_HANDYMAN_R2_ACCESS_KEY_ID || process.env.R2_ACCESS_KEY_ID || '',
+        secretAccessKey: process.env.TRITON_HANDYMAN_R2_SECRET_ACCESS_KEY || process.env.R2_SECRET_ACCESS_KEY || '',
+        bucketName: process.env.TRITON_HANDYMAN_R2_BUCKET || 'triton-handyman-media',
+        publicUrl: process.env.TRITON_HANDYMAN_R2_PUBLIC_URL || process.env.R2_PUBLIC_URL
+      }
+    
     default:
       // Fallback to default/Cheetah R2 credentials
       return {
