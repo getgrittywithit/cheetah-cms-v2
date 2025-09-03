@@ -94,7 +94,7 @@ export async function PUT(
         seo_description: updates.seo_description,
         slug: updates.slug,
         product_type: updates.product_type || 'handmade',
-        primary_category_id: updates.primary_category_id,
+        primary_category_id: updates.primary_category_id || null,
         updated_at: new Date().toISOString()
       })
       .eq('id', params.id)
