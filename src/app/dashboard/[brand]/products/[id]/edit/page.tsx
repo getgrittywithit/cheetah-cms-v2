@@ -245,7 +245,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
                 type="text"
                 value={product.name}
                 onChange={(e) => setProduct({ ...product, name: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
               />
             </div>
 
@@ -255,7 +255,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
                 value={product.description}
                 onChange={(e) => setProduct({ ...product, description: e.target.value })}
                 rows={4}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
                 placeholder="Describe your product..."
               />
             </div>
@@ -266,7 +266,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
                 <select
                   value={product.status}
                   onChange={(e) => setProduct({ ...product, status: e.target.value as 'draft' | 'active' })}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
                 >
                   <option value="draft">Draft</option>
                   <option value="active">Active</option>
@@ -281,7 +281,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
                   onChange={(e) => setProduct({ ...product, price: parseFloat(e.target.value) || 0 })}
                   step="0.01"
                   min="0"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
                 />
               </div>
             </div>
@@ -407,7 +407,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
                         value={variant.size || ''}
                         onChange={(e) => updateVariant(index, { size: e.target.value })}
                         placeholder="e.g., 12×18"
-                        className="w-full px-2 py-1 text-sm border rounded"
+                        className="w-full px-2 py-1 text-sm border rounded text-gray-900 placeholder-gray-500"
                       />
                     </div>
                     <div>
@@ -416,7 +416,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
                         type="text"
                         value={variant.sku}
                         onChange={(e) => updateVariant(index, { sku: e.target.value })}
-                        className="w-full px-2 py-1 text-sm border rounded"
+                        className="w-full px-2 py-1 text-sm border rounded text-gray-900 placeholder-gray-500"
                       />
                     </div>
                     <div>
@@ -427,7 +427,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
                         onChange={(e) => updateVariant(index, { price: parseFloat(e.target.value) || 0 })}
                         step="0.01"
                         min="0"
-                        className="w-full px-2 py-1 text-sm border rounded"
+                        className="w-full px-2 py-1 text-sm border rounded text-gray-900 placeholder-gray-500"
                       />
                     </div>
                     <button
@@ -453,7 +453,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
               <select
                 value={product.product_type}
                 onChange={(e) => setProduct({ ...product, product_type: e.target.value as 'handmade' | 'printful' | 'digital' })}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
               >
                 {productTypes.map(type => (
                   <option key={type.value} value={type.value}>{type.label}</option>
@@ -471,7 +471,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
               <select
                 value={product.primary_category_id}
                 onChange={(e) => setProduct({ ...product, primary_category_id: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
               >
                 <option value="">Select a category</option>
                 {categories.map(cat => (
@@ -487,7 +487,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
                 value={product.tags.join(', ')}
                 onChange={(e) => setProduct({ ...product, tags: e.target.value.split(',').map(t => t.trim()).filter(t => t) })}
                 placeholder="summer, gift idea, bestseller"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
               />
             </div>
           </div>
@@ -505,7 +505,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
                 value={product.seo_title}
                 onChange={(e) => setProduct({ ...product, seo_title: e.target.value })}
                 placeholder={product.name}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
               />
               <p className="text-xs text-gray-500 mt-1">{product.seo_title.length} of 70 characters used</p>
             </div>
@@ -517,7 +517,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
                 onChange={(e) => setProduct({ ...product, seo_description: e.target.value })}
                 rows={3}
                 placeholder="Brief description for search engines..."
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
               />
               <p className="text-xs text-gray-500 mt-1">{product.seo_description.length} of 160 characters used</p>
             </div>
@@ -530,7 +530,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
                   type="text"
                   value={product.slug}
                   onChange={(e) => setProduct({ ...product, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })}
-                  className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
                 />
               </div>
             </div>
