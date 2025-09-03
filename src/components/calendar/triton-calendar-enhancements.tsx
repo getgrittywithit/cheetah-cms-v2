@@ -217,20 +217,36 @@ export default function TritonCalendarEnhancements({ brandConfig }: TritonCalend
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          brand: brandConfig.slug,
+          brandId: brandConfig.slug,
+          platform: 'facebook', // Create one for Facebook first
           content: post.content,
           hashtags: [...post.hashtags, ...template.hashtags],
-          platforms: ['facebook', 'instagram'],
-          scheduledFor: scheduleDate.toISOString(),
-          imagePrompt: `Professional handyman service image for: ${template.prompt.substring(0, 100)}`
+          scheduledFor: scheduleDate.toISOString()
         })
       })
 
       if (!scheduleResponse.ok) {
-        throw new Error('Failed to schedule post')
+        throw new Error('Failed to schedule Facebook post')
       }
 
-      alert(`Successfully scheduled "${template.name}" for ${scheduleDate.toLocaleDateString()}!`)
+      // Also schedule for Instagram
+      const instagramResponse = await fetch('/api/marketing/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          brandId: brandConfig.slug,
+          platform: 'instagram',
+          content: post.content,
+          hashtags: [...post.hashtags, ...template.hashtags],
+          scheduledFor: scheduleDate.toISOString()
+        })
+      })
+
+      if (!instagramResponse.ok) {
+        throw new Error('Failed to schedule Instagram post')
+      }
+
+      alert(`Successfully scheduled "${template.name}" for Facebook and Instagram on ${scheduleDate.toLocaleDateString()}!`)
       
       // Refresh the calendar to show the new post
       window.location.reload()
