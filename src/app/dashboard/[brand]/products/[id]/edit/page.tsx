@@ -221,7 +221,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-2xl font-bold">Edit Product</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Edit Product</h1>
         </div>
         <button
           onClick={handleSave}
