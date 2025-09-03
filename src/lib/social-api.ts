@@ -121,7 +121,8 @@ export class SocialMediaAPI {
   static async postToInstagram(
     post: SocialPost,
     account: SocialAccount,
-    mediaUrls?: string[]
+    mediaUrls?: string[],
+    brand?: Brand
   ): Promise<PostResponse> {
     try {
       if (!account.accessToken || !account.accountId) {
@@ -142,8 +143,10 @@ export class SocialMediaAPI {
       // Use the comprehensive Instagram service
       const imageUrl = mediaUrls && mediaUrls.length > 0 ? mediaUrls[0] : null
       // Extract brand slug from brand name (this is a temporary solution)
-      const brandSlug = brand.name === 'Daily Dish Dash' ? 'daily-dish-dash' : 
-                       brand.name === 'Grit Collective Co.' ? 'grit-collective' : 
+      const brandSlug = brand?.name === 'Daily Dish Dash' ? 'daily-dish-dash' : 
+                       brand?.name === 'Grit Collective Co.' ? 'grit-collective' : 
+                       brand?.name === 'Forbidden Files' ? 'forbidden-files' :
+                       brand?.name === 'Triton Handyman' ? 'triton-handyman' :
                        'daily-dish-dash' // Default fallback
       
       console.log('🔵 Instagram posting via SocialMediaAPI:', {
@@ -249,7 +252,7 @@ export class SocialMediaAPI {
       case 'facebook':
         return this.postToFacebook(post, account, mediaUrls)
       case 'instagram':
-        return this.postToInstagram(post, account, mediaUrls)
+        return this.postToInstagram(post, account, mediaUrls, brand)
       case 'tiktok':
         return this.postToTikTok(post, account, mediaUrls)
       case 'pinterest':

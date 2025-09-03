@@ -80,6 +80,7 @@ export async function POST(request: NextRequest) {
           platform: post.platform,
           accessToken: brand.socialTokens?.[post.platform],
           pageId: post.platform === 'facebook' ? brand.socialTokens?.facebookPageId : undefined,
+          accountId: post.platform === 'instagram' ? brand.socialTokens?.instagramAccountId : undefined,
           isActive: true
         }]
       }
@@ -87,6 +88,7 @@ export async function POST(request: NextRequest) {
       console.log(`🔵 Publishing to ${post.platform} for brand:`, brand.name)
       console.log(`🔵 Access token available:`, !!adaptedBrand.socialAccounts[0].accessToken)
       console.log(`🔵 Page ID available:`, !!adaptedBrand.socialAccounts[0].pageId)
+      console.log(`🔵 Account ID available:`, !!adaptedBrand.socialAccounts[0].accountId)
       console.log(`🔵 Post content length:`, post.content?.length)
       console.log(`🔵 Media URLs:`, mediaUrls?.length || 0)
       
