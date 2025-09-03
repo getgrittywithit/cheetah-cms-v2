@@ -236,11 +236,11 @@ export default function EditProductPage({ params }: { params: { brand: string, i
       <div className="space-y-6">
         {/* Basic Info */}
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold mb-4">Basic Information</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h2>
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Title</label>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Title</label>
               <input
                 type="text"
                 value={product.name}
@@ -250,7 +250,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Description</label>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Description</label>
               <textarea
                 value={product.description}
                 onChange={(e) => setProduct({ ...product, description: e.target.value })}
@@ -262,7 +262,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Status</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Status</label>
                 <select
                   value={product.status}
                   onChange={(e) => setProduct({ ...product, status: e.target.value as 'draft' | 'active' })}
@@ -274,7 +274,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Base Price</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Base Price</label>
                 <input
                   type="number"
                   value={product.price}
@@ -290,11 +290,11 @@ export default function EditProductPage({ params }: { params: { brand: string, i
 
         {/* Media */}
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold mb-4">Media</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Media</h2>
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Featured Image</label>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Featured Image</label>
               <div className="flex items-center space-x-4">
                 {product.featured_image ? (
                   <div className="relative">
@@ -344,7 +344,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Additional Images</label>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Additional Images</label>
               <div className="grid grid-cols-4 gap-3">
                 {product.images.map((image, index) => (
                   <div key={index} className="relative">
@@ -383,7 +383,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
         {/* Variants */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Variants</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Variants</h2>
             <button
               onClick={addVariant}
               className="flex items-center text-blue-600 hover:text-blue-700"
@@ -401,7 +401,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
                 <div key={index} className="border rounded-lg p-4">
                   <div className="grid grid-cols-4 gap-3 items-end">
                     <div>
-                      <label className="block text-xs font-medium mb-1">Size</label>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Size</label>
                       <input
                         type="text"
                         value={variant.size || ''}
@@ -411,7 +411,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium mb-1">SKU</label>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">SKU</label>
                       <input
                         type="text"
                         value={variant.sku}
@@ -420,7 +420,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium mb-1">Price</label>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Price</label>
                       <input
                         type="number"
                         value={variant.price}
@@ -445,11 +445,11 @@ export default function EditProductPage({ params }: { params: { brand: string, i
 
         {/* Organization */}
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold mb-4">Organization</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Organization</h2>
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Product Type</label>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Product Type</label>
               <select
                 value={product.product_type}
                 onChange={(e) => setProduct({ ...product, product_type: e.target.value as 'handmade' | 'printful' | 'digital' })}
@@ -467,7 +467,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Category</label>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Category</label>
               <select
                 value={product.primary_category_id}
                 onChange={(e) => setProduct({ ...product, primary_category_id: e.target.value })}
@@ -481,7 +481,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Tags (comma separated)</label>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Tags (comma separated)</label>
               <input
                 type="text"
                 value={product.tags.join(', ')}
@@ -495,11 +495,11 @@ export default function EditProductPage({ params }: { params: { brand: string, i
 
         {/* SEO */}
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold mb-4">Search Engine Listing</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Search Engine Listing</h2>
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Page Title</label>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Page Title</label>
               <input
                 type="text"
                 value={product.seo_title}
@@ -511,7 +511,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Meta Description</label>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Meta Description</label>
               <textarea
                 value={product.seo_description}
                 onChange={(e) => setProduct({ ...product, seo_description: e.target.value })}
@@ -523,7 +523,7 @@ export default function EditProductPage({ params }: { params: { brand: string, i
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">URL Handle</label>
+              <label className="block text-sm font-medium text-gray-800 mb-1">URL Handle</label>
               <div className="flex items-center">
                 <span className="text-sm text-gray-500 mr-1">/{params.brand}/products/</span>
                 <input
