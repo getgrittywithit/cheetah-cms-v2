@@ -173,6 +173,64 @@ Voice Guidelines:
     },
     industry: 'Home Décor & Handcrafted Products',
     targetAudience: 'Luxury conscious buyers, everyday inspiration seekers, and memorial & personalization customers'
+  },
+
+  'forbidden-files': {
+    id: 'forbidden-files',
+    name: 'Forbidden Files',
+    slug: 'forbidden-files',
+    description: 'Gothic gossip meets dark academia — stories sealed in wax, broken open for curious eyes',
+    bucket: process.env.FORBIDDEN_FILES_R2_BUCKET || 'forbidden-files-media',
+    theme: {
+      primary: '#5B3A52',    // Plum Purple
+      secondary: '#7E6377',  // Dusty Mauve
+      accent: '#BFA86A'     // Antique Gold
+    },
+    socialTokens: {
+      facebook: process.env.FORBIDDEN_FILES_FACEBOOK_TOKEN,
+      facebookPageId: process.env.FORBIDDEN_FILES_FACEBOOK_PAGE_ID,
+      instagram: process.env.FORBIDDEN_FILES_INSTAGRAM_TOKEN,
+      instagramAccountId: process.env.FORBIDDEN_FILES_INSTAGRAM_ACCOUNT_ID,
+      youtube: process.env.FORBIDDEN_FILES_YOUTUBE_ACCESS_TOKEN,
+      youtubeChannelId: process.env.FORBIDDEN_FILES_YOUTUBE_CHANNEL_ID,
+      pinterest: process.env.FORBIDDEN_FILES_PINTEREST_ACCESS_TOKEN,
+      tiktok: process.env.FORBIDDEN_FILES_TIKTOK_ACCESS_TOKEN,
+      twitter: process.env.FORBIDDEN_FILES_TWITTER_ACCESS_TOKEN
+    },
+    aiSettings: {
+      voice: 'Whispered gossip in a candlelit study — seductive, clever, a little wicked. Poetic hooks with modern sass.',
+      personality: ['Seductive', 'Secretive', 'Clever', 'Gothic', 'Scandalous'],
+      systemPrompt: `You are a content creator for Forbidden Files - where gothic gossip meets dark academia. You craft content about historical scandals, secrets, and forbidden stories.
+
+Brand Essence: Stories sealed in wax, broken open for curious eyes
+Tagline Options: "Sealed Secrets, Whispered Truths" / "The Past Always Leaves a Mark" / "History's Gossip Column"
+
+Voice Guidelines:
+- Write like whispered gossip in a candlelit study
+- Use poetic hooks: "Whispers sealed in wax..."
+- Modern tie-ins: "It's basically the 1700s version of subtweeting"
+- Gothic sass: "History is gossip with a body count"
+- Embrace seductive, mysterious language
+- Reference wax seals, quills, inkwells, candlelight, wilted roses
+
+Content Focus:
+- Historical scandals and secrets
+- Gothic romance and dark academia aesthetics
+- Forbidden knowledge and untold stories
+- Dramatic historical personalities
+- Mystery, intrigue, and scandal
+
+Visual Language: Wax seals, lips, masks, lace, aged parchment, velvet textures, chiaroscuro lighting`
+    },
+    emailSettings: {
+      domain: 'forbiddenfiles.com',
+      fromName: 'Forbidden Files',
+      fromEmail: 'secrets@forbiddenfiles.com',
+      replyTo: 'whispers@forbiddenfiles.com',
+      signature: 'Sealed with secrecy,\nThe Forbidden Files Archive'
+    },
+    industry: 'Dark History & Gothic Entertainment',
+    targetAudience: 'Dark academia enthusiasts, history lovers, gothic romance fans, and seekers of scandalous secrets'
   }
 }
 
