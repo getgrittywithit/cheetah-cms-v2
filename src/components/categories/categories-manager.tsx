@@ -168,7 +168,7 @@ export default function CategoriesManager({ brandConfig }: CategoriesManagerProp
             <Tags className="w-8 h-8 text-blue-600" />
             <div className="ml-4">
               <p className="text-2xl font-bold text-gray-900">{categories.length}</p>
-              <p className="text-gray-600">Total Categories</p>
+              <p className="text-gray-800">Total Categories</p>
             </div>
           </div>
         </div>
@@ -179,7 +179,7 @@ export default function CategoriesManager({ brandConfig }: CategoriesManagerProp
               <p className="text-2xl font-bold text-gray-900">
                 {categories.reduce((sum, cat) => sum + cat.product_count, 0)}
               </p>
-              <p className="text-gray-600">Total Products</p>
+              <p className="text-gray-800">Total Products</p>
             </div>
           </div>
         </div>
@@ -190,7 +190,7 @@ export default function CategoriesManager({ brandConfig }: CategoriesManagerProp
               <p className="text-2xl font-bold text-gray-900">
                 {categories.filter(cat => cat.product_count > 0).length}
               </p>
-              <p className="text-gray-600">Active Categories</p>
+              <p className="text-gray-800">Active Categories</p>
             </div>
           </div>
         </div>
@@ -231,8 +231,8 @@ export default function CategoriesManager({ brandConfig }: CategoriesManagerProp
                           {category.product_count} products
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">{category.description}</p>
-                      <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                      <p className="text-sm text-gray-700 mt-1">{category.description}</p>
+                      <div className="flex items-center space-x-4 mt-2 text-xs text-gray-700">
                         <span>Slug: /{category.slug}</span>
                         <span>Sort: {category.sort_order}</span>
                       </div>
@@ -267,7 +267,7 @@ export default function CategoriesManager({ brandConfig }: CategoriesManagerProp
                             {subcat.product_count}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-600 ml-6">{subcat.description}</p>
+                        <p className="text-sm text-gray-700 ml-6">{subcat.description}</p>
                       </div>
                       
                       <div className="flex items-center space-x-2">
@@ -301,7 +301,7 @@ export default function CategoriesManager({ brandConfig }: CategoriesManagerProp
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-800 mb-2">
                   Category Name *
                 </label>
                 <input
@@ -314,7 +314,7 @@ export default function CategoriesManager({ brandConfig }: CategoriesManagerProp
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-800 mb-2">
                   Slug
                 </label>
                 <input
@@ -327,7 +327,7 @@ export default function CategoriesManager({ brandConfig }: CategoriesManagerProp
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-800 mb-2">
                   Description
                 </label>
                 <textarea
@@ -339,7 +339,7 @@ export default function CategoriesManager({ brandConfig }: CategoriesManagerProp
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-800 mb-2">
                   Parent Category (Optional)
                 </label>
                 <select
@@ -355,7 +355,7 @@ export default function CategoriesManager({ brandConfig }: CategoriesManagerProp
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-800 mb-2">
                   Sort Order
                 </label>
                 <input

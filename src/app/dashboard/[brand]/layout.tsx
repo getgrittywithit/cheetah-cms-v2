@@ -21,7 +21,17 @@ export default function BrandLayout({ children, params }: BrandLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div 
+      className="min-h-screen bg-gray-50"
+      style={{
+        '--brand-primary': brandConfig.theme.primary,
+        '--brand-secondary': brandConfig.theme.secondary,
+        '--brand-accent': brandConfig.theme.accent || brandConfig.theme.secondary,
+        '--brand-text-primary': '#1f2937', // gray-800 for better legibility
+        '--brand-text-secondary': '#374151', // gray-700 for better legibility
+        '--brand-text-muted': '#4b5563' // gray-600 for better legibility
+      } as React.CSSProperties}
+    >
       {children}
     </div>
   )

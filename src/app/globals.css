@@ -25,5 +25,28 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Removed overly broad color override that was making all text gray/faded */
-/* Text colors should be set explicitly with Tailwind utilities when needed */
+/* Brand-aware text colors for better legibility */
+.brand-text-primary {
+  color: var(--brand-text-primary, #1f2937) !important;
+}
+
+.brand-text-secondary {
+  color: var(--brand-text-secondary, #374151) !important;
+}
+
+.brand-text-muted {
+  color: var(--brand-text-muted, #4b5563) !important;
+}
+
+/* Override very light gray text colors for better legibility in brand contexts */
+[style*="--brand-primary"] .text-gray-500 {
+  color: var(--brand-text-muted, #4b5563) !important;
+}
+
+[style*="--brand-primary"] .text-gray-600 {
+  color: var(--brand-text-secondary, #374151) !important;
+}
+
+[style*="--brand-primary"] .text-gray-400 {
+  color: var(--brand-text-muted, #4b5563) !important;
+}
