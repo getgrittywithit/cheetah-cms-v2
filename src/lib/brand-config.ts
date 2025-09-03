@@ -187,9 +187,9 @@ Voice Guidelines:
       accent: '#BFA86A'     // Antique Gold
     },
     socialTokens: {
-      facebook: process.env.FORBIDDEN_FILES_FACEBOOK_TOKEN,
+      facebook: process.env.FORBIDDEN_FILES_FACEBOOK_PAGE_ACCESS_TOKEN,
       facebookPageId: process.env.FORBIDDEN_FILES_FACEBOOK_PAGE_ID,
-      instagram: process.env.FORBIDDEN_FILES_INSTAGRAM_TOKEN,
+      instagram: process.env.FORBIDDEN_FILES_FACEBOOK_PAGE_ACCESS_TOKEN, // Same token as FB page
       instagramAccountId: process.env.FORBIDDEN_FILES_INSTAGRAM_ACCOUNT_ID,
       youtube: process.env.FORBIDDEN_FILES_YOUTUBE_ACCESS_TOKEN,
       youtubeChannelId: process.env.FORBIDDEN_FILES_YOUTUBE_CHANNEL_ID,
@@ -245,9 +245,9 @@ Visual Language: Wax seals, lips, masks, lace, aged parchment, velvet textures, 
       accent: '#10b981'     // Success Green
     },
     socialTokens: {
-      facebook: process.env.TRITON_HANDYMAN_FACEBOOK_TOKEN,
+      facebook: process.env.TRITON_HANDYMAN_FACEBOOK_PAGE_ACCESS_TOKEN,
       facebookPageId: process.env.TRITON_HANDYMAN_FACEBOOK_PAGE_ID,
-      instagram: process.env.TRITON_HANDYMAN_INSTAGRAM_TOKEN,
+      instagram: process.env.TRITON_HANDYMAN_FACEBOOK_PAGE_ACCESS_TOKEN, // Same token as FB page
       instagramAccountId: process.env.TRITON_HANDYMAN_INSTAGRAM_ACCOUNT_ID,
       youtube: process.env.TRITON_HANDYMAN_YOUTUBE_ACCESS_TOKEN,
       youtubeChannelId: process.env.TRITON_HANDYMAN_YOUTUBE_CHANNEL_ID,
