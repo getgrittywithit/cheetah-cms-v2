@@ -100,8 +100,11 @@ export async function POST(request: NextRequest) {
       if (uploadResult.success && uploadResult.url) {
         finalImageUrl = uploadResult.url
         console.log('🔵 Image successfully uploaded to R2:', finalImageUrl)
+        console.log('🔵 Using R2 URL for brand:', brandSlug)
       } else {
         console.error('🔴 R2 upload failed, using DALL-E URL as fallback:', uploadResult.error)
+        console.log('🔴 Fallback DALL-E URL:', dalleUrl)
+        console.log('🔴 Brand slug that failed:', brandSlug)
       }
 
       const response = {

@@ -774,8 +774,17 @@ Examples:
                     <div className="relative">
                         <img 
                           src={imageUrls[isUniversal ? 'universal' : post.platform]} 
-                          alt="Post image" 
+                          alt="Generated image preview" 
                           className="w-full max-w-md h-48 object-cover rounded-lg border border-gray-200"
+                          onError={(e) => {
+                            console.error('Image failed to load:', imageUrls[isUniversal ? 'universal' : post.platform])
+                            const target = e.target as HTMLImageElement
+                            target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDMyMCAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMTkyIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNDQuNSA5Nkw5NiA3MkgxOTJMMTQ0LjUgOTZaIiBmaWxsPSIjOUI5QkEwIi8+CjxjaXJjbGUgY3g9IjE2MCIgY3k9IjgwIiByPSI4IiBmaWxsPSIjOUI5QkEwIi8+CjxwYXRoIGQ9Ik0xNDAgMTA0SDEwNFYxMzZIMTg0VjExNkwxNjAgMTA0SDE0MFoiIGZpbGw9IiM5QjlCQTAiLz4KPHRleHQgeD0iMTYwIiB5PSIxNTYiIGZpbGw9IiM5QjlCQTAiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+SW1hZ2UgZmFpbGVkIHRvIGxvYWQ8L3RleHQ+Cjwvc3ZnPgo='
+                            target.alt = 'Image failed to load'
+                          }}
+                          onLoad={() => {
+                            console.log('Image loaded successfully:', imageUrls[isUniversal ? 'universal' : post.platform])
+                          }}
                         />
                       {post.imageUrl && (
                         <div className="absolute top-2 left-2 bg-purple-600 text-white px-2 py-1 rounded text-xs font-medium flex items-center space-x-1">
