@@ -1,6 +1,7 @@
 import { getBrandConfig } from '@/lib/brand-config'
 import { notFound } from 'next/navigation'
 import BrandCalendar from '@/components/calendar/brand-calendar'
+import TritonCalendarEnhancements from '@/components/calendar/triton-calendar-enhancements'
 
 interface BrandCalendarPageProps {
   params: { brand: string }
@@ -33,6 +34,11 @@ export default function BrandCalendarPage({ params }: BrandCalendarPageProps) {
           </div>
         </div>
       </div>
+
+      {/* Triton-Specific Enhancements */}
+      {brandConfig.slug === 'triton-handyman' && (
+        <TritonCalendarEnhancements brandConfig={brandConfig} />
+      )}
 
       {/* Calendar Component */}
       <BrandCalendar brandConfig={brandConfig} />
