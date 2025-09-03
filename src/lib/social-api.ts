@@ -226,7 +226,7 @@ export class SocialMediaAPI {
     }
   }
 
-  // Main posting function
+  // Main posting function - updated 2025-09-03
   static async publishPost(
     post: SocialPost,
     brand: Brand,
