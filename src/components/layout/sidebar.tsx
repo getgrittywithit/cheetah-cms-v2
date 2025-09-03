@@ -53,9 +53,15 @@ function getBrandNavigation(brand: string) {
     { name: 'Blog', href: `${brandPath}/blog`, icon: PenTool },
     { name: 'Email', href: `${brandPath}/email`, icon: Mail },
     { name: 'Calendar', href: `${brandPath}/calendar`, icon: Calendar },
-    { name: 'Products', href: `${brandPath}/products`, icon: Package },
-    { name: 'Categories', href: `${brandPath}/categories`, icon: Tags },
   ]
+
+  // Add e-commerce navigation only for product-based brands (not service businesses)
+  if (brand !== 'triton-handyman') {
+    baseNavigation.push(
+      { name: 'Products', href: `${brandPath}/products`, icon: Package },
+      { name: 'Categories', href: `${brandPath}/categories`, icon: Tags }
+    )
+  }
 
   // Add eBay tab only for Grit Collective
   if (brand === 'grit-collective') {
@@ -64,9 +70,16 @@ function getBrandNavigation(brand: string) {
     )
   }
 
+  // Add e-commerce customer/order management only for product-based brands
+  if (brand !== 'triton-handyman') {
+    baseNavigation.push(
+      { name: 'Orders', href: `${brandPath}/orders`, icon: ShoppingCart },
+      { name: 'Customers', href: `${brandPath}/customers`, icon: Users }
+    )
+  }
+
+  // Always include these for all brands
   baseNavigation.push(
-    { name: 'Orders', href: `${brandPath}/orders`, icon: ShoppingCart },
-    { name: 'Customers', href: `${brandPath}/customers`, icon: Users },
     { name: 'Files', href: `${brandPath}/files`, icon: FolderOpen },
     { name: 'Analytics', href: `${brandPath}/analytics`, icon: BarChart3 },
   )
