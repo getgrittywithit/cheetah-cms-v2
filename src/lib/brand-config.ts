@@ -167,7 +167,7 @@ Voice Guidelines:
     emailSettings: {
       domain: 'gritcollectiveco.com',
       fromName: 'Grit Collective Co.',
-      fromEmail: 'hello@gritcollectiveco.com',
+      fromEmail: 'hello@resend.dev', // Temporary: Use Resend's verified domain
       replyTo: 'support@gritcollectiveco.com',
       signature: 'With grit and gratitude,\nThe Grit Collective Co. Family'
     },
