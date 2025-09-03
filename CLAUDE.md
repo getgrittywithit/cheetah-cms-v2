@@ -6,6 +6,24 @@ Last Updated: July 31, 2025
 
 This is the Cheetah Content Manager - a modern, streamlined content management system focused on marketing, content creation, and audience engagement. It provides a clean interface for managing blog posts, social media content, file uploads, and analytics.
 
+## Multi-Brand System
+
+The system supports multiple brands with isolated content, settings, and integrations:
+
+### Supported Brands:
+- **Daily Dish Dash**: Food & cooking content (quick recipes, busy lifestyle)
+- **Grit Collective Co.**: Handcrafted home décor, candles, and personalized items
+- **Forbidden Files**: Gothic gossip meets dark academia (historical scandals, secrets)
+- **Triton Handyman**: Professional home repair and maintenance services
+
+### Brand Features:
+- ✅ Brand-specific R2 storage buckets
+- ✅ Individual social media tokens per brand
+- ✅ Brand-specific AI content generation and voice
+- ✅ Separate email configurations
+- ✅ Custom color themes and branding
+- ✅ URL-based brand routing: `/dashboard/{brand-slug}/feature`
+
 ## Architecture
 
 - **Frontend**: Next.js 15 with App Router (deployable on Vercel)
@@ -74,6 +92,27 @@ PRINTFUL_WEBHOOK_SECRET=your_webhook_secret_here
 # Email/Marketing
 MAILCHIMP_API_KEY=your_mailchimp_key
 SENDGRID_API_KEY=your_sendgrid_key
+
+# Brand-Specific R2 Buckets & Social Tokens
+# Triton Handyman
+TRITON_HANDYMAN_R2_BUCKET=triton-handyman-media
+TRITON_HANDYMAN_FACEBOOK_PAGE_ACCESS_TOKEN=your_fb_token
+TRITON_HANDYMAN_FACEBOOK_PAGE_ID=your_page_id
+TRITON_HANDYMAN_INSTAGRAM_ACCOUNT_ID=your_ig_account_id
+
+# Forbidden Files
+FORBIDDEN_FILES_R2_BUCKET=forbidden-files-media
+FORBIDDEN_FILES_FACEBOOK_PAGE_ACCESS_TOKEN=your_fb_token
+FORBIDDEN_FILES_FACEBOOK_PAGE_ID=your_page_id
+FORBIDDEN_FILES_INSTAGRAM_ACCOUNT_ID=your_ig_account_id
+
+# Daily Dish Dash (existing)
+DAILY_DISH_R2_BUCKET=dailydishdash
+DAILY_DISH_FACEBOOK_PAGE_ACCESS_TOKEN=your_fb_token
+
+# Grit Collective (existing)
+GRIT_COLLECTIVE_R2_BUCKET=grit-collective-media
+GRIT_COLLECTIVE_FACEBOOK_TOKEN=your_fb_token
 ```
 
 ## File Structure
@@ -145,6 +184,7 @@ npm run build
 - Content scheduling and automation
 - Social media calendar
 - Engagement tracking
+- **Triton Handyman**: Professional post template with standardized contact info and "Get a Quote" CTA
 
 ### File Management:
 - Drag-and-drop file uploads
@@ -205,3 +245,23 @@ npm run build
 ---
 
 **Note for AI Models**: This is a content-focused CMS designed for marketing teams and content creators. The system prioritizes ease of use, multi-platform publishing, and performance analytics over e-commerce features.
+
+## Brand-Specific Notes:
+
+### Triton Handyman Template Structure
+Every Triton Handyman post must include this professional closing:
+
+```
+Ready to get started on your next project? Contact Triton Handyman today for professional, reliable service you can count on!
+
+📞 Call us for immediate assistance
+💻 Get a quick quote using our simple online form
+🏠 Quality work, honest pricing, every time
+
+#TritonHandyman #QualityWork #HomeRepair #ReliableService
+```
+
+### R2 Storage Requirements
+- All brands must have separate R2 buckets for content isolation
+- AI-generated images automatically route to brand-specific buckets
+- Manual uploads use brand-aware upload routes
