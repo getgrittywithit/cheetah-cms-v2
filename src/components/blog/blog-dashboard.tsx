@@ -345,7 +345,7 @@ export default function BlogDashboard({ brandConfig }: BlogDashboardProps) {
 
           {/* Blog Editor */}
           <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h3 className="text-lg font-semibold mb-4">Blog Post Editor</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Blog Post Editor</h3>
             
             <div className="space-y-4">
               <div>
@@ -492,7 +492,7 @@ export default function BlogDashboard({ brandConfig }: BlogDashboardProps) {
           <div className="bg-white rounded-lg shadow-sm border">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Blog Posts ({filteredPosts.length})</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Blog Posts ({filteredPosts.length})</h3>
                 <button
                   onClick={() => setActiveTab('create')}
                   className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"

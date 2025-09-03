@@ -307,7 +307,7 @@ export default function EmailDashboard({ brandConfig }: EmailDashboardProps) {
 
           {/* Email Editor */}
           <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h3 className="text-lg font-semibold mb-4">Create Email Campaign</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Create Email Campaign</h3>
             
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -454,7 +454,7 @@ export default function EmailDashboard({ brandConfig }: EmailDashboardProps) {
           <div className="bg-white rounded-lg shadow-sm border">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Email Campaigns ({filteredCampaigns.length})</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Email Campaigns ({filteredCampaigns.length})</h3>
                 <button
                   onClick={() => setActiveTab('create')}
                   className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
@@ -515,7 +515,7 @@ export default function EmailDashboard({ brandConfig }: EmailDashboardProps) {
           <div className="bg-white rounded-lg shadow-sm border">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Email Lists</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Email Lists</h3>
                 <button className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
                   <Plus className="w-4 h-4" />
                   <span>New List</span>

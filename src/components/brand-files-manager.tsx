@@ -722,7 +722,7 @@ export default function BrandFilesManager({ brandConfig }: BrandFilesManagerProp
           <div className="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">{selectedFile.filename}</h3>
+                <h3 className="text-lg font-semibold text-gray-900">{selectedFile.filename}</h3>
                 <button
                   onClick={() => setSelectedFile(null)}
                   className="text-gray-400 hover:text-gray-600"
@@ -800,7 +800,7 @@ export default function BrandFilesManager({ brandConfig }: BrandFilesManagerProp
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Create New Folder</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Create New Folder</h3>
               <button
                 onClick={() => {
                   setShowCreateFolder(false)

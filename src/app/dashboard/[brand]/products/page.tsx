@@ -127,7 +127,7 @@ export default function BrandProductsPage({ params }: { params: { brand: string 
       {/* Create Tab */}
       {activeTab === 'create' && (
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold mb-4">Smart Product Creator for {brandConfig.name}</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Smart Product Creator for {brandConfig.name}</h2>
           
           {/* Image Upload */}
           <div className="mb-6">
@@ -621,7 +621,7 @@ function BrandPrintfulSync({ brand, brandConfig }: { brand: string, brandConfig:
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Products ({products.length})</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Products ({products.length})</h3>
             {products.map((product) => (
               <div
                 key={product.id}
@@ -675,7 +675,7 @@ function BrandPrintfulSync({ brand, brandConfig }: { brand: string, brandConfig:
             {selectedProduct ? (
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
-                  <h3 className="text-lg font-semibold">{selectedProduct.name}</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">{selectedProduct.name}</h3>
                   <button
                     onClick={() => setSelectedProduct(null)}
                     className="text-gray-400 hover:text-gray-600"
