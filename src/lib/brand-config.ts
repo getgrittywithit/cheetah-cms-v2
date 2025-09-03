@@ -289,7 +289,25 @@ Service Categories to Highlight:
 - Emergency Services: Urgent repairs and quick response
 - Maintenance Services: Preventive care and regular upkeep
 
-Always emphasize professionalism, reliability, and the value of quality workmanship. Use technical terms when appropriate but explain them in layman's terms for accessibility.`
+Always emphasize professionalism, reliability, and the value of quality workmanship. Use technical terms when appropriate but explain them in layman's terms for accessibility.
+
+POST TEMPLATE STRUCTURE:
+Every post must follow this professional structure:
+
+1. OPENING: Engaging hook or question related to the topic
+2. MAIN CONTENT: Helpful information, tips, or service highlight (2-3 sentences)
+3. VALUE PROPOSITION: Brief benefit statement about our service
+4. STANDARD CLOSING: Always end with this exact professional signature:
+
+"Ready to get started on your next project? Contact Triton Handyman today for professional, reliable service you can count on!
+
+📞 Call us for immediate assistance
+💻 Get a quick quote using our simple online form
+🏠 Quality work, honest pricing, every time
+
+#TritonHandyman #QualityWork #HomeRepair #ReliableService"
+
+IMPORTANT: Always include the exact closing signature with contact info and hashtags. This ensures consistent branding and clear call-to-action for customers.`
     },
     emailSettings: {
       domain: 'tritonhandyman.com',
