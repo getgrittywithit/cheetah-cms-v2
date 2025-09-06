@@ -46,7 +46,7 @@ export async function POST(
     // Handle the event
     switch (event.type) {
       case 'checkout.session.completed':
-        await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session)
+        await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session, params.brand)
         break
       
       case 'payment_intent.succeeded':
@@ -71,7 +71,7 @@ export async function POST(
   }
 }
 
-async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+async function handleCheckoutCompleted(session: Stripe.Checkout.Session, brandSlug: string) {
   try {
     console.log('Processing completed checkout session:', session.id)
 
@@ -87,11 +87,11 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     const { data: brandProfile } = await supabaseAdmin
       .from('brand_profiles')
       .select('id')
-      .eq('slug', params.brand)
+      .eq('slug', brandSlug)
       .single()
 
     if (!brandProfile) {
-      console.error('Brand profile not found for slug:', params.brand)
+      console.error('Brand profile not found for slug:', brandSlug)
       return
     }
 
@@ -148,10 +148,10 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
     const { error } = await supabaseAdmin
       .from('orders')
       .update({ 
-        status: 'paid',
-        paid_at: new Date().toISOString()
+        payment_status: 'paid',
+        updated_at: new Date().toISOString()
       })
-      .eq('stripe_payment_intent_id', paymentIntent.id)
+      .like('notes', `%${paymentIntent.id}%`)
 
     if (error) {
       console.error('Error updating order status:', error)
@@ -169,10 +169,10 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
     const { error } = await supabaseAdmin
       .from('orders')
       .update({ 
-        status: 'payment_failed',
-        failure_reason: paymentIntent.last_payment_error?.message
+        payment_status: 'failed',
+        notes: `Payment failed: ${paymentIntent.last_payment_error?.message || 'Unknown error'}`
       })
-      .eq('stripe_payment_intent_id', paymentIntent.id)
+      .like('notes', `%${paymentIntent.id}%`)
 
     if (error) {
       console.error('Error updating failed order:', error)
