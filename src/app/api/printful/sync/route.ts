@@ -91,10 +91,11 @@ export async function GET(request: NextRequest) {
         processedCount++
         console.log(`\n=== Processing Printful Product ${printfulProduct.id}: ${printfulProduct.name} ===`)
         
-        // For now, use basic product data since full product details are complex
-        console.log('Using basic product data for reliable sync...')
-        const transformedProduct = printfulAPI.transformProduct(printfulProduct)
-        console.log('Transformed product:', JSON.stringify(transformedProduct, null, 2))
+        // Get full product details with variants from Printful
+        console.log('Fetching full product details with variants...')
+        const fullPrintfulProduct = await printfulAPI.getSyncProduct(printfulProduct.id)
+        const transformedProduct = printfulAPI.transformProduct(fullPrintfulProduct, true) // true for full format
+        console.log('Transformed product with variants:', JSON.stringify(transformedProduct, null, 2))
         
         // Additional validation
         if (!transformedProduct || typeof transformedProduct !== 'object') {
@@ -103,19 +104,14 @@ export async function GET(request: NextRequest) {
           continue
         }
 
-        // Check if product already exists
-        const { data: existingProduct, error: checkError } = await supabaseAdmin
-          .from('products')
-          .select('id, printful_sync_product_id')
-          .eq('brand_profile_id', brandProfile.id)
-          .eq('printful_sync_product_id', printfulProduct.id.toString())
-          .single()
-
-        if (checkError && checkError.code !== 'PGRST116') {
-          console.error('Error checking existing product:', checkError)
-          errorCount++
+        // Process each variant as a separate product
+        if (!transformedProduct.variants || transformedProduct.variants.length === 0) {
+          console.log(`Product ${printfulProduct.id} has no variants, skipping`)
+          skippedCount++
           continue
         }
+
+        console.log(`Processing ${transformedProduct.variants.length} variants for product ${printfulProduct.id}`)
 
         // Get a user ID for the product (using first available user)
         const { data: userProfile } = await supabaseAdmin
@@ -124,86 +120,94 @@ export async function GET(request: NextRequest) {
           .limit(1)
           .single()
 
-        // Validate required fields
-        console.log(`Validating product ${printfulProduct.id}:`)
-        console.log(`- transformedProduct exists: ${!!transformedProduct}`)
-        console.log(`- transformedProduct.name exists: ${!!transformedProduct.name}`)
-        console.log(`- transformedProduct.name value: "${transformedProduct.name}"`)
-        console.log(`- transformedProduct.name type: ${typeof transformedProduct.name}`)
-        
-        if (!transformedProduct.name) {
-          console.error(`Product ${printfulProduct.id} missing name, skipping`)
-          skippedCount++
-          continue
-        }
-        
-        console.log(`✅ Product ${printfulProduct.id} passed validation, proceeding with database operations`)
+        // Process each variant as a separate product record
+        for (const variant of transformedProduct.variants) {
+          try {
+            console.log(`\n--- Processing variant: ${variant.name} (${variant.sku}) ---`)
 
-        const productData = {
-          user_id: userProfile?.id || null,
-          name: transformedProduct.name,
-          description: transformedProduct.description || `Print-on-demand ${transformedProduct.name} from Printful`,
-          slug: transformedProduct.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').substring(0, 100),
-          product_type: 'printful',
-          price: transformedProduct.base_price || 25.00, // Default price for Printful products
-          status: 'active' as const,
-          visibility: 'visible' as const,
-          requires_shipping: true,
-          is_physical: true,
-          track_inventory: false,
-          featured_image: transformedProduct.thumbnail || null,
-          printful_sync_product_id: printfulProduct.id.toString(),
-          brand_profile_id: brandProfile.id,
-          tags: ['printful', 'print-on-demand', brandSlug]
-        }
+            // Check if this specific variant already exists
+            const { data: existingProduct, error: checkError } = await supabaseAdmin
+              .from('products')
+              .select('id, printful_variant_id')
+              .eq('brand_profile_id', brandProfile.id)
+              .eq('printful_variant_id', variant.id.toString())
+              .single()
 
-        console.log(`About to ${existingProduct ? 'update' : 'create'} product with data:`, JSON.stringify(productData, null, 2))
-        
-        let product
-        
-        if (existingProduct) {
-          // Update existing product
-          console.log(`Updating existing product ${existingProduct.id}`)
-          const { data: updatedProduct, error: updateError } = await supabaseAdmin
-            .from('products')
-            .update(productData)
-            .eq('id', existingProduct.id)
-            .select()
-            .single()
+            if (checkError && checkError.code !== 'PGRST116') {
+              console.error('Error checking existing variant product:', checkError)
+              continue
+            }
 
-          if (updateError) {
-            console.error('Error updating product:', updateError)
-            console.error('Product data that failed:', JSON.stringify(productData, null, 2))
-            errorCount++
+            // Create unique product name with variant details
+            const variantName = `${transformedProduct.name} - ${variant.name}`
+            
+            const productData = {
+              user_id: userProfile?.id || null,
+              name: variantName,
+              description: transformedProduct.description || `Print-on-demand ${variantName} from Printful`,
+              slug: variantName.toLowerCase().replace(/[^a-z0-9]+/g, '-').substring(0, 100),
+              product_type: 'printful',
+              price: variant.price || 25.00,
+              status: 'active' as const,
+              visibility: 'visible' as const,
+              requires_shipping: true,
+              is_physical: true,
+              track_inventory: false,
+              featured_image: variant.image || transformedProduct.thumbnail || null,
+              printful_sync_product_id: printfulProduct.id.toString(),
+              printful_variant_id: variant.id.toString(),
+              sku: variant.sku || null,
+              brand_profile_id: brandProfile.id,
+              tags: ['printful', 'print-on-demand', brandSlug, variant.product_name || 'variant']
+            }
+
+            console.log(`About to ${existingProduct ? 'update' : 'create'} variant product:`, variant.name)
+            
+            let product
+            
+            if (existingProduct) {
+              // Update existing variant product
+              const { data: updatedProduct, error: updateError } = await supabaseAdmin
+                .from('products')
+                .update(productData)
+                .eq('id', existingProduct.id)
+                .select()
+                .single()
+
+              if (updateError) {
+                console.error('Error updating variant product:', updateError)
+                continue
+              }
+              
+              console.log('✅ Successfully updated variant product:', updatedProduct?.id)
+              product = updatedProduct
+            } else {
+              // Create new variant product
+              const { data: newProduct, error: createError } = await supabaseAdmin
+                .from('products')
+                .insert(productData)
+                .select()
+                .single()
+
+              if (createError) {
+                console.error('Error creating variant product:', createError)
+                continue
+              }
+              
+              console.log('✅ Successfully created variant product:', newProduct?.id)
+              product = newProduct
+            }
+
+            syncedProducts.push({
+              ...product,
+              printful_data: variant
+            })
+
+          } catch (variantError) {
+            console.error(`Error processing variant ${variant.id}:`, variantError)
             continue
           }
-          
-          console.log('Successfully updated product:', updatedProduct?.id)
-          product = updatedProduct
-        } else {
-          // Create new product
-          console.log('Creating new product')
-          const { data: newProduct, error: createError } = await supabaseAdmin
-            .from('products')
-            .insert(productData)
-            .select()
-            .single()
-
-          if (createError) {
-            console.error('Error creating product:', createError)
-            console.error('Product data that failed:', JSON.stringify(productData, null, 2))
-            errorCount++
-            continue
-          }
-          
-          console.log('Successfully created product:', newProduct?.id)
-          product = newProduct
         }
-
-        syncedProducts.push({
-          ...product,
-          printful_data: transformedProduct
-        })
 
       } catch (error) {
         console.error(`Error syncing product ${printfulProduct.id}:`, error)
