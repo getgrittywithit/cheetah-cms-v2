@@ -76,7 +76,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     console.log('Processing completed checkout session:', session.id)
 
     const metadata = session.metadata
-    if (!metadata?.brand_profile_id || !metadata?.order_items) {
+    if (!metadata?.order_items) {
       console.error('Missing required metadata in checkout session')
       return
     }
