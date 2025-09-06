@@ -82,7 +82,20 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     }
 
     const orderItems = JSON.parse(metadata.order_items)
-    const brandProfileId = metadata.brand_profile_id
+    
+    // Get the actual brand profile ID from the database using the brand slug
+    const { data: brandProfile } = await supabaseAdmin
+      .from('brand_profiles')
+      .select('id')
+      .eq('slug', params.brand)
+      .single()
+
+    if (!brandProfile) {
+      console.error('Brand profile not found for slug:', params.brand)
+      return
+    }
+
+    const brandProfileId = brandProfile.id
 
     // Create order record
     const { data: order, error: orderError } = await supabaseAdmin
