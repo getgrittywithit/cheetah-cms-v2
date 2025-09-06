@@ -14,6 +14,7 @@ export default function BrandProductsPage({ params }: { params: { brand: string 
   const [libraryProducts, setLibraryProducts] = useState<any[]>([])
   const [loadingLibrary, setLoadingLibrary] = useState(false)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set())
   const brandConfig = getBrandConfig(params.brand)
 
   if (!brandConfig) {
@@ -34,6 +35,57 @@ export default function BrandProductsPage({ params }: { params: { brand: string 
     } finally {
       setLoadingLibrary(false)
     }
+  }
+
+  // Group products by their base name (for Printful variants)
+  const groupProductsByFamily = (products: any[]) => {
+    const groups: { [key: string]: any } = {}
+    
+    products.forEach(product => {
+      // Extract base product name (remove variant info after " - ")
+      const baseName = product.name.split(' - ')[0]
+      const isVariant = product.printful_sync_product_id && product.name.includes(' - ')
+      
+      if (isVariant) {
+        if (!groups[baseName]) {
+          groups[baseName] = {
+            id: `group-${baseName.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+            name: baseName,
+            product_type: product.product_type,
+            featured_image: product.featured_image,
+            base_price: product.price,
+            variants: [],
+            printful_sync_product_id: product.printful_sync_product_id
+          }
+        }
+        
+        // Add to variants and update pricing
+        groups[baseName].variants.push(product)
+        if (product.price < groups[baseName].base_price) {
+          groups[baseName].base_price = product.price
+        }
+      } else {
+        // Regular product (not a variant)
+        groups[product.name] = {
+          ...product,
+          variants: []
+        }
+      }
+    })
+    
+    return Object.values(groups)
+  }
+
+  const groupedProducts = groupProductsByFamily(libraryProducts)
+
+  const toggleProductExpansion = (productId: string) => {
+    const newExpanded = new Set(expandedProducts)
+    if (newExpanded.has(productId)) {
+      newExpanded.delete(productId)
+    } else {
+      newExpanded.add(productId)
+    }
+    setExpandedProducts(newExpanded)
   }
 
   const handleDelete = async (productId: string) => {
@@ -232,66 +284,137 @@ export default function BrandProductsPage({ params }: { params: { brand: string 
               <RefreshCw className="w-8 h-8 animate-spin text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600">Loading products...</p>
             </div>
-          ) : libraryProducts.length > 0 ? (
+          ) : groupedProducts.length > 0 ? (
             viewMode === 'grid' ? (
               /* Grid View */
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {libraryProducts.map((product) => (
+              <div className="space-y-6">
+                {groupedProducts.map((product) => (
                   <div key={product.id} className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-                    <div className="aspect-square bg-gray-100 relative">
-                      {product.featured_image ? (
-                        <img 
-                          src={product.featured_image} 
-                          alt={product.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Package className="w-16 h-16 text-gray-400" />
+                    <div className="flex">
+                      {/* Product Image */}
+                      <div className="w-48 h-48 bg-gray-100 relative flex-shrink-0">
+                        {product.featured_image ? (
+                          <img 
+                            src={product.featured_image} 
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Package className="w-16 h-16 text-gray-400" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Product Info */}
+                      <div className="flex-1 p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="text-xl font-medium text-gray-900">{product.name}</h3>
+                          <div className="flex space-x-2">
+                            {product.variants?.length > 0 ? (
+                              <button 
+                                onClick={() => router.push(`/dashboard/${params.brand}/products/${product.variants[0]?.id}`)}
+                                className="p-2 bg-gray-100 rounded hover:bg-gray-200"
+                                title="View First Variant"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                            ) : (
+                              <button 
+                                onClick={() => router.push(`/dashboard/${params.brand}/products/${product.id}`)}
+                                className="p-2 bg-gray-100 rounded hover:bg-gray-200"
+                                title="View"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
                         </div>
-                      )}
-                      <div className="absolute top-2 right-2 flex space-x-1">
-                        <button 
-                          onClick={() => router.push(`/dashboard/${params.brand}/products/${product.id}`)}
-                          className="p-1 bg-white rounded shadow-sm hover:bg-gray-50"
-                          title="View"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => router.push(`/dashboard/${params.brand}/products/${product.id}/edit`)}
-                          className="p-1 bg-white rounded shadow-sm hover:bg-gray-50"
-                          title="Edit"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(product.id)}
-                          className="p-1 bg-white rounded shadow-sm hover:bg-gray-50 text-red-600"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        
+                        {/* Variant Info */}
+                        {product.variants?.length > 0 && (
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
+                              {product.variants.length} variants available
+                            </span>
+                            <button
+                              onClick={() => toggleProductExpansion(product.id)}
+                              className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                            >
+                              {expandedProducts.has(product.id) ? '▼ Hide variants' : '▶ Show variants'}
+                            </button>
+                          </div>
+                        )}
+                        
+                        <p className="text-sm text-gray-600 mb-3">
+                          {product.product_type === 'printful' ? '🖨️ Print-on-demand product' : product.product_type}
+                        </p>
+                        
+                        <div className="flex items-center justify-between">
+                          <span className="text-2xl font-bold text-gray-900">
+                            {product.variants?.length > 0 ? 'From ' : ''}${(product.base_price || product.price || 0).toFixed(2)}
+                          </span>
+                          <span className={`px-3 py-1 ${
+                            (product.status || product.variants?.[0]?.status) === 'active' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-gray-100 text-gray-800'
+                          } text-sm rounded-full`}>
+                            {product.status || product.variants?.[0]?.status || 'active'}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    <div className="p-4">
-                      <h3 className="font-medium text-gray-900 mb-1">{product.name}</h3>
-                      <p className="text-sm text-gray-600 mb-2">
-                        {product.product_type === 'printful' ? 'Print-on-demand' : product.product_type}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold text-gray-900">
-                          ${(product.price || 0).toFixed(2)}
-                        </span>
-                        <span className={`px-2 py-1 ${
-                          product.status === 'active' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-gray-100 text-gray-800'
-                        } text-xs rounded`}>
-                          {product.status}
-                        </span>
+                    
+                    {/* Expanded Variants Section */}
+                    {expandedProducts.has(product.id) && product.variants?.length > 0 && (
+                      <div className="border-t bg-gray-50 p-4">
+                        <h4 className="font-medium text-gray-900 mb-3">Available Variants:</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {product.variants.map((variant: any) => (
+                            <div key={variant.id} className="bg-white border rounded-lg p-3 hover:shadow-md transition-shadow">
+                              <div className="flex items-center justify-between mb-2">
+                                <h5 className="font-medium text-sm text-gray-900">
+                                  {variant.name.split(' - ').slice(1).join(' - ')}
+                                </h5>
+                                <div className="flex space-x-1">
+                                  <button 
+                                    onClick={() => router.push(`/dashboard/${params.brand}/products/${variant.id}`)}
+                                    className="p-1 bg-gray-100 rounded hover:bg-gray-200"
+                                    title="View Variant"
+                                  >
+                                    <Eye className="w-3 h-3" />
+                                  </button>
+                                  <button 
+                                    onClick={() => router.push(`/dashboard/${params.brand}/products/${variant.id}/edit`)}
+                                    className="p-1 bg-gray-100 rounded hover:bg-gray-200"
+                                    title="Edit Variant"
+                                  >
+                                    <Edit2 className="w-3 h-3" />
+                                  </button>
+                                  <button 
+                                    onClick={() => handleDelete(variant.id)}
+                                    className="p-1 bg-gray-100 rounded hover:bg-gray-200 text-red-600"
+                                    title="Delete Variant"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-lg font-bold text-gray-900">
+                                  ${variant.price.toFixed(2)}
+                                </span>
+                                {variant.sku && (
+                                  <span className="text-xs text-gray-500">
+                                    SKU: {variant.sku}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 ))}
               </div>
