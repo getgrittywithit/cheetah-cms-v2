@@ -165,10 +165,10 @@ Voice Guidelines:
 - Highlight quality craftsmanship and emotional connections`
     },
     emailSettings: {
-      domain: 'gritcollectiveco.com',
+      domain: 'grittysystems.com',
       fromName: 'Grit Collective Co.',
-      fromEmail: 'hello@resend.dev', // Temporary: Use Resend's verified domain
-      replyTo: 'support@gritcollectiveco.com',
+      fromEmail: 'orders@grittysystems.com',
+      replyTo: 'support@grittysystems.com',
       signature: 'With grit and gratitude,\nThe Grit Collective Co. Family'
     },
     industry: 'Home Décor & Handcrafted Products',
