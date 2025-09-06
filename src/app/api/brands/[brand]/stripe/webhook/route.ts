@@ -89,17 +89,14 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       .from('orders')
       .insert({
         brand_profile_id: brandProfileId,
-        stripe_session_id: session.id,
-        stripe_payment_intent_id: session.payment_intent as string,
-        customer_email: session.customer_details?.email,
-        customer_name: session.customer_details?.name,
+        email: session.customer_details?.email,
         billing_address: session.customer_details?.address,
         shipping_address: session.shipping_details?.address,
         total_amount: session.amount_total ? session.amount_total / 100 : 0,
-        currency: session.currency || 'usd',
-        status: 'paid',
-        items: orderItems,
-        metadata: metadata
+        currency: session.currency?.toLowerCase() || 'usd',
+        status: 'processing',
+        payment_status: 'paid',
+        notes: `Stripe Session: ${session.id}, Payment Intent: ${session.payment_intent}`
       })
       .select()
       .single()
