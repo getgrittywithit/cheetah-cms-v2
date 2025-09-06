@@ -6,14 +6,14 @@ import { getBrandConfig } from '@/lib/brand-config'
 
 interface Order {
   id: string
-  customer_name: string
-  customer_email: string
+  customer_name?: string
+  email: string
   total_amount: number
   currency: string
   status: 'pending' | 'paid' | 'failed' | 'cancelled' | 'refunded' | 'fulfilled'
   payment_status: 'pending' | 'paid' | 'failed' | 'refunded'
   fulfillment_status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
-  items: Array<{
+  items?: Array<{
     product_name: string
     product_type: string
     quantity: number
@@ -86,7 +86,7 @@ export default function OrdersPage({ params }: { params: { brand: string } }) {
 
   const filteredOrders = orders.filter(order => {
     const matchesSearch = searchTerm === '' || 
-      order.customer_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.id.toLowerCase().includes(searchTerm.toLowerCase())
     
@@ -172,14 +172,14 @@ export default function OrdersPage({ params }: { params: { brand: string } }) {
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">{order.customer_name || 'N/A'}</div>
-                      <div className="text-sm text-gray-500">{order.customer_email}</div>
+                      <div className="text-sm text-gray-500">{order.email}</div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">
-                        {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                        {order.items?.length || 1} item{(order.items?.length || 1) !== 1 ? 's' : ''}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {order.items.map(item => item.product_name).join(', ')}
+                        {order.items?.map(item => item.product_name).join(', ') || 'Order details'}
                       </div>
                     </td>
                     <td className="px-6 py-4">
