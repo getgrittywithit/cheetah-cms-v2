@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
         // Get full product details with variants from Printful
         console.log('Fetching full product details with variants...')
         const fullPrintfulProduct = await printfulAPI.getSyncProduct(printfulProduct.id)
-        const transformedProduct = printfulAPI.transformProduct(fullPrintfulProduct, true) // true for full format
+        const transformedProduct = printfulAPI.transformProduct(fullPrintfulProduct)
         console.log('Transformed product with variants:', JSON.stringify(transformedProduct, null, 2))
         
         // Additional validation
@@ -106,7 +106,8 @@ export async function GET(request: NextRequest) {
 
         // Process each variant as a separate product
         if (!transformedProduct.variants || transformedProduct.variants.length === 0) {
-          console.log(`Product ${printfulProduct.id} has no variants, skipping`)
+          console.log(`Product ${printfulProduct.id} has no variants (found: ${transformedProduct.variants?.length || 0}), skipping`)
+          console.log('Full transformed product:', JSON.stringify(transformedProduct, null, 2))
           skippedCount++
           continue
         }
