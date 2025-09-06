@@ -94,6 +94,8 @@ export async function GET(request: NextRequest) {
         // Get full product details with variants from Printful
         console.log('Fetching full product details with variants...')
         const fullPrintfulProduct = await printfulAPI.getSyncProduct(printfulProduct.id)
+        console.log('Full Printful product response:', JSON.stringify(fullPrintfulProduct, null, 2))
+        
         const transformedProduct = printfulAPI.transformProduct(fullPrintfulProduct)
         console.log('Transformed product with variants:', JSON.stringify(transformedProduct, null, 2))
         
