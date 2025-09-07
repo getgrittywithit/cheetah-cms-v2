@@ -50,7 +50,7 @@ export interface PrintfulFile {
   visible: boolean
 }
 
-class PrintfulAPI {
+export class PrintfulAPI {
   private baseURL = PRINTFUL_BASE_URL
   private token: string
   private storeId: string
