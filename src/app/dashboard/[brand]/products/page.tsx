@@ -42,13 +42,16 @@ export default function BrandProductsPage({ params }: { params: { brand: string 
     const groups: { [key: string]: any } = {}
     
     products.forEach(product => {
-      // Extract base product name (remove variant info after " - ")
-      const baseName = product.name.split(' - ')[0]
-      const isVariant = product.printful_sync_product_id && product.name.includes(' - ')
+      // Check if this is a Printful product
+      const isPrintfulProduct = product.printful_sync_product_id && product.product_type === 'printful'
       
-      if (isVariant) {
-        if (!groups[baseName]) {
-          groups[baseName] = {
+      if (isPrintfulProduct) {
+        // For Printful products, group by sync_product_id
+        const syncId = product.printful_sync_product_id
+        const baseName = product.name.split(' - ')[0] // Extract base name
+        
+        if (!groups[syncId]) {
+          groups[syncId] = {
             id: `group-${baseName.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
             name: baseName,
             product_type: product.product_type,
@@ -60,13 +63,13 @@ export default function BrandProductsPage({ params }: { params: { brand: string 
         }
         
         // Add to variants and update pricing
-        groups[baseName].variants.push(product)
-        if (product.price < groups[baseName].base_price) {
-          groups[baseName].base_price = product.price
+        groups[syncId].variants.push(product)
+        if (product.price < groups[syncId].base_price) {
+          groups[syncId].base_price = product.price
         }
       } else {
-        // Regular product (not a variant)
-        groups[product.name] = {
+        // Regular product (not a Printful variant)
+        groups[product.id] = {
           ...product,
           variants: []
         }
